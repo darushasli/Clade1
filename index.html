@@ -1318,9 +1318,9 @@
       <div class="flex justify-between text-slate-400"><span>مقدار</span><span id="orderModalQty" class="text-cyan-400 font-bold"></span></div>
       <div class="flex justify-between text-slate-400"><span>قیمت</span><span id="orderModalPrice" class="text-cyan-400 font-bold"></span></div>
     </div>
-    <p class="text-xs text-slate-400 leading-relaxed mb-5">برای نهایی‌کردن سفارش، روی دکمه زیر بزنید تا مستقیماً با پشتیبانی آپلود گرام در تلگرام گفتگو را شروع کنید.</p>
-    <a id="orderModalConfirm" href="#" target="_blank" rel="noopener" class="btn-primary magnetic ripple-host w-full py-3.5 text-sm">
-      <span class="flex items-center gap-2"><i class="fa-brands fa-telegram"></i> ادامه در تلگرام</span>
+    <p class="text-xs text-slate-400 leading-relaxed mb-5">برای ثبت و پرداخت این سفارش از طریق درگاه زرین‌پال، وارد پنل کاربری خود شوید.</p>
+    <a id="orderModalConfirm" href="dashboard.html" class="btn-primary magnetic ripple-host w-full py-3.5 text-sm">
+      <span class="flex items-center gap-2"><i class="fa-solid fa-gauge-high"></i> ادامه در پنل کاربری</span>
     </a>
   </div>
 </div>
@@ -1714,7 +1714,6 @@ document.querySelectorAll('.faq-item').forEach(item => {
 })();
 
 // ============ ORDER MODAL ============
-const SUPPORT_TG_USERNAME = 'uploadgram_support'; // TODO: replace with the real support Telegram username
 const orderModalOverlay = document.getElementById('orderModalOverlay');
 const orderModal = document.getElementById('orderModal');
 let lastFocusedEl = null;
@@ -1724,8 +1723,8 @@ function openOrderModal(btn){
   document.getElementById('orderModalPlan').textContent = btn.dataset.planName || '';
   document.getElementById('orderModalQty').textContent = btn.dataset.planQty || '';
   document.getElementById('orderModalPrice').textContent = btn.dataset.planPrice || '';
-  const summary = `سلام، می‌خواهم سفارش ثبت کنم:\nپلن: ${btn.dataset.planName}\nمقدار: ${btn.dataset.planQty}\nقیمت: ${btn.dataset.planPrice}`;
-  document.getElementById('orderModalConfirm').href = `https://t.me/${SUPPORT_TG_USERNAME}?text=${encodeURIComponent(summary)}`;
+  const params = new URLSearchParams({ service: btn.dataset.planServiceId || '', plan: btn.dataset.planName || '' });
+  document.getElementById('orderModalConfirm').href = `dashboard.html?${params.toString()}`;
   orderModalOverlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
   const focusable = orderModal.querySelectorAll('button, a[href]');

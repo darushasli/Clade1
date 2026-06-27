@@ -87,6 +87,18 @@
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
         await updateProfile(cred.user, { displayName: `${fn} ${ln}` });
         await sendEmailVerification(cred.user);
+
+        try {
+          const idToken = await cred.user.getIdToken();
+          await fetch('api/auth_sync.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+            body: JSON.stringify({ username: uname, phone, displayName: `${fn} ${ln}` }),
+          });
+        } catch (syncError) {
+          console.error('auth_sync failed', syncError);
+        }
+
         setStep(2);
         startCountdown();
       } catch (error) {
@@ -659,11 +671,11 @@
       <p class="text-slate-400 text-sm">خوش آمدید <span class="text-cyan-400 font-semibold" id="welcomeName"></span></p>
     </div>
 
-    <a href="login.html"
+    <a href="dashboard.html"
       class="btn-submit magnetic ripple-host no-underline" style="text-decoration:none;">
       <span>
-        <i class="fa-solid fa-right-to-bracket"></i>
-        ورود به حساب کاربری
+        <i class="fa-solid fa-gauge-high"></i>
+        ورود به پنل کاربری
       </span>
     </a>
 

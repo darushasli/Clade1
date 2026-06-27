@@ -1,2 +1,6 @@
 api/config.local.php
+api/*.sqlite
+api/*.sqlite-journal
+api/*.sqlite-wal
+api/*.sqlite-shm
 __pycache__/
