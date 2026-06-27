@@ -26,17 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $status = trim((string) ($_GET['status'] ?? ''));
     $uid = trim((string) ($_GET['uid'] ?? ''));
 
-    $sql = 'SELECT * FROM orders WHERE 1=1';
+    $sql = 'SELECT o.*, u.email, u.display_name, u.username FROM orders o LEFT JOIN users u ON u.uid = o.uid WHERE 1=1';
     $params = [];
     if ($status !== '') {
-        $sql .= ' AND status = ?';
+        $sql .= ' AND o.status = ?';
         $params[] = $status;
     }
     if ($uid !== '') {
-        $sql .= ' AND uid = ?';
+        $sql .= ' AND o.uid = ?';
         $params[] = $uid;
     }
-    $sql .= ' ORDER BY id DESC LIMIT 300';
+    $sql .= ' ORDER BY o.id DESC LIMIT 300';
 
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
