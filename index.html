@@ -250,6 +250,15 @@
   .nav-link[aria-current="page"]{ color:#22d3ee; }
   .nav-link[aria-current="page"]::after{ width:100%; }
 
+  /* Mobile nav drawer links */
+  .mobile-nav-link{
+    display:flex; align-items:center; padding:13px 14px; border-radius:10px;
+    border-right:3px solid transparent; color:#cbd5e1; font-weight:500; font-size:.95rem;
+    transition:background .25s ease,color .25s ease,border-color .25s ease;
+  }
+  .mobile-nav-link:hover{ background:rgba(34,211,238,.06); color:#22d3ee; }
+  .mobile-nav-link[aria-current="page"]{ color:#22d3ee; border-right-color:#22d3ee; background:rgba(34,211,238,.08); }
+
   /* ============ HERO BADGE ============ */
   .pulse-dot{ animation: dotPulse 1.7s ease-in-out infinite; }
   @keyframes dotPulse{
@@ -548,7 +557,7 @@
 
   /* Nav CTA button */
   .btn-nav{
-    position:relative; display:inline-flex; align-items:center; gap:6px;
+    position:relative; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
     background:linear-gradient(135deg,#06b6d4,#3b82f6);
     color:#fff; font-weight:700; border-radius:12px;
     font-family:'Vazirmatn',sans-serif;
@@ -565,7 +574,7 @@
 
   /* Ghost outline nav button (ورود) */
   .btn-nav-ghost{
-    display:inline-flex; align-items:center; gap:6px;
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
     padding:8px 18px; border-radius:10px;
     background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.1);
     color:#94a3b8; font-weight:600;
@@ -682,7 +691,7 @@
       <span dir="ltr" class="text-xl font-mono font-bold tracking-tight bg-gradient-to-l from-white to-cyan-400 bg-clip-text text-transparent">UploadGram</span>
     </div>
 
-    <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+    <div class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
       <a href="#how" class="nav-link hover:text-cyan-400 transition-colors">نحوه کار</a>
       <a href="#bento" class="nav-link hover:text-cyan-400 transition-colors">مزایای فنی</a>
       <a href="#ecosystem" class="nav-link hover:text-cyan-400 transition-colors">اکوسیستم</a>
@@ -692,16 +701,42 @@
     </div>
 
     <div class="flex items-center gap-3">
-      <a href="login.html" class="btn-nav-ghost text-sm">
-        <i class="fa-solid fa-right-to-bracket text-xs"></i> ورود
-      </a>
-      <a href="register.html" class="btn-nav magnetic ripple-host text-xs lg:text-sm px-5 py-2.5">
-        <span class="relative z-10 flex items-center gap-2">
-          <i class="fa-solid fa-user-plus text-xs"></i> ثبت‌نام رایگان
-        </span>
-      </a>
+      <div class="hidden lg:flex items-center gap-3">
+        <a href="login.html" class="btn-nav-ghost text-sm">
+          <i class="fa-solid fa-right-to-bracket text-xs"></i> ورود
+        </a>
+        <a href="register.html" class="btn-nav magnetic ripple-host text-sm px-5 py-2.5">
+          <span class="relative z-10 flex items-center gap-2">
+            <i class="fa-solid fa-user-plus text-xs"></i> ثبت‌نام رایگان
+          </span>
+        </a>
+      </div>
+      <button type="button" id="navToggle" class="lg:hidden w-11 h-11 rounded-xl bg-white/5 border border-slate-700/60 flex items-center justify-center text-slate-200 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors" aria-expanded="false" aria-controls="mobileMenuPanel" aria-label="باز کردن منو">
+        <i class="fa-solid fa-bars text-lg" id="navToggleIcon"></i>
+      </button>
     </div>
   </nav>
+
+  <div id="mobileMenuPanel" class="lg:hidden max-w-7xl mx-auto mt-3 overflow-hidden opacity-0 transition-all duration-300 ease-out" style="max-height:0px;" aria-hidden="true">
+    <div class="glass rounded-2xl border border-slate-800/60 p-4 flex flex-col gap-1">
+      <a href="#how" class="mobile-nav-link">نحوه کار</a>
+      <a href="#bento" class="mobile-nav-link">مزایای فنی</a>
+      <a href="#ecosystem" class="mobile-nav-link">اکوسیستم</a>
+      <a href="products.html" class="mobile-nav-link">محصولات</a>
+      <a href="about.html" class="mobile-nav-link">درباره ما</a>
+      <a href="#faq" class="mobile-nav-link">سوالات متداول</a>
+      <div class="flex items-center gap-3 mt-2 pt-3 border-t border-slate-800/60">
+        <a href="login.html" class="btn-nav-ghost text-sm flex-1 justify-center">
+          <i class="fa-solid fa-right-to-bracket text-xs"></i> ورود
+        </a>
+        <a href="register.html" class="btn-nav magnetic ripple-host text-sm px-5 py-2.5 flex-1 justify-center">
+          <span class="relative z-10 flex items-center gap-2 justify-center">
+            <i class="fa-solid fa-user-plus text-xs"></i> ثبت‌نام رایگان
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
 </header>
 
 <!-- ============ HERO ============ -->
@@ -1357,6 +1392,32 @@ function onScroll(){
 }
 window.addEventListener('scroll', onScroll, { passive:true });
 onScroll();
+
+// ============ MOBILE NAV MENU ============
+const navToggle = document.getElementById('navToggle');
+const mobileMenuPanel = document.getElementById('mobileMenuPanel');
+const navToggleIcon = document.getElementById('navToggleIcon');
+function openMobileMenu(){
+  mobileMenuPanel.style.maxHeight = mobileMenuPanel.scrollHeight + 'px';
+  mobileMenuPanel.classList.remove('opacity-0');
+  mobileMenuPanel.setAttribute('aria-hidden', 'false');
+  navToggle.setAttribute('aria-expanded', 'true');
+  navToggleIcon.className = 'fa-solid fa-xmark text-lg';
+}
+function closeMobileMenu(){
+  mobileMenuPanel.style.maxHeight = '0px';
+  mobileMenuPanel.classList.add('opacity-0');
+  mobileMenuPanel.setAttribute('aria-hidden', 'true');
+  navToggle.setAttribute('aria-expanded', 'false');
+  navToggleIcon.className = 'fa-solid fa-bars text-lg';
+}
+navToggle.addEventListener('click', () => {
+  const isOpen = navToggle.getAttribute('aria-expanded') === 'true';
+  isOpen ? closeMobileMenu() : openMobileMenu();
+});
+mobileMenuPanel.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMobileMenu));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobileMenu(); });
+window.addEventListener('resize', () => { if (window.innerWidth >= 1024) closeMobileMenu(); });
 
 // ============ CURSOR GLOW + DEPTH PARALLAX ============
 const glow = document.getElementById('cursorGlow');
