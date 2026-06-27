@@ -5,6 +5,8 @@
  * price + min/max validation when a user places an order).
  */
 
+require_once __DIR__ . '/db.php';
+
 function uploadgram_sanitize_text($value): string {
     $text = (string) $value;
     $text = preg_replace('/followeran(\.ir)?/i', '', $text);
@@ -149,10 +151,12 @@ function uploadgram_upstream_call(string $apiKey, array $fields): ?array {
 }
 
 /**
- * Returns the full, markup-applied, cached catalog as
- * { ok, services?, error? } — the exact contract services.php responds with.
+ * Fetches and caches just the upstream reseller catalog (markup applied),
+ * as { ok, services?, error? }. Kept separate from uploadgram_get_services()
+ * so admin-managed local products (below) are never stuck behind the file
+ * cache and always reflect the latest edit immediately.
  */
-function uploadgram_get_services(): array {
+function uploadgram_get_upstream_services(): array {
     if (is_file(UPLOADGRAM_CACHE_FILE) && (time() - filemtime(UPLOADGRAM_CACHE_FILE)) < UPLOADGRAM_CACHE_TTL) {
         $cached = file_get_contents(UPLOADGRAM_CACHE_FILE);
         $cachedDecoded = json_decode($cached, true);
@@ -182,6 +186,7 @@ function uploadgram_get_services(): array {
 
     $services = array_slice($services, 0, 200);
     foreach ($services as &$service) {
+        $service['source'] = 'upstream';
         if ($service['rate'] !== null) {
             $service['rate'] = round($service['rate'] * UPLOADGRAM_MARKUP, 4);
         }
@@ -195,19 +200,95 @@ function uploadgram_get_services(): array {
 }
 
 /**
- * Places the order with the upstream reseller panel once it's been paid for
- * on our side, and records the upstream's order id/status. Upstream failure
- * here does not undo the payment — the order stays "paid" with
+ * Admin-managed products (api/admin/products.php) shaped into the same
+ * catalog-service array the rest of the app expects, prefixed `local:<id>`
+ * so they never collide with upstream service ids. Each one carries its own
+ * api_url/api_key/api_action — wired in uploadgram_place_upstream_order() —
+ * so an admin can point any product at a different external API.
+ */
+function uploadgram_local_products_as_services(bool $activeOnly = true): array {
+    $db = uploadgram_db();
+    $sql = 'SELECT * FROM products' . ($activeOnly ? ' WHERE is_active = 1' : '') . ' ORDER BY sort_order ASC, id ASC';
+    $rows = $db->query($sql)->fetchAll();
+
+    $services = [];
+    foreach ($rows as $row) {
+        $services[] = [
+            'id' => 'local:' . $row['id'],
+            'name' => $row['name'],
+            'category' => $row['category'] ?? '',
+            'platform' => $row['platform'],
+            'rate' => $row['base_rate'] !== null ? (float) $row['base_rate'] : null,
+            'min' => $row['min_qty'] !== null ? (int) $row['min_qty'] : null,
+            'max' => $row['max_qty'] !== null ? (int) $row['max_qty'] : null,
+            'source' => 'local',
+            'product_id' => (int) $row['id'],
+        ];
+    }
+    return $services;
+}
+
+/** Looks up one local product row by its raw (non-prefixed) id. */
+function uploadgram_get_product(int $id): ?array {
+    $db = uploadgram_db();
+    $stmt = $db->prepare('SELECT * FROM products WHERE id = ?');
+    $stmt->execute([$id]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
+/**
+ * Returns the full catalog as { ok, services?, error? } — the exact contract
+ * services.php responds with — merging admin-managed local products (always
+ * fresh) ahead of the cached upstream catalog. The catalog is considered
+ * available as long as at least one of the two sources has anything to show,
+ * so a shop with only local products still works with no upstream API key.
+ */
+function uploadgram_get_services(): array {
+    $local = uploadgram_local_products_as_services();
+    $upstream = uploadgram_get_upstream_services();
+    $services = array_merge($local, $upstream['ok'] ? $upstream['services'] : []);
+
+    if (count($services) === 0) {
+        return ['ok' => false, 'error' => $upstream['error'] ?? 'catalog_unavailable'];
+    }
+
+    return ['ok' => true, 'services' => $services];
+}
+
+/**
+ * Places the order with whichever upstream API backs this service, and
+ * records the upstream's order id/status. Local products (source==='local')
+ * use their own per-product api_url/api_key/api_action — set in the admin
+ * panel — instead of the single shared reseller key, so each product can be
+ * wired to a different provider. A local product with no API configured is
+ * flagged 'manual_required' for an admin to fulfill by hand. Upstream
+ * failure never undoes the payment — the order stays "paid" with
  * upstream_status = 'upstream_error' so an admin can retry it manually.
  */
 function uploadgram_place_upstream_order(PDO $db, int $orderId, array $service, string $link, int $quantity): void {
-    $apiKey = uploadgram_resolve_api_key();
-    $result = $apiKey ? uploadgram_upstream_call($apiKey, [
-        'action' => 'add',
-        'service' => $service['id'],
-        'link' => $link,
-        'quantity' => $quantity,
-    ]) : null;
+    if (($service['source'] ?? 'upstream') === 'local') {
+        $product = uploadgram_get_product((int) $service['product_id']);
+        if (!$product || empty($product['api_url']) || empty($product['api_key'])) {
+            $db->prepare("UPDATE orders SET upstream_status = 'manual_required', status = 'processing' WHERE id = ?")
+                ->execute([$orderId]);
+            return;
+        }
+        $result = uploadgram_fetch_from_upstream($product['api_url'], $product['api_key'], [
+            'action' => $product['api_action'] ?: 'add',
+            'service' => $product['upstream_service_id'] ?: $service['id'],
+            'link' => $link,
+            'quantity' => $quantity,
+        ]);
+    } else {
+        $apiKey = uploadgram_resolve_api_key();
+        $result = $apiKey ? uploadgram_upstream_call($apiKey, [
+            'action' => 'add',
+            'service' => $service['id'],
+            'link' => $link,
+            'quantity' => $quantity,
+        ]) : null;
+    }
 
     $upstreamOrderId = $result['order'] ?? null;
     if ($upstreamOrderId !== null) {

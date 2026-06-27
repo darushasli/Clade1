@@ -87,8 +87,8 @@ if ($payMethod === 'wallet') {
 
         $db->prepare('UPDATE users SET balance = balance - ? WHERE uid = ?')->execute([$totalPrice, $uid]);
 
-        $insert = $db->prepare('INSERT INTO orders (uid, service_id, service_name, platform, link, quantity, unit_rate, total_price, pay_method, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        $insert->execute([$uid, $service['id'], $service['name'], $service['platform'], $link, $quantity, $service['rate'], $totalPrice, 'wallet', 'paid']);
+        $insert = $db->prepare('INSERT INTO orders (uid, product_id, service_id, service_name, platform, link, quantity, unit_rate, total_price, pay_method, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $insert->execute([$uid, $service['product_id'] ?? null, $service['id'], $service['name'], $service['platform'], $link, $quantity, $service['rate'], $totalPrice, 'wallet', 'paid']);
         $orderId = (int) $db->lastInsertId();
 
         $db->prepare('INSERT INTO wallet_transactions (uid, type, amount, status, note) VALUES (?, ?, ?, ?, ?)')
@@ -104,8 +104,8 @@ if ($payMethod === 'wallet') {
     uploadgram_send_json(['ok' => true, 'order_id' => $orderId, 'status' => 'paid', 'pay_method' => 'wallet']);
 }
 
-$insert = $db->prepare('INSERT INTO orders (uid, service_id, service_name, platform, link, quantity, unit_rate, total_price, pay_method, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-$insert->execute([$uid, $service['id'], $service['name'], $service['platform'], $link, $quantity, $service['rate'], $totalPrice, 'zarinpal', 'awaiting_payment']);
+$insert = $db->prepare('INSERT INTO orders (uid, product_id, service_id, service_name, platform, link, quantity, unit_rate, total_price, pay_method, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+$insert->execute([$uid, $service['product_id'] ?? null, $service['id'], $service['name'], $service['platform'], $link, $quantity, $service['rate'], $totalPrice, 'zarinpal', 'awaiting_payment']);
 $orderId = (int) $db->lastInsertId();
 
 $callbackUrl = uploadgram_base_url() . '/api/zarinpal_callback.php';
