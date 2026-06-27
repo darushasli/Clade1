@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ثبت‌نام | UploadGram</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAC2AQfSrQwSxQsUbSrj996rnxUoaIW9SA",
+    authDomain: "uploader-e2530.firebaseapp.com",
+    projectId: "uploader-e2530",
+    storageBucket: "uploader-e2530.firebasestorage.app",
+    messagingSenderId: "420837680235",
+    appId: "1:420837680235:web:f05d82b3b2ae0ba3debd2e",
+    measurementId: "G-H6JGFSPRCF"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  function showToast(message, ok) {
+    const toast = document.createElement('div');
+    const color = ok ? '6,182,212' : '239,68,68';
+    const textColor = ok ? '#22d3ee' : '#f87171';
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);`;
+    toast.textContent = (ok ? '✓ ' : '❌ ') + message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
+  // ✅ addEventListener به جای onclick — چون module scope با onclick کار نمی‌کنه
+  document.addEventListener('DOMContentLoaded', () => {
+
+    document.getElementById('btnSendCode').addEventListener('click', async () => {
+      clearAllErrors();
+      let valid = true;
+
+      const fn = document.getElementById('firstName').value.trim();
+      const ln = document.getElementById('lastName').value.trim();
+      const uname = document.getElementById('username').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const pass = document.getElementById('regPassword').value;
+      const pass2 = document.getElementById('regPasswordConfirm').value;
+
+      if (!fn) { showErr('err-firstName', true); valid = false; }
+      if (!ln) { showErr('err-lastName', true); valid = false; }
+      if (!uname || uname.length < 3) { showErr('err-username', true); valid = false; }
+      if (!validateIranPhone(phone)) { showErr('err-phone', true); valid = false; }
+      if (!validateEmail(email)) { showErr('err-email', true); valid = false; }
+      if (!pass || pass.length < 6) { showErr('err-password', true); valid = false; }
+      if (!pass2 || pass2 !== pass) { showErr('err-passwordConfirm', true); valid = false; }
+
+      if (!valid) return;
+
+      document.getElementById('emailDisplay').textContent = email;
+      document.getElementById('welcomeName').textContent = fn + ' ' + ln;
+
+      const btn = document.getElementById('btnSendCode');
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<span><i class="fa-solid fa-circle-notch fa-spin"></i> در حال ایجاد حساب...</span>';
+      btn.disabled = true;
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await updateProfile(cred.user, { displayName: `${fn} ${ln}` });
+        await sendEmailVerification(cred.user);
+        setStep(2);
+        startCountdown();
+      } catch (error) {
+        let msg = 'خطا در ایجاد حساب';
+        if (error.code === 'auth/email-already-in-use') msg = 'این ایمیل قبلاً ثبت‌نام کرده — به جای آن وارد شوید';
+        else if (error.code === 'auth/invalid-email') msg = 'فرمت ایمیل نادرست است';
+        else if (error.code === 'auth/weak-password') msg = 'رمز عبور ضعیف است — حداقل ۶ کاراکتر';
+        else if (error.code === 'auth/network-request-failed') msg = 'خطای اتصال به اینترنت';
+        else msg = (error.code || error.message || 'خطای ناشناخته');
+        showToast(msg, false);
+      } finally {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('btnVerify').addEventListener('click', async () => {
+      const btn = document.getElementById('btnVerify');
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<span><i class="fa-solid fa-circle-notch fa-spin"></i> در حال بررسی...</span>';
+      btn.disabled = true;
+      showErr('err-verify', false);
+
+      try {
+        await auth.currentUser.reload();
+        if (auth.currentUser.emailVerified) {
+          stopCountdown();
+          document.querySelector('.step-dots').style.display = 'none';
+          document.querySelector('.progress-bar').style.display = 'none';
+          setStep(3);
+        } else {
+          showErr('err-verify', true);
+        }
+      } catch (error) {
+        showToast(error.code || error.message || 'خطا در بررسی وضعیت', false);
+      } finally {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('resendBtn').addEventListener('click', async () => {
+      const resendBtn = document.getElementById('resendBtn');
+      resendBtn.disabled = true;
+      resendBtn.textContent = 'در حال ارسال...';
+      try {
+        await sendEmailVerification(auth.currentUser);
+        startCountdown();
+        showToast('ایمیل تایید دوباره ارسال شد', true);
+      } catch (error) {
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'ارسال مجدد ایمیل';
+        showToast(error.code || error.message || 'خطا در ارسال', false);
+      }
+    });
+
+    document.getElementById('eyeBtnPass').addEventListener('click', () => {
+      const inp = document.getElementById('regPassword');
+      const icon = document.getElementById('eyeIconPass');
+      if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
+      else { inp.type = 'password'; icon.className = 'fa-solid fa-eye'; }
+    });
+
+    document.getElementById('eyeBtnPassConfirm').addEventListener('click', () => {
+      const inp = document.getElementById('regPasswordConfirm');
+      const icon = document.getElementById('eyeIconPassConfirm');
+      if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
+      else { inp.type = 'password'; icon.className = 'fa-solid fa-eye'; }
+    });
+
+  });
+</script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Vazirmatn', 'sans-serif'],
+          mono: ['Space Grotesk', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  :root{
+    --cyan:#06b6d4; --blue:#3b82f6; --indigo:#6366f1; --amber:#f59e0b;
+    --ease-spring: cubic-bezier(0.22,1,0.36,1);
+    --ease-pop: cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  *{ scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.4) transparent; }
+
+  html{ scroll-behavior:smooth; }
+  body{
+    background:#020617; color:#f1f5f9;
+    min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+
+  /* ============ CURSOR GLOW (desktop) ============ */
+  #cursorGlow{
+    position:fixed; width:380px; height:380px; border-radius:50%;
+    background:radial-gradient(circle, rgba(6,182,212,0.08), transparent 70%);
+    pointer-events:none; z-index:1; transform:translate(-50%,-50%);
+    transition: opacity .4s ease; opacity:0;
+  }
+  @media (hover:hover) and (pointer:fine){ #cursorGlow.active{ opacity:1; } }
+
+  /* ============ CUSTOM TELEGRAM CURSOR ============ */
+  @media (hover:hover) and (pointer:fine){
+    *{ cursor:none !important; }
+  }
+  #tgCursor{
+    position:fixed; top:0; left:0; z-index:10000; pointer-events:none;
+    display:none;
+    transform:translate3d(0,0,0) translate(-50%,-50%) rotate(45deg);
+    opacity:0; transition: opacity .35s ease, transform .12s linear;
+    filter: drop-shadow(0 4px 14px rgba(34,211,238,.55));
+  }
+  @media (hover:hover) and (pointer:fine){ #tgCursor{ display:block; } }
+  #tgCursor.active{ opacity:1; }
+  #tgCursor i{
+    font-size:30px;
+    background:linear-gradient(135deg,#2AABEE,#229ED9);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+
+  /* ============ AURORA ============ */
+  .aurora{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  }
+  .aurora span{
+    position:absolute; border-radius:50%; filter:blur(90px);
+    animation: auroraDrift 22s ease-in-out infinite;
+    opacity:.35;
+  }
+  .aurora span:nth-child(1){ width:520px;height:520px; background:#0891b2; top:-10%; right:-8%; }
+  .aurora span:nth-child(2){ width:420px;height:420px; background:#4338ca; bottom:-15%; left:-10%; animation-delay:-7s; animation-duration:26s; }
+  .aurora span:nth-child(3){ width:340px;height:340px; background:#1d4ed8; top:40%; left:50%; animation-delay:-14s; animation-duration:30s; }
+  @keyframes auroraDrift{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    33%{ transform:translate(40px,-30px) scale(1.12); }
+    66%{ transform:translate(-30px,25px) scale(0.94); }
+  }
+
+  .grid-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  #netCanvas{ position:fixed; inset:0; z-index:0; pointer-events:none; mix-blend-mode:screen; }
+
+  /* ============ GLASS ============ */
+  .glass{
+    background:rgba(15,23,42,0.55);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+
+  .text-gradient-flow{
+    background:linear-gradient(90deg,#22d3ee,#3b82f6,#818cf8,#22d3ee);
+    background-size:300% auto;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    animation: gradFlow 6s linear infinite;
+  }
+  @keyframes gradFlow{ to{ background-position:300% center; } }
+
+  ::selection{ background:rgba(6,182,212,.35); color:#fff; }
+
+  a:focus-visible, button:focus-visible{
+    outline:2px solid #22d3ee; outline-offset:3px; border-radius:6px;
+  }
+
+  /* ============ REVEAL ============ */
+  .reveal{
+    opacity:0; transform:translateY(30px) scale(.97);
+    transition: opacity .8s var(--ease-spring), transform .8s var(--ease-spring);
+  }
+  .reveal.in{ opacity:1; transform:translateY(0) scale(1); }
+
+  /* ============ MAGNETIC + RIPPLE ============ */
+  .magnetic{ position:relative; will-change:transform; transition:transform .25s var(--ease-spring); }
+  .ripple-host{ position:relative; overflow:hidden; }
+  .ripple-dot{
+    position:absolute; border-radius:50%; background:rgba(255,255,255,.5);
+    transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards;
+  }
+  @keyframes rippleAnim{ to{ transform:scale(3.4); opacity:0; } }
+
+  /* ============ REGISTER CARD ============ */
+  .register-card{
+    position:relative; z-index:10; width:100%; max-width:480px;
+    border-radius:24px; padding:40px 32px 32px;
+    box-shadow:0 25px 60px -15px rgba(0,0,0,.6);
+  }
+  .register-card::before{
+    content:''; position:absolute; inset:-14%; z-index:-1; border-radius:50%;
+    background:radial-gradient(circle, rgba(6,182,212,.16), transparent 70%);
+    filter:blur(30px); animation: cardGlow 4.5s ease-in-out infinite;
+  }
+  @keyframes cardGlow{ 0%,100%{ opacity:.6; transform:scale(1); } 50%{ opacity:1; transform:scale(1.06); } }
+
+  @property --border-angle{ syntax:'<angle>'; initial-value:0deg; inherits:false; }
+  .register-card::after{
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    padding:1.5px;
+    background: conic-gradient(from var(--border-angle), transparent 0%, transparent 76%, rgba(34,211,238,.9) 86%, #e0f7ff 90%, rgba(34,211,238,.9) 94%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: borderLightSpin 3.4s linear infinite;
+  }
+  @keyframes borderLightSpin{ to{ --border-angle:360deg; } }
+
+  /* ============ FLOATING-LABEL INPUTS ============ */
+  .inputBox{ position:relative; width:100%; }
+  .inputBox input{
+    width:100%; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+    outline:none; padding:23px 44px 9px 14px; border-radius:12px;
+    color:#fff; font-weight:500; font-size:.95rem; transition:.3s;
+    font-family:'Vazirmatn', sans-serif;
+  }
+  .inputBox input:focus{
+    border-color: rgba(34,211,238,.5); background:rgba(255,255,255,.06);
+    box-shadow:0 0 0 3px rgba(34,211,238,.12);
+  }
+  .inputBox .lbl{
+    position:absolute; right:14px; top:16px; font-style:normal;
+    color:#94a3b8; transition:.3s; pointer-events:none; font-size:.85rem;
+    font-family:'Vazirmatn', sans-serif;
+  }
+  .inputBox .icon{
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    color:#475569; font-size:.85rem; pointer-events:none; transition:.3s;
+  }
+  .inputBox input:focus + .lbl,
+  .inputBox input:valid + .lbl{
+    transform:translateY(-8px) scale(.82); color:#22d3ee;
+    transform-origin: right top;
+  }
+  .inputBox input:focus ~ .icon,
+  .inputBox input:valid ~ .icon{ color:#22d3ee; }
+
+  /* Phone prefix */
+  .phone-wrapper{ position:relative; }
+  .phone-prefix{
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    color:#22d3ee; font-size:.9rem; font-weight:700; pointer-events:none;
+    font-family:'Space Grotesk', sans-serif; z-index:2;
+    display:flex; align-items:center; gap:6px;
+  }
+  .phone-prefix span{ color:#475569; font-size:.8rem; }
+  .phone-wrapper input{
+    padding-right:100px !important;
+  }
+  .phone-wrapper .lbl{
+    right:100px;
+  }
+
+  /* ============ STEPS ============ */
+  .step{ display:none; }
+  .step.active{ display:flex; flex-direction:column; gap:18px; }
+
+  /* ============ STEP INDICATOR ============ */
+  .step-dots{ display:flex; align-items:center; gap:8px; justify-content:center; margin-bottom:6px; }
+  .step-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:rgba(255,255,255,.15); transition:.4s var(--ease-spring);
+  }
+  .step-dot.active{
+    width:28px; border-radius:4px;
+    background:linear-gradient(90deg,#22d3ee,#3b82f6);
+  }
+  .step-dot.done{
+    background:#22d3ee;
+  }
+
+  /* ============ PROGRESS BAR ============ */
+  .progress-bar{
+    height:2px; background:rgba(255,255,255,.06); border-radius:4px;
+    overflow:hidden; margin-bottom:24px;
+  }
+  .progress-fill{
+    height:100%; border-radius:4px;
+    background:linear-gradient(90deg,#22d3ee,#3b82f6);
+    transition: width .6s var(--ease-spring);
+  }
+
+  /* ============ VALIDATION ============ */
+  .input-error .inputBox input{
+    border-color:rgba(239,68,68,.5) !important;
+    box-shadow:0 0 0 3px rgba(239,68,68,.1) !important;
+  }
+  .error-msg{
+    color:#f87171; font-size:.75rem; margin-top:4px; display:none;
+  }
+  .error-msg.show{ display:block; }
+
+  .eye-toggle-btn{
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    background:none; border:none; padding:0; font-size:.85rem;
+    color:#475569; transition:color .2s; cursor:pointer; z-index:2;
+  }
+  .eye-toggle-btn:hover{ color:#22d3ee; }
+
+  /* ============ SUCCESS ============ */
+  .success-anim{
+    width:72px; height:72px; border-radius:50%;
+    background:linear-gradient(135deg,rgba(34,211,238,.2),rgba(59,130,246,.2));
+    border:2px solid rgba(34,211,238,.4);
+    display:flex; align-items:center; justify-content:center;
+    animation: successPulse 1.2s var(--ease-pop) forwards;
+  }
+  @keyframes successPulse{
+    0%{ transform:scale(0); opacity:0; }
+    60%{ transform:scale(1.1); }
+    100%{ transform:scale(1); opacity:1; }
+  }
+
+  /* ============ RESEND TIMER ============ */
+  .resend-btn{ color:#22d3ee; font-size:.8rem; background:none; border:none; cursor:none; }
+  .resend-btn:disabled{ color:#475569; }
+  .resend-btn.custom-cursor{ cursor:none !important; }
+
+  /* ============ TWO-COL GRID ============ */
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  @media(max-width:480px){ .two-col{ grid-template-columns:1fr; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:.01ms !important; animation-iteration-count:1 !important;
+      transition-duration:.01ms !important; scroll-behavior:auto !important;
+    }
+  }
+
+  /* ============ ENHANCED SUBMIT BUTTONS ============ */
+  .btn-submit{
+    position:relative; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+    background:linear-gradient(135deg,#06b6d4 0%,#3b82f6 100%);
+    color:#fff; font-weight:700; padding:14px 20px; border-radius:14px;
+    font-family:'Vazirmatn',sans-serif; font-size:1rem;
+    border:none; overflow:hidden;
+    box-shadow: 0 6px 24px -6px rgba(6,182,212,.5);
+    transition: transform .25s var(--ease-spring), box-shadow .3s ease, filter .25s;
+    cursor:none;
+  }
+  .btn-submit::before{
+    content:''; position:absolute; inset:0; border-radius:inherit;
+    background:linear-gradient(135deg,#22d3ee,#818cf8,#3b82f6);
+    opacity:0; transition:opacity .35s ease;
+  }
+  .btn-submit::after{
+    content:''; position:absolute; top:0; right:-100%; width:60%; height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
+    transition:right .6s ease; pointer-events:none;
+  }
+  .btn-submit:hover{ transform:translateY(-3px) scale(1.02); box-shadow:0 0 32px rgba(34,211,238,.5), 0 14px 36px -8px rgba(6,182,212,.5); filter:brightness(1.07); }
+  .btn-submit:hover::before{ opacity:1; }
+  .btn-submit:hover::after{ right:130%; }
+  .btn-submit:active{ transform:translateY(0) scale(.97); }
+  .btn-submit span{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; }
+
+  .link-btn{
+    display:inline-flex; align-items:center; gap:4px;
+    color:#22d3ee; font-weight:600; text-decoration:none;
+    position:relative; transition:color .25s;
+  }
+  .link-btn::after{
+    content:''; position:absolute; bottom:-2px; right:0; left:0; height:1px;
+    background:linear-gradient(90deg,#22d3ee,#3b82f6);
+    transform:scaleX(0); transition:transform .3s var(--ease-spring); transform-origin:right;
+  }
+  .link-btn:hover::after{ transform:scaleX(1); transform-origin:left; }
+</style>
+</head>
+<body class="font-sans">
+
+<div id="cursorGlow"></div>
+<div id="tgCursor"><i class="fa-brands fa-telegram"></i></div>
+
+<div class="aurora"><span></span><span></span><span></span></div>
+<div class="grid-overlay"></div>
+<canvas id="netCanvas" aria-hidden="true"></canvas>
+
+<a href="index.html" class="fixed top-6 right-6 z-20 flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors text-xs sm:text-sm">
+  <i class="fa-solid fa-house text-xs"></i> بازگشت به سایت
+</a>
+
+<div class="register-card glass reveal">
+
+  <!-- Header -->
+  <div class="flex flex-col items-center gap-2 mb-7">
+    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 mb-1">
+      <i class="fa-solid fa-user-plus text-white text-2xl"></i>
+    </div>
+    <h2 dir="ltr" class="text-2xl font-mono font-bold text-gradient-flow">UploadGram</h2>
+    <p class="text-slate-400 text-sm">ایجاد حساب کاربری جدید</p>
+  </div>
+
+  <!-- Step Indicator -->
+  <div class="step-dots">
+    <div class="step-dot active" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar mt-3">
+    <div class="progress-fill" id="progressFill" style="width:50%"></div>
+  </div>
+
+  <!-- ===== STEP 1: INFO ===== -->
+  <div class="step active" id="step1">
+
+    <div class="two-col">
+      <!-- First Name -->
+      <div>
+        <div class="inputBox">
+          <input type="text" id="firstName" required autocomplete="given-name" />
+          <span class="lbl">نام</span>
+          <i class="icon fa-solid fa-user"></i>
+        </div>
+        <p class="error-msg" id="err-firstName">نام را وارد کنید</p>
+      </div>
+
+      <!-- Last Name -->
+      <div>
+        <div class="inputBox">
+          <input type="text" id="lastName" required autocomplete="family-name" />
+          <span class="lbl">نام خانوادگی</span>
+          <i class="icon fa-solid fa-user"></i>
+        </div>
+        <p class="error-msg" id="err-lastName">نام خانوادگی را وارد کنید</p>
+      </div>
+    </div>
+
+    <!-- Username -->
+    <div>
+      <div class="inputBox">
+        <input type="text" id="username" required autocomplete="username" />
+        <span class="lbl">نام کاربری</span>
+        <i class="icon fa-solid fa-at"></i>
+      </div>
+      <p class="error-msg" id="err-username">نام کاربری را وارد کنید</p>
+    </div>
+
+    <!-- Phone -->
+    <div>
+      <div class="inputBox phone-wrapper">
+        <div class="phone-prefix">
+          🇮🇷 <span>+98</span>
+        </div>
+        <input type="tel" id="phone" required autocomplete="tel"
+          placeholder="912 345 6789"
+          inputmode="numeric" maxlength="11"
+          style="padding-right:100px; padding-top:15px; padding-bottom:15px;" />
+        <span class="lbl" style="right:100px; top:50%; transform:translateY(-50%);" id="phoneLbl">شماره موبایل</span>
+      </div>
+      <p class="error-msg" id="err-phone">شماره موبایل معتبر ایران وارد کنید (مثال: 09123456789)</p>
+    </div>
+
+    <!-- Email -->
+    <div>
+      <div class="inputBox">
+        <input type="email" id="email" required autocomplete="email" />
+        <span class="lbl">ایمیل</span>
+        <i class="icon fa-solid fa-envelope"></i>
+      </div>
+      <p class="error-msg" id="err-email">ایمیل معتبر وارد کنید</p>
+    </div>
+
+    <!-- Password -->
+    <div>
+      <div class="inputBox">
+        <input type="password" id="regPassword" required autocomplete="new-password" minlength="6" />
+        <span class="lbl">رمز عبور</span>
+        <button type="button" id="eyeBtnPass" class="eye-toggle-btn" aria-label="نمایش رمز عبور">
+          <i class="fa-solid fa-eye" id="eyeIconPass"></i>
+        </button>
+      </div>
+      <p class="error-msg" id="err-password">رمز عبور باید حداقل ۶ کاراکتر باشد</p>
+    </div>
+
+    <!-- Confirm Password -->
+    <div>
+      <div class="inputBox">
+        <input type="password" id="regPasswordConfirm" required autocomplete="new-password" minlength="6" />
+        <span class="lbl">تکرار رمز عبور</span>
+        <button type="button" id="eyeBtnPassConfirm" class="eye-toggle-btn" aria-label="نمایش رمز عبور">
+          <i class="fa-solid fa-eye" id="eyeIconPassConfirm"></i>
+        </button>
+      </div>
+      <p class="error-msg" id="err-passwordConfirm">رمز عبور و تکرار آن یکسان نیستند</p>
+    </div>
+
+    <!-- Submit -->
+    <button type="button" id="btnSendCode"
+      class="btn-submit magnetic ripple-host">
+      <span>
+        <i class="fa-solid fa-user-plus"></i>
+        ایجاد حساب کاربری
+      </span>
+    </button>
+
+    <p class="text-center text-xs text-slate-500">
+      قبلاً ثبت‌نام کرده‌اید؟
+      <a href="login.html" class="link-btn">ورود به حساب <i class="fa-solid fa-arrow-left text-[10px]"></i></a>
+    </p>
+
+  </div>
+
+  <!-- ===== STEP 2: VERIFY EMAIL ===== -->
+  <div class="step" id="step2">
+
+    <div class="text-center flex flex-col items-center gap-2">
+      <div class="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mb-1">
+        <i class="fa-solid fa-envelope-circle-check text-cyan-400 text-xl"></i>
+      </div>
+      <p class="text-slate-300 text-sm leading-relaxed">
+        یک لینک تایید به ایمیل
+        <span class="text-cyan-400 font-semibold" id="emailDisplay"></span>
+        ارسال شد
+      </p>
+      <p class="text-slate-500 text-xs">روی لینک داخل ایمیل کلیک کنید، سپس دکمه زیر را بزنید</p>
+    </div>
+
+    <p class="error-msg" id="err-verify">ایمیل شما هنوز تایید نشده — لطفاً ابتدا روی لینک ایمیل کلیک کنید</p>
+
+    <!-- Check verification -->
+    <button type="button" id="btnVerify"
+      class="btn-submit magnetic ripple-host">
+      <span>
+        <i class="fa-solid fa-check-double"></i>
+        تایید کردم، ادامه بده
+      </span>
+    </button>
+
+    <!-- Resend -->
+    <div class="flex items-center justify-between text-xs text-slate-500">
+      <span id="timerText">ارسال مجدد تا <span id="countdown" class="text-cyan-400 font-bold">01:00</span></span>
+      <button type="button" class="resend-btn" id="resendBtn" disabled>
+        ارسال مجدد ایمیل
+      </button>
+    </div>
+
+    <button type="button" onclick="goBack()"
+      class="text-slate-500 hover:text-slate-300 text-xs text-center transition-colors flex items-center justify-center gap-1">
+      <i class="fa-solid fa-arrow-right text-xs"></i>
+      اصلاح اطلاعات
+    </button>
+
+  </div>
+
+  <!-- ===== STEP 3: SUCCESS ===== -->
+  <div class="step" id="step3" style="align-items:center; text-align:center; gap:20px;">
+
+    <div class="success-anim">
+      <i class="fa-solid fa-check text-cyan-400 text-2xl"></i>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <h3 class="text-xl font-bold text-white">ثبت‌نام موفق! 🎉</h3>
+      <p class="text-slate-400 text-sm">خوش آمدید <span class="text-cyan-400 font-semibold" id="welcomeName"></span></p>
+    </div>
+
+    <a href="login.html"
+      class="btn-submit magnetic ripple-host no-underline" style="text-decoration:none;">
+      <span>
+        <i class="fa-solid fa-right-to-bracket"></i>
+        ورود به حساب کاربری
+      </span>
+    </a>
+
+  </div>
+
+</div>
+
+<script>
+// ============ NETWORK CANVAS ============
+(function () {
+  const canvas = document.getElementById('netCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const animate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  let w, h, particles, raf;
+
+  function resize() {
+    w = canvas.width = innerWidth * dpr;
+    h = canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    const count = innerWidth < 640 ? 24 : innerWidth < 1024 ? 42 : 64;
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.22 * dpr,
+      vy: (Math.random() - 0.5) * 0.22 * dpr,
+    }));
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, w, h);
+    const maxDist = 130 * dpr;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      if (animate) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+      }
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = `rgba(34,211,238,${0.14 * (1 - dist / maxDist)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+        }
+      }
+      ctx.fillStyle = 'rgba(34,211,238,0.6)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.5 * dpr, 0, Math.PI * 2); ctx.fill();
+    }
+    if (animate) raf = requestAnimationFrame(render);
+  }
+
+  resize(); render();
+  window.addEventListener('resize', resize);
+  if (animate) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(raf); else render();
+    });
+  }
+})();
+</script>
+
+<script>
+// ============ ENTRANCE ============
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  document.querySelector('.reveal').classList.add('in');
+}));
+
+// ============ CURSOR GLOW ============
+const glow = document.getElementById('cursorGlow');
+const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+window.addEventListener('mousemove', (e) => {
+  glow.classList.add('active');
+  glow.style.left = e.clientX + 'px';
+  glow.style.top = e.clientY + 'px';
+});
+window.addEventListener('mouseleave', () => glow.classList.remove('active'));
+
+// ============ TELEGRAM CURSOR ============
+if (finePointer) {
+  const tgCursor = document.getElementById('tgCursor');
+  let tgX = window.innerWidth / 2, tgY = window.innerHeight / 2;
+  let tgAngle = 45, tgScale = 1, tgShown = false;
+  function paintTg(){
+    tgCursor.style.transform = `translate3d(${tgX}px, ${tgY}px, 0) translate(-50%,-50%) rotate(${tgAngle}deg) scale(${tgScale})`;
+  }
+  window.addEventListener('mousemove', (e) => {
+    const dx = e.clientX - tgX, dy = e.clientY - tgY;
+    tgX = e.clientX; tgY = e.clientY;
+    if (!tgShown) { tgShown = true; tgCursor.classList.add('active'); }
+    if (Math.hypot(dx, dy) > 1) tgAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 45;
+    paintTg();
+  });
+  window.addEventListener('mousedown', () => { tgScale = .78; paintTg(); });
+  window.addEventListener('mouseup', () => { tgScale = 1; paintTg(); });
+  document.addEventListener('mouseleave', () => { tgShown = false; tgCursor.classList.remove('active'); });
+}
+
+// ============ MAGNETIC + RIPPLE ============
+document.querySelectorAll('.magnetic').forEach(btn => {
+  btn.addEventListener('mousemove', (e) => {
+    const r = btn.getBoundingClientRect();
+    const x = e.clientX - r.left - r.width / 2;
+    const y = e.clientY - r.top - r.height / 2;
+    btn.style.transform = `translate(${x * 0.18}px, ${y * 0.35}px)`;
+  });
+  btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+});
+document.querySelectorAll('.ripple-host').forEach(el => {
+  el.addEventListener('click', function (e) {
+    const r = this.getBoundingClientRect();
+    const size = Math.max(r.width, r.height);
+    const dot = document.createElement('span');
+    dot.className = 'ripple-dot';
+    dot.style.width = dot.style.height = size + 'px';
+    dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+    dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+    this.appendChild(dot);
+    dot.addEventListener('animationend', () => dot.remove());
+  });
+});
+
+// ============ PHONE LABEL BEHAVIOR ============
+const phoneInput = document.getElementById('phone');
+const phoneLbl = document.getElementById('phoneLbl');
+phoneInput.addEventListener('input', function () {
+  let v = this.value.replace(/\D/g, '');
+  // keep leading 0 for Iranian numbers
+  this.value = v;
+  if (v.length > 0) {
+    phoneLbl.style.transform = 'translateY(-20px) scale(.82)';
+    phoneLbl.style.color = '#22d3ee';
+    phoneLbl.style.right = '100px';
+  } else {
+    phoneLbl.style.transform = 'translateY(-50%)';
+    phoneLbl.style.color = '#94a3b8';
+  }
+});
+phoneInput.addEventListener('focus', function () {
+  phoneLbl.style.transform = 'translateY(-20px) scale(.82)';
+  phoneLbl.style.color = '#22d3ee';
+});
+phoneInput.addEventListener('blur', function () {
+  if (!this.value) {
+    phoneLbl.style.transform = 'translateY(-50%)';
+    phoneLbl.style.color = '#94a3b8';
+  }
+});
+
+// ============ STEP MANAGEMENT ============
+let currentStep = 1;
+let countdownInterval = null;
+
+function setStep(n) {
+  document.querySelectorAll('.step').forEach((s, i) => {
+    s.classList.toggle('active', i + 1 === n);
+  });
+  // dots
+  const dots = [document.getElementById('dot1'), document.getElementById('dot2')];
+  dots.forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i + 1 < n) d.classList.add('done');
+    else if (i + 1 === n) d.classList.add('active');
+  });
+  // progress
+  const pct = n === 1 ? 50 : 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  currentStep = n;
+}
+
+// ============ VALIDATION ============
+function validateIranPhone(val) {
+  // Accept with or without leading 0
+  return /^(09\d{9}|9\d{9})$/.test(val.replace(/\s/g,''));
+}
+function validateEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function showErr(id, show){
+  const el = document.getElementById(id);
+  if(show){ el.classList.add('show'); }
+  else { el.classList.remove('show'); }
+}
+function clearAllErrors(){
+  document.querySelectorAll('.error-msg').forEach(e => e.classList.remove('show'));
+}
+
+// ============ COUNTDOWN ============
+function startCountdown() {
+  clearInterval(countdownInterval);
+  let secs = 60;
+  const resendBtn = document.getElementById('resendBtn');
+  const timerText = document.getElementById('timerText');
+  const cdEl = document.getElementById('countdown');
+  resendBtn.disabled = true;
+  timerText.style.display = '';
+
+  countdownInterval = setInterval(() => {
+    secs--;
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    cdEl.textContent = m + ':' + s;
+    if (secs <= 0) {
+      clearInterval(countdownInterval);
+      resendBtn.disabled = false;
+      timerText.style.display = 'none';
+    }
+  }, 1000);
+}
+
+function stopCountdown() {
+  clearInterval(countdownInterval);
+  document.getElementById('timerText').style.display = 'none';
+}
+
+function goBack() {
+  stopCountdown();
+  showErr('err-verify', false);
+  setStep(1);
+}
+
+// ============ ENTER KEY ============
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    if (currentStep === 1) document.getElementById('btnSendCode').click();
+    else if (currentStep === 2) document.getElementById('btnVerify').click();
+  }
+});
+</script>
+</body>
+</html>

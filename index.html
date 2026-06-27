@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آپلود گرام | UploadGram - سامانه هوشمند فروش ممبر آپلودری تلگرام</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Vazirmatn', 'sans-serif'],
+          mono: ['Space Grotesk', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  :root{
+    --cyan:#06b6d4; --blue:#3b82f6; --indigo:#6366f1; --amber:#f59e0b;
+    --ease-spring: cubic-bezier(0.22,1,0.36,1);
+    --ease-pop: cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  *{ scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.4) transparent; }
+
+  html{ scroll-behavior:smooth; }
+  body{
+    background:#020617; color:#f1f5f9;
+    overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ============ LOADER ============ */
+  #loader{
+    position:fixed; inset:0; z-index:9999; background:#020617;
+    display:flex; align-items:center; justify-content:center;
+    transition: opacity .7s var(--ease-spring), visibility .7s;
+  }
+  #loader.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+  #loader .ring{
+    width:56px; height:56px; border-radius:50%;
+    border:3px solid rgba(6,182,212,0.15); border-top-color:#06b6d4;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ============ SCROLL PROGRESS ============ */
+  #scrollbar{
+    position:fixed; top:0; left:0; height:3px; width:0%; z-index:1000;
+    background:linear-gradient(90deg,#06b6d4,#3b82f6,#6366f1);
+    box-shadow:0 0 14px rgba(6,182,212,.7);
+    transition:width .12s linear;
+  }
+
+  /* ============ CURSOR GLOW (desktop) ============ */
+  #cursorGlow{
+    position:fixed; width:380px; height:380px; border-radius:50%;
+    background:radial-gradient(circle, rgba(6,182,212,0.08), transparent 70%);
+    pointer-events:none; z-index:1; transform:translate(-50%,-50%);
+    transition: opacity .4s ease; opacity:0;
+  }
+  @media (hover:hover) and (pointer:fine){ #cursorGlow.active{ opacity:1; } }
+
+  /* ============ CUSTOM TELEGRAM CURSOR (desktop) ============ */
+  @media (hover:hover) and (pointer:fine){
+    *{ cursor:none !important; }
+  }
+  #tgCursor{
+    position:fixed; top:0; left:0; z-index:10000; pointer-events:none;
+    display:none;
+    transform:translate3d(0,0,0) translate(-50%,-50%) rotate(45deg);
+    opacity:0; transition: opacity .35s ease, transform .12s linear;
+    filter: drop-shadow(0 4px 14px rgba(34,211,238,.55));
+  }
+  @media (hover:hover) and (pointer:fine){ #tgCursor{ display:block; } }
+  #tgCursor.active{ opacity:1; }
+  #tgCursor i{
+    font-size:30px;
+    background:linear-gradient(135deg,#2AABEE,#229ED9);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+
+  /* ============ ANIMATED AURORA BACKGROUND ============ */
+  .aurora{
+    position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  }
+  .aurora span{
+    position:absolute; border-radius:50%; filter:blur(90px);
+    animation: auroraDrift 22s ease-in-out infinite;
+    opacity:.35;
+  }
+  .aurora span:nth-child(1){ width:520px;height:520px; background:#0891b2; top:-10%; right:-8%; }
+  .aurora span:nth-child(2){ width:420px;height:420px; background:#4338ca; bottom:-15%; left:-10%; animation-delay:-7s; animation-duration:26s; }
+  .aurora span:nth-child(3){ width:340px;height:340px; background:#1d4ed8; top:40%; left:50%; animation-delay:-14s; animation-duration:30s; }
+  @keyframes auroraDrift{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    33%{ transform:translate(40px,-30px) scale(1.12); }
+    66%{ transform:translate(-30px,25px) scale(0.94); }
+  }
+
+  .grid-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  /* ============ GLASS ============ */
+  .glass{
+    background:rgba(15,23,42,0.55);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+
+  .text-gradient{
+    background:linear-gradient(135deg,#ffffff 25%,#22d3ee 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+
+  .text-gradient-flow{
+    background:linear-gradient(90deg,#22d3ee,#3b82f6,#818cf8,#22d3ee);
+    background-size:300% auto;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    animation: gradFlow 6s linear infinite;
+  }
+  @keyframes gradFlow{ to{ background-position:300% center; } }
+
+  /* ============ REVEAL SYSTEM ============ */
+  .reveal{
+    opacity:0; transform:translateY(34px) scale(.975);
+    transition: opacity .8s var(--ease-spring), transform .8s var(--ease-spring);
+  }
+  .reveal.in{ opacity:1; transform:translateY(0) scale(1); }
+  .reveal-left{ opacity:0; transform:translateX(-36px); transition:opacity .8s var(--ease-spring), transform .8s var(--ease-spring); }
+  .reveal-left.in{ opacity:1; transform:translateX(0); }
+  .reveal-right{ opacity:0; transform:translateX(36px); transition:opacity .8s var(--ease-spring), transform .8s var(--ease-spring); }
+  .reveal-right.in{ opacity:1; transform:translateX(0); }
+  .reveal-scale{ opacity:0; transform:scale(.82); transition:opacity .7s var(--ease-pop), transform .7s var(--ease-pop); }
+  .reveal-scale.in{ opacity:1; transform:scale(1); }
+
+  /* ============ MAGNETIC + RIPPLE BUTTONS ============ */
+  .magnetic{ position:relative; will-change:transform; transition:transform .25s var(--ease-spring); }
+  .ripple-host{ position:relative; overflow:hidden; }
+  .ripple-dot{
+    position:absolute; border-radius:50%; background:rgba(255,255,255,.5);
+    transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards;
+  }
+  @keyframes rippleAnim{ to{ transform:scale(3.4); opacity:0; } }
+
+  /* ============ TILT + SPOTLIGHT CARDS ============ */
+  .tilt-card{
+    transition: transform .5s var(--ease-spring), border-color .4s ease, box-shadow .4s ease, background .4s ease;
+    transform-style:preserve-3d; will-change:transform; position:relative;
+  }
+  .tilt-card::after{
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:radial-gradient(280px circle at var(--mx,50%) var(--my,50%), rgba(6,182,212,0.16), transparent 70%);
+    opacity:0; transition:opacity .4s ease;
+  }
+  .tilt-card:hover::after{ opacity:1; }
+
+  /* ============ NAV ============ */
+  #mainNav{ transition: background .4s ease, box-shadow .4s ease, padding .4s ease, border-color .4s ease; }
+  #mainNav.scrolled{ box-shadow:0 8px 30px rgba(0,0,0,.35); }
+  .nav-link{ position:relative; }
+  .nav-link::after{
+    content:''; position:absolute; right:0; bottom:-4px; width:0; height:1.5px;
+    background:linear-gradient(90deg,#22d3ee,#3b82f6); transition:width .35s var(--ease-spring);
+  }
+  .nav-link:hover::after{ width:100%; }
+
+  /* ============ HERO BADGE ============ */
+  .pulse-dot{ animation: dotPulse 1.7s ease-in-out infinite; }
+  @keyframes dotPulse{
+    0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(34,211,238,.55); }
+    50%{ transform:scale(1.2); box-shadow:0 0 0 7px rgba(34,211,238,0); }
+  }
+
+  /* ============ FLOAT ============ */
+  .float-slow{ animation: floatY 6s ease-in-out infinite; }
+  @keyframes floatY{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-16px); } }
+
+  /* ============ PIPELINE SIGNATURE VISUAL ============ */
+  .pipeline-wrap{ position:relative; }
+  .pipe-path{
+    stroke-dasharray: 6 10; stroke-dashoffset:0;
+    animation: dashFlow 1.4s linear infinite;
+  }
+  @keyframes dashFlow{ to{ stroke-dashoffset:-32; } }
+  .pipe-node{ animation: nodePulse 2.4s ease-in-out infinite; }
+  .pipe-node:nth-of-type(2){ animation-delay:.5s; }
+  .pipe-node:nth-of-type(3){ animation-delay:1s; }
+  @keyframes nodePulse{
+    0%,100%{ filter: drop-shadow(0 0 3px rgba(34,211,238,.5)); }
+    50%{ filter: drop-shadow(0 0 10px rgba(34,211,238,.95)); }
+  }
+  .pipe-particle{ animation: particleMove 2.6s linear infinite; offset-rotate:0deg; }
+  @keyframes particleMove{
+    0%{ offset-distance:0%; opacity:0; }
+    8%{ opacity:1; }
+    92%{ opacity:1; }
+    100%{ offset-distance:100%; opacity:0; }
+  }
+
+  /* progress shimmer bar */
+  .shimmer-bar{ position:relative; overflow:hidden; }
+  .shimmer-bar::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+    transform:translateX(-100%); animation: barShimmer 2.2s ease-in-out infinite;
+  }
+  @keyframes barShimmer{ to{ transform:translateX(100%); } }
+
+  /* ============ COUNTER ============ */
+  .count-num{ font-variant-numeric: tabular-nums; }
+
+  /* ============ MARQUEE ============ */
+  .marquee-track{
+    display:flex; gap:3rem; width:max-content;
+    animation: marqueeScroll 26s linear infinite;
+  }
+  .marquee-row:hover .marquee-track{ animation-play-state:paused; }
+  @keyframes marqueeScroll{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+
+  /* ============ BENTO GROW-IN LINE ============ */
+  .bento-icon{ position:relative; overflow:hidden; transition: transform .45s var(--ease-pop), background .35s ease, color .35s ease; }
+  .bento-icon::before{
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.22), transparent 60%);
+  }
+  .tilt-card:hover .bento-icon{ transform:translateZ(26px) rotate(-8deg) scale(1.12); }
+
+  /* ============ PRICING ============ */
+  .price-featured{
+    animation: featuredGlow 4s ease-in-out infinite;
+  }
+  @keyframes featuredGlow{
+    0%,100%{ box-shadow:0 0 26px rgba(6,182,212,.18); }
+    50%{ box-shadow:0 0 50px rgba(6,182,212,.38); }
+  }
+  .ribbon{
+    animation: ribbonPop .6s var(--ease-pop) .3s both;
+  }
+  @keyframes ribbonPop{ from{ opacity:0; transform:translateY(-10px) scale(.8); } to{ opacity:1; transform:translateY(0) scale(1); } }
+
+  .price-card-stagger:nth-child(1){ transition-delay:0s; }
+  .price-card-stagger:nth-child(2){ transition-delay:.12s; }
+  .price-card-stagger:nth-child(3){ transition-delay:.24s; }
+
+  /* ============ FAQ (animated height via grid-rows) ============ */
+  .faq-item{ transition: border-color .35s ease, background .35s ease; }
+  .faq-item[open]{ background:rgba(6,182,212,0.04); border-color:rgba(6,182,212,.25); }
+  .faq-body{
+    display:grid; grid-template-rows:0fr; transition: grid-template-rows .4s var(--ease-spring);
+  }
+  .faq-item[open] .faq-body{ grid-template-rows:1fr; }
+  .faq-body > div{ overflow:hidden; }
+  .faq-icon{ transition: transform .4s var(--ease-pop); }
+  .faq-item[open] .faq-icon{ transform:rotate(180deg); }
+  summary::-webkit-details-marker{ display:none; }
+
+  /* ============ FOOTER WAVE ============ */
+  .footer-glow{
+    background: radial-gradient(60% 100% at 50% 0%, rgba(6,182,212,.08), transparent 70%);
+  }
+
+  /* ============ STAT HOVER ============ */
+  .stat-block{ transition: transform .35s var(--ease-spring); }
+  .stat-block:hover{ transform:translateY(-4px); }
+
+  ::selection{ background:rgba(6,182,212,.35); color:#fff; }
+
+  /* ============ REDUCED MOTION ============ */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:.01ms !important; animation-iteration-count:1 !important;
+      transition-duration:.01ms !important; scroll-behavior:auto !important;
+    }
+  }
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible, summary:focus-visible{
+    outline:2px solid #22d3ee; outline-offset:3px; border-radius:6px;
+  }
+
+  /* ============ NETWORK BACKGROUND ============ */
+  #netCanvas{ position:fixed; inset:0; z-index:0; pointer-events:none; mix-blend-mode:screen; }
+
+  /* ============ FLOATING DEPTH BADGES (parallax) ============ */
+  .float-badge{ position:absolute; z-index:20; will-change:transform; }
+  .float-badge-inner{ display:flex; }
+  .float-badge-a .float-badge-inner{ animation: floatBadgeA 5s ease-in-out infinite; }
+  .float-badge-b .float-badge-inner{ animation: floatBadgeB 6.5s ease-in-out infinite; animation-delay:-2s; }
+  @keyframes floatBadgeA{ 0%,100%{ transform:translateY(0) rotate(-2deg); } 50%{ transform:translateY(-12px) rotate(1deg); } }
+  @keyframes floatBadgeB{ 0%,100%{ transform:translateY(0) rotate(2deg); } 50%{ transform:translateY(10px) rotate(-1deg); } }
+
+  /* ============ BRAND DISPLAY (logotype, fills space above 3D logo) ============ */
+  .brand-display{
+    font-family:'Lalezar','Vazirmatn',sans-serif;
+    font-weight:400; line-height:1.05; letter-spacing:.5px;
+    text-align:center; margin:0; padding:0 8px;
+    display:flex; flex-wrap:wrap; justify-content:center; gap:.25em;
+    font-size:2.9rem;
+  }
+  @media (min-width:480px){ .brand-display{ font-size:3.6rem; } }
+  @media (min-width:640px){ .brand-display{ font-size:4.6rem; gap:.3em; } }
+  @media (min-width:1024px){ .brand-display{ font-size:5.8rem; } }
+  @media (min-width:1280px){ .brand-display{ font-size:6.6rem; } }
+  .brand-word-1{
+    background:linear-gradient(135deg,#ffffff 15%,#bae6fd 60%,#67e8f9 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    filter:drop-shadow(0 2px 18px rgba(186,230,253,.25));
+  }
+  .brand-word-2{
+    background:linear-gradient(90deg,#22d3ee,#3b82f6,#818cf8,#22d3ee);
+    background-size:300% auto;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    animation: gradFlow 6s linear infinite;
+    filter:drop-shadow(0 4px 26px rgba(34,211,238,.45));
+  }
+
+  .brand-tagline{
+    text-align:center; margin:10px 0 0; font-family:'Vazirmatn',sans-serif;
+    font-weight:500; font-size:.95rem; letter-spacing:.2px;
+    color:#a5f3fc; opacity:.85;
+  }
+  @media (min-width:640px){ .brand-tagline{ font-size:1.15rem; margin-top:14px; } }
+
+  /* ============ 3D LOGO SHOWCASE (hero opener) ============ */
+  .logo3d-wrap{ display:flex; flex-direction:column; align-items:center; }
+  .logo3d-stage{
+    position:relative; width:88vw; height:88vw; max-width:380px; max-height:380px; touch-action:pan-y;
+  }
+  @media (min-width:640px){ .logo3d-stage{ width:440px; height:440px; max-width:440px; max-height:440px; } }
+  @media (min-width:1024px){ .logo3d-stage{ width:500px; height:500px; max-width:500px; max-height:500px; } }
+  .logo3d-stage::before{
+    content:''; position:absolute; inset:-10%; border-radius:50%; z-index:-1;
+    background:radial-gradient(circle, rgba(6,182,212,.22), rgba(59,130,246,.10) 55%, transparent 75%);
+    filter:blur(36px);
+    animation: logoGlowPulse 4.5s ease-in-out infinite;
+  }
+  @keyframes logoGlowPulse{ 0%,100%{ opacity:.65; transform:scale(1); } 50%{ opacity:1; transform:scale(1.07); } }
+  .logo3d-stage model-viewer{ width:100%; height:100%; background:transparent; --poster-color:transparent; cursor:grab; }
+  .logo3d-stage model-viewer:active{ cursor:grabbing; }
+
+  /* ============ 3D LOGO ENTRANCE (rises up, not a flat load) ============ */
+  .logo3d-rise{
+    opacity:0;
+    transform: translateY(170px) scale(.5);
+    filter: blur(14px);
+    transition:
+      opacity 1.1s cubic-bezier(0.16,1,0.3,1),
+      transform 1.25s cubic-bezier(0.16,1,0.3,1),
+      filter 1s ease-out;
+  }
+  .logo3d-rise.in{
+    opacity:1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+  .logo3d-rise.in .logo3d-stage::before{ animation: logoGlowPulse 4.5s ease-in-out infinite, logoGlowIntro .9s var(--ease-pop) .15s both; }
+  @keyframes logoGlowIntro{ from{ opacity:0; transform:scale(.4); } }
+
+  /* ============ 3D ROTATING PRISM ACCENT (hero pillars) ============ */
+  .prism-stage{ perspective:900px; }
+  .prism3d{
+    position:relative; width:84px; height:84px;
+    transform-style:preserve-3d;
+    animation: prismSpin 16s linear infinite;
+  }
+  .prism3d:hover{ animation-play-state:paused; }
+  .prism-face{
+    position:absolute; inset:0; border-radius:18px;
+    display:flex; align-items:center; justify-content:center; font-size:22px;
+    backface-visibility:hidden; border:1px solid rgba(255,255,255,.12);
+  }
+  .prism-face.f1{ background:linear-gradient(145deg,#0891b2,#0e7490); color:#ecfeff; transform:rotateY(0deg) translateZ(42px); }
+  .prism-face.f2{ background:linear-gradient(145deg,#1d4ed8,#1e3a8a); color:#eff6ff; transform:rotateY(90deg) translateZ(42px); }
+  .prism-face.f3{ background:linear-gradient(145deg,#4338ca,#312e81); color:#eef2ff; transform:rotateY(180deg) translateZ(42px); }
+  .prism-face.f4{ background:linear-gradient(145deg,#0e7490,#075985); color:#ecfeff; transform:rotateY(270deg) translateZ(42px); }
+  @keyframes prismSpin{ from{ transform:rotateY(0deg); } to{ transform:rotateY(360deg); } }
+
+  /* ============ 3D COIN (gold plan) ============ */
+  .coin3d{
+    display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;
+    width:28px; height:28px; border-radius:50%;
+    background:radial-gradient(circle at 35% 28%, #fef3c7, #f59e0b 55%, #92400e 100%);
+    box-shadow:0 5px 12px -2px rgba(245,158,11,.5), inset 0 1px 2px rgba(255,255,255,.7);
+    animation: coinSpin 2.8s linear infinite;
+  }
+  .coin3d i{ color:#78350f; font-size:12px; }
+  @keyframes coinSpin{ 0%,100%{ transform:scaleX(1); } 50%{ transform:scaleX(.16); } }
+
+  /* ============ 3D GEM (diamond plan) ============ */
+  .gem3d{
+    display:inline-block; vertical-align:middle;
+    width:26px; height:26px;
+    background:conic-gradient(from 210deg,#a5f3fc,#22d3ee 25%,#0891b2 50%,#22d3ee 75%,#a5f3fc);
+    clip-path:polygon(50% 0%,100% 38%,80% 100%,20% 100%,0% 38%);
+    filter:drop-shadow(0 5px 10px rgba(34,211,238,.45));
+    animation: gemSwing 3.2s ease-in-out infinite;
+  }
+  @keyframes gemSwing{ 0%,100%{ transform:rotateY(-22deg); } 50%{ transform:rotateY(22deg); } }
+
+  /* ============ BRONZE BADGE (entry plan) ============ */
+  .badge3d-bronze{
+    display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;
+    width:26px; height:26px; border-radius:8px;
+    background:radial-gradient(circle at 32% 28%, #d4a373, #92531a 70%);
+    box-shadow:0 5px 10px -2px rgba(146,83,26,.45), inset 0 1px 2px rgba(255,255,255,.4);
+    color:#3b1f0b; font-size:11px;
+  }
+
+  /* ============ STEP NUMBERS (how it works) ============ */
+  .step-num{
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:2.75rem; line-height:1;
+    color:transparent; -webkit-text-stroke:1.5px rgba(34,211,238,.45); opacity:.8;
+  }
+
+  /* ============ ENHANCED BUTTON SYSTEM ============ */
+
+  /* Primary glow button */
+  .btn-primary{
+    position:relative; display:inline-flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+    color:#fff; font-weight:700; border-radius:14px;
+    font-family:'Vazirmatn',sans-serif;
+    box-shadow: 0 0 0 0 rgba(6,182,212,0), 0 8px 24px -6px rgba(6,182,212,.45);
+    transition: transform .25s var(--ease-spring), box-shadow .3s ease, filter .3s ease;
+    overflow:hidden; border:none; cursor:none;
+  }
+  .btn-primary::before{
+    content:''; position:absolute; inset:0; border-radius:inherit;
+    background:linear-gradient(135deg,#22d3ee,#6366f1,#3b82f6);
+    opacity:0; transition:opacity .35s ease;
+  }
+  .btn-primary::after{
+    content:''; position:absolute; top:0; right:-100%; width:60%; height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
+    transition: right .55s ease;
+    pointer-events:none;
+  }
+  .btn-primary:hover{ transform:translateY(-3px) scale(1.02); box-shadow:0 0 28px rgba(6,182,212,.55), 0 12px 32px -8px rgba(6,182,212,.5); filter:brightness(1.08); }
+  .btn-primary:hover::before{ opacity:1; }
+  .btn-primary:hover::after{ right:140%; }
+  .btn-primary:active{ transform:translateY(0) scale(.97); }
+  .btn-primary span{ position:relative; z-index:1; }
+
+  /* Secondary / ghost button */
+  .btn-ghost{
+    position:relative; display:inline-flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.12);
+    color:#cbd5e1; font-weight:600; border-radius:14px;
+    font-family:'Vazirmatn',sans-serif;
+    transition: transform .25s var(--ease-spring), border-color .3s ease, color .3s ease, background .3s ease, box-shadow .3s ease;
+    overflow:hidden; cursor:none;
+  }
+  .btn-ghost::before{
+    content:''; position:absolute; inset:0; border-radius:inherit;
+    background:linear-gradient(135deg, rgba(6,182,212,.1), rgba(59,130,246,.08));
+    opacity:0; transition:opacity .35s ease;
+  }
+  .btn-ghost:hover{ border-color:rgba(34,211,238,.5); color:#fff; transform:translateY(-3px); box-shadow:0 0 18px rgba(34,211,238,.12); }
+  .btn-ghost:hover::before{ opacity:1; }
+  .btn-ghost:active{ transform:translateY(0); }
+  .btn-ghost span{ position:relative; z-index:1; }
+
+  /* Nav CTA button */
+  .btn-nav{
+    position:relative; display:inline-flex; align-items:center; gap:6px;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+    color:#fff; font-weight:700; border-radius:12px;
+    font-family:'Vazirmatn',sans-serif;
+    overflow:hidden; transition: transform .2s var(--ease-spring), box-shadow .25s ease;
+    box-shadow:0 4px 14px -4px rgba(6,182,212,.4); border:none; cursor:none;
+  }
+  .btn-nav::after{
+    content:''; position:absolute; top:0; right:-100%; width:55%; height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+    transition: right .5s ease; pointer-events:none;
+  }
+  .btn-nav:hover{ transform:translateY(-2px); box-shadow:0 8px 22px -4px rgba(6,182,212,.5); }
+  .btn-nav:hover::after{ right:130%; }
+
+  /* Ghost outline nav button (ورود) */
+  .btn-nav-ghost{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:8px 18px; border-radius:10px;
+    background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.1);
+    color:#94a3b8; font-weight:600;
+    transition: border-color .3s, color .3s, background .3s, transform .2s var(--ease-spring);
+    font-family:'Vazirmatn',sans-serif; cursor:none;
+  }
+  .btn-nav-ghost:hover{ border-color:rgba(34,211,238,.45); color:#22d3ee; background:rgba(34,211,238,.05); transform:translateY(-1px); }
+
+  /* Pricing plan buttons */
+  .btn-plan{
+    position:relative; width:100%; display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:14px 20px; border-radius:13px; font-weight:700;
+    font-family:'Vazirmatn',sans-serif; overflow:hidden;
+    transition: transform .25s var(--ease-spring), box-shadow .3s ease, filter .3s;
+    cursor:none;
+  }
+  .btn-plan-primary{
+    background:linear-gradient(135deg,#06b6d4,#3b82f6);
+    color:#fff; box-shadow:0 6px 20px -6px rgba(6,182,212,.45);
+    border:none;
+  }
+  .btn-plan-primary::after{
+    content:''; position:absolute; top:0; right:-80%; width:50%; height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+    transition:right .5s ease; pointer-events:none;
+  }
+  .btn-plan-primary:hover{ transform:translateY(-3px); box-shadow:0 10px 28px -6px rgba(6,182,212,.6); filter:brightness(1.07); }
+  .btn-plan-primary:hover::after{ right:120%; }
+
+  .btn-plan-ghost{
+    background:rgba(255,255,255,.05); color:#94a3b8;
+    border:1.5px solid rgba(255,255,255,.1);
+  }
+  .btn-plan-ghost:hover{ background:rgba(255,255,255,.09); border-color:rgba(34,211,238,.35); color:#fff; transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.3); }
+  .btn-plan span{ position:relative; z-index:1; }
+
+  /* Pulsing ring on featured plan btn */
+  .btn-plan-featured{
+    background:linear-gradient(135deg,#22d3ee,#3b82f6,#6366f1);
+    color:#fff; box-shadow:0 0 0 0 rgba(34,211,238,.4);
+    animation:featuredBtnGlow 2.5s ease-in-out infinite; border:none;
+  }
+  @keyframes featuredBtnGlow{
+    0%,100%{ box-shadow:0 0 18px rgba(34,211,238,.3), 0 6px 20px -6px rgba(6,182,212,.45); }
+    50%{ box-shadow:0 0 36px rgba(34,211,238,.6), 0 10px 28px -6px rgba(6,182,212,.6); }
+  }
+  .btn-plan-featured:hover{ transform:translateY(-3px) scale(1.02); filter:brightness(1.1); }
+
+  /* ============ ECOSYSTEM 3D ORBIT ============ */
+  .orbit-stage{ perspective:1100px; }
+  .orbit-tilt{
+    position:relative; width:320px; height:320px; margin:0 auto;
+    transform-style:preserve-3d; transform:rotateX(58deg);
+  }
+  @media (min-width:640px){ .orbit-tilt{ width:380px; height:380px; } }
+  .orbit-core{
+    position:absolute; top:50%; left:50%; width:96px; height:96px; margin:-48px 0 0 -48px;
+    border-radius:50%; transform:rotateX(-58deg);
+    background:radial-gradient(circle at 35% 28%, #67e8f9, #0891b2 60%, #0e3a4a 100%);
+    box-shadow:0 0 50px rgba(34,211,238,.55), inset 0 2px 10px rgba(255,255,255,.35);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; color:#022; animation: corePulse 3s ease-in-out infinite;
+  }
+  @keyframes corePulse{ 0%,100%{ box-shadow:0 0 40px rgba(34,211,238,.45),inset 0 2px 10px rgba(255,255,255,.3);} 50%{ box-shadow:0 0 70px rgba(34,211,238,.75),inset 0 2px 10px rgba(255,255,255,.4);} }
+  .orbit-ring{
+    position:absolute; top:50%; left:50%; border-radius:50%;
+    border:1px dashed rgba(34,211,238,.25); transform:translate(-50%,-50%);
+  }
+  .orbit-node{ position:absolute; top:50%; left:50%; width:0; height:0; animation: orbitSpin linear infinite; }
+  @keyframes orbitSpin{ from{ transform:rotate(0deg) translateX(var(--r)) rotate(0deg); } to{ transform:rotate(360deg) translateX(var(--r)) rotate(-360deg); } }
+  .orbit-node-card{
+    position:absolute; top:0; left:0; transform:translate(-50%,-50%) rotateX(-58deg);
+    width:64px; height:64px; border-radius:18px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    background:rgba(15,23,42,.78); border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 10px 26px -8px rgba(0,0,0,.6);
+    font-size:18px; backdrop-filter:blur(6px);
+    transition:transform .3s var(--ease-spring), border-color .3s, box-shadow .3s;
+  }
+  .orbit-node:hover .orbit-node-card{ border-color:rgba(34,211,238,.55); box-shadow:0 0 24px rgba(34,211,238,.4); transform:translate(-50%,-50%) rotateX(-58deg) scale(1.12); }
+  .orbit-node-card span{ font-size:9px; color:#94a3b8; font-weight:600; white-space:nowrap; }
+
+  /* ============ PRODUCTS TABS ============ */
+  .tab-btn{ position:relative; padding:10px 22px; border-radius:12px; font-weight:700; font-size:.85rem; color:#94a3b8; transition:color .3s,background .3s; cursor:none; border:none; }
+  .tab-btn[aria-selected="true"]{ color:#fff; background:linear-gradient(135deg,#06b6d4,#3b82f6); box-shadow:0 6px 18px -6px rgba(6,182,212,.5); }
+  .tab-panel[hidden]{ display:none; }
+  .soon-badge{ font-size:.65rem; background:rgba(245,158,11,.12); color:#f59e0b; border:1px solid rgba(245,158,11,.3); border-radius:999px; padding:2px 8px; margin-right:6px; }
+  .coming-soon-panel{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:60px 20px; text-align:center; color:#64748b; }
+
+  /* ============ ORDER MODAL ============ */
+  #orderModalOverlay{ position:fixed; inset:0; z-index:200; background:rgba(2,6,23,.75); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; padding:20px; }
+  #orderModal{ width:100%; max-width:420px; background:#0b1220; border:1px solid rgba(255,255,255,.1); border-radius:24px; padding:28px; box-shadow:0 30px 70px -20px rgba(0,0,0,.7); animation:modalPop .35s var(--ease-pop); }
+  @keyframes modalPop{ from{ opacity:0; transform:scale(.9) translateY(14px); } to{ opacity:1; transform:scale(1) translateY(0); } }
+</style>
+</head>
+<body class="font-sans">
+
+<div id="loader"><div class="ring"></div></div>
+<div id="scrollbar"></div>
+<div id="cursorGlow"></div>
+<div id="tgCursor"><i class="fa-brands fa-telegram"></i></div>
+
+<div class="aurora"><span></span><span></span><span></span></div>
+<div class="grid-overlay"></div>
+<canvas id="netCanvas" aria-hidden="true"></canvas>
+
+<!-- ============ NAV ============ -->
+<header class="fixed top-0 left-0 right-0 z-50 px-4 lg:px-8 py-4">
+  <nav id="mainNav" class="max-w-7xl mx-auto glass rounded-2xl px-6 py-4 flex items-center justify-between border border-slate-800/60">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <i class="fa-solid fa-cloud-arrow-up text-white text-lg"></i>
+      </div>
+      <span dir="ltr" class="text-xl font-mono font-bold tracking-tight bg-gradient-to-l from-white to-cyan-400 bg-clip-text text-transparent">UploadGram</span>
+    </div>
+
+    <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+      <a href="#how" class="nav-link hover:text-cyan-400 transition-colors">نحوه کار</a>
+      <a href="#bento" class="nav-link hover:text-cyan-400 transition-colors">مزایای فنی</a>
+      <a href="#ecosystem" class="nav-link hover:text-cyan-400 transition-colors">اکوسیستم</a>
+      <a href="#products" class="nav-link hover:text-cyan-400 transition-colors">محصولات</a>
+      <a href="#faq" class="nav-link hover:text-cyan-400 transition-colors">سوالات متداول</a>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="login.html" class="btn-nav-ghost text-sm">
+        <i class="fa-solid fa-right-to-bracket text-xs"></i> ورود
+      </a>
+      <a href="register.html" class="btn-nav magnetic ripple-host text-xs lg:text-sm px-5 py-2.5">
+        <span class="relative z-10 flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-xs"></i> ثبت‌نام رایگان
+        </span>
+      </a>
+    </div>
+  </nav>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="relative min-h-screen pt-32 flex items-center justify-center px-4 overflow-hidden z-10">
+  <div class="max-w-7xl mx-auto w-full">
+
+    <!-- ============ BRAND DISPLAY ============ -->
+    <h2 class="hero-seq brand-display">
+      <span class="brand-word-1">آپلود</span><span class="brand-word-2">گرام</span>
+    </h2>
+    <p class="hero-seq brand-tagline">همیشه همراه رشد کانال شما</p>
+
+    <!-- ============ 3D LOGO SHOWCASE ============ -->
+    <div class="logo3d-wrap logo3d-rise mx-auto mb-6 lg:mb-8" id="logo3dWrap">
+      <div class="logo3d-stage">
+        <model-viewer
+          id="logo3dViewer"
+          src="logo3d.glb"
+          alt="لوگوی سه‌بعدی آپلود گرام"
+          camera-controls
+          disable-zoom
+          auto-rotate
+          auto-rotate-delay="0"
+          rotation-per-second="16deg"
+          interaction-prompt="none"
+          shadow-intensity="0"
+          exposure="1.15"
+          environment-image="neutral"
+          style="width:100%;height:100%;">
+        </model-viewer>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+    <div class="lg:col-span-7 text-center lg:text-right space-y-6">
+      <div class="hero-seq inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs px-4 py-2 rounded-full">
+        <span class="w-1.5 h-1.5 bg-cyan-400 rounded-full pulse-dot"></span>
+        نسل جدید افزایش اعضای کانال‌های تلگرامی
+      </div>
+
+      <h1 class="hero-seq text-4xl sm:text-5xl lg:text-6xl font-black leading-tight sm:leading-tight lg:leading-tight text-gradient">
+        انفجار آمار کانال با <br class="hidden sm:inline">
+        <span class="text-gradient-flow">ممبر واقعی آپلودری</span>
+      </h1>
+
+      <p class="hero-seq text-slate-400 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+        کاربرانی که برای دانلود فایل‌های مورد نیاز خود وارد کانال شما می‌شوند. ماندگاری خیره‌کننده، نرخ تعامل بالا و بدون ریزش ناگهانی. کانال خود را به هاب دانلود تبدیل کنید.
+      </p>
+
+      <div class="hero-seq flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+        <a href="#products" class="btn-primary magnetic ripple-host px-8 py-4 text-base">
+          <span class="flex items-center gap-2">
+            <i class="fa-solid fa-basket-shopping"></i> مشاهده قیمت‌ها و خرید
+          </span>
+        </a>
+        <a href="#how" class="btn-ghost magnetic ripple-host px-8 py-4 text-base">
+          <span class="flex items-center gap-2">
+            <i class="fa-solid fa-play text-xs"></i> بررسی نحوه کارکرد
+          </span>
+        </a>
+      </div>
+
+      <div class="hero-seq grid grid-cols-3 gap-4 pt-8 max-w-md mx-auto lg:mx-0 border-t border-slate-800/80">
+        <div class="stat-block">
+          <div class="text-2xl lg:text-3xl font-black text-cyan-400"><span class="count-num" data-count="15" data-suffix="M+" data-fa="true">۰</span></div>
+          <div class="text-xs text-slate-400 mt-1">تعداد جذب موفق</div>
+        </div>
+        <div class="stat-block">
+          <div class="text-2xl lg:text-3xl font-black text-blue-400"><span class="count-num" data-count="4.8" data-decimals="1" data-fa="true">۰</span></div>
+          <div class="text-xs text-slate-400 mt-1">رضایت مشتریان</div>
+        </div>
+        <div class="stat-block flex flex-col items-center">
+          <div class="relative w-14 h-14 lg:w-16 lg:h-16">
+            <svg viewBox="0 0 64 64" class="w-full h-full -rotate-0">
+              <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(129,140,248,0.15)" stroke-width="5"/>
+              <circle id="retentionRing" cx="32" cy="32" r="27" fill="none" stroke="#818cf8" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="169.6" transform="rotate(-90 32 32)"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-sm lg:text-base font-black text-indigo-400">٪<span class="count-num" id="retentionNum" data-count="94" data-fa="true">۰</span></div>
+          </div>
+          <div class="text-xs text-slate-400 mt-1">نرخ ماندگاری اعضا</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGNATURE VISUAL: live unlock pipeline -->
+    <div class="lg:col-span-5 flex justify-center items-center relative float-slow">
+      <div class="w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/10 absolute blur-3xl -z-10"></div>
+
+      <!-- floating live-growth badge -->
+      <div class="float-badge float-badge-a absolute -top-6 -right-2 sm:-right-4 lg:-right-14 hidden sm:block" data-depth="16">
+        <div class="float-badge-inner glass border border-emerald-500/30 rounded-2xl px-4 py-3 shadow-2xl items-center gap-2">
+          <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
+          <div class="text-[11px] leading-tight">
+            <div class="font-bold text-emerald-300">+۲۴۸ عضو جدید</div>
+            <div class="text-slate-400">در یک ساعت گذشته</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- floating rating badge -->
+      <div class="float-badge float-badge-b absolute -bottom-6 -left-2 sm:-left-4 lg:-left-14 hidden sm:block" data-depth="-14">
+        <div class="float-badge-inner glass border border-amber-500/30 rounded-2xl px-4 py-3 shadow-2xl items-center gap-2">
+          <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+          <div class="text-[11px] leading-tight">
+            <div class="font-bold text-amber-300">۴.۸ از ۵</div>
+            <div class="text-slate-400">رضایت کاربران</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D rotating pillars: security / speed / retention / scale -->
+      <div class="float-badge absolute -top-10 -left-8 hidden lg:block prism-stage" data-depth="10" aria-hidden="true">
+        <div class="prism3d">
+          <div class="prism-face f1"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="prism-face f2"><i class="fa-solid fa-bolt"></i></div>
+          <div class="prism-face f3"><i class="fa-solid fa-chart-line"></i></div>
+          <div class="prism-face f4"><i class="fa-solid fa-users"></i></div>
+        </div>
+      </div>
+
+      <div class="glass border border-slate-700/50 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative tilt-card" id="heroCard">
+
+        <!-- mini pipeline diagram -->
+        <svg viewBox="0 0 280 60" class="w-full h-14 mb-4">
+          <path d="M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30" stroke="rgba(255,255,255,0.08)" stroke-width="2" fill="none"/>
+          <path d="M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30" stroke="#22d3ee" stroke-width="2" fill="none" class="pipe-path"/>
+          <circle cx="10" cy="30" r="6" fill="#3b82f6" class="pipe-node"/>
+          <circle cx="140" cy="30" r="6" fill="#06b6d4" class="pipe-node"/>
+          <circle cx="270" cy="30" r="6" fill="#22d3ee" class="pipe-node"/>
+          <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30');"></circle>
+          <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30'); animation-delay:.9s;"></circle>
+          <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30'); animation-delay:1.8s;"></circle>
+          <text x="10" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">کاربر</text>
+          <text x="140" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">ربات آپلودر</text>
+          <text x="270" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">کانال شما</text>
+        </svg>
+
+        <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-4">
+          <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white">DL</div>
+          <div>
+            <div class="text-sm font-bold">کانال دانلود فیلم و فایل</div>
+            <div class="text-xs text-emerald-400 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full pulse-dot"></span> در حال جذب ممبر آپلودر...
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800/80 text-xs text-slate-400">
+            📥 فایل <span class="text-cyan-400">Software_Pro_v2.5.zip</span> آماده دانلود است. برای باز شدن قفل دانلود، وارد کانال زیر شوید.
+          </div>
+          <div class="w-full bg-blue-600/20 border border-blue-500/30 text-blue-400 py-2.5 rounded-lg text-center text-xs font-bold">
+            عضویت در کانال و دانلود فایل
+          </div>
+          <div class="pt-2">
+            <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+              <span>پیشرفت سفارش افزایش اعضا</span>
+              <span class="text-cyan-400 font-bold"><span id="liveProgress">۸۷</span>٪</span>
+            </div>
+            <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden shimmer-bar">
+              <div id="liveProgressBar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)] transition-all duration-700" style="width:87%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  </div>
+
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-slate-500 text-[11px] flex flex-col items-center gap-2 animate-bounce">
+    <span>اسکرول کن</span>
+    <i class="fa-solid fa-chevron-down"></i>
+  </div>
+</section>
+
+<!-- ============ TRUST MARQUEE ============ -->
+<div class="relative z-10 border-y border-slate-900 py-5 overflow-hidden marquee-row">
+  <div class="marquee-track text-slate-600 text-xs sm:text-sm font-bold tracking-wide">
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-shield-check text-cyan-500"></i> بدون ریسک مسدودی</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-bolt text-cyan-500"></i> تحویل آنی سفارش</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-user-check text-cyan-500"></i> ممبر ۱۰۰٪ واقعی</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-headset text-cyan-500"></i> پشتیبانی ۲۴ ساعته</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-rotate-left text-cyan-500"></i> ضمانت بازگشت وجه</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-chart-simple text-cyan-500"></i> ریزش نزدیک به صفر</span>
+    <!-- duplicate for seamless loop -->
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-shield-check text-cyan-500"></i> بدون ریسک مسدودی</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-bolt text-cyan-500"></i> تحویل آنی سفارش</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-user-check text-cyan-500"></i> ممبر ۱۰۰٪ واقعی</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-headset text-cyan-500"></i> پشتیبانی ۲۴ ساعته</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-rotate-left text-cyan-500"></i> ضمانت بازگشت وجه</span>
+    <span class="flex items-center gap-2 px-4"><i class="fa-solid fa-chart-simple text-cyan-500"></i> ریزش نزدیک به صفر</span>
+  </div>
+</div>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how" class="py-24 px-4 max-w-7xl mx-auto relative z-10">
+  <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+    <h2 class="text-2xl sm:text-4xl font-black text-gradient">نحوه کار سیستم؛ از جستجوی فایل تا رشد کانال</h2>
+    <p class="text-slate-400 text-sm sm:text-base mt-3">یک مسیر سه‌مرحله‌ای ساده که عضو واقعی و باکیفیت را به کانال شما متصل می‌کند.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="reveal-scale tilt-card glass p-8 rounded-3xl border border-slate-800 hover:border-cyan-500/30">
+      <span class="step-num">۰۱</span>
+      <h3 class="text-lg font-bold mt-3 mb-2">کاربر دنبال فایل می‌گردد</h3>
+      <p class="text-slate-400 text-sm leading-relaxed">کاربری در ربات‌های آپلودر به‌دنبال فیلم، نرم‌افزار یا فایل آموزشی مدنظرش است و لینک دانلود را پیدا می‌کند.</p>
+    </div>
+    <div class="reveal-scale tilt-card glass p-8 rounded-3xl border border-slate-800 hover:border-cyan-500/30">
+      <span class="step-num">۰۲</span>
+      <h3 class="text-lg font-bold mt-3 mb-2">عضویت، شرط باز شدن قفل</h3>
+      <p class="text-slate-400 text-sm leading-relaxed">ربات برای آزادسازی فایل، عضویت در کانال شما را به‌عنوان مرحله‌ی الزامی پیش‌روی کاربر قرار می‌دهد.</p>
+    </div>
+    <div class="reveal-scale tilt-card glass p-8 rounded-3xl border border-slate-800 hover:border-cyan-500/30">
+      <span class="step-num">۰۳</span>
+      <h3 class="text-lg font-bold mt-3 mb-2">کانال شما رشد می‌کند</h3>
+      <p class="text-slate-400 text-sm leading-relaxed">عضو جدید برای دریافت فایل‌های بعدی در کانال باقی می‌ماند و آمار واقعی و پایدار شما را بالا می‌برد.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BENTO / FEATURES ============ -->
+<section id="bento" class="py-24 px-4 max-w-7xl mx-auto relative z-10">
+  <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+    <h2 class="text-2xl sm:text-4xl font-black text-gradient">مهندسی جذب؛ چرا ممبر آپلودری بی‌رقیب است؟</h2>
+    <p class="text-slate-400 text-sm sm:text-base mt-3">تفاوت ساختاری این متد با روش‌های اجباری و پاپ‌آپ در کیفیت و حق انتخاب کاربر نهفته است.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="reveal-scale tilt-card md:col-span-2 glass p-8 rounded-3xl flex flex-col justify-between border border-slate-800 hover:border-cyan-500/30">
+      <div>
+        <div class="bento-icon w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-users-viewfinder"></i>
+        </div>
+        <h3 class="text-xl font-bold mb-3">مکانیسم جذب مبتنی بر نیاز واقعی</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          در این روش کاربران از طریق ربات‌های جستجوی فایل، فیلم یا فایل آموزشی اقدام به دانلود می‌کنند و ربات آنها را ملزم به عضویت در کانال اسپانسر (شما) می‌کند. از آنجا که کاربر به فایل نیاز مبرم دارد، با اشتیاق عضو شده و به دلیل فعال بودن حساب کاربری، بالاترین میزان سین (View) را برای پست‌های شما به ارمغان می‌آورد.
+        </p>
+      </div>
+      <div class="mt-8 flex items-center gap-4 text-xs font-semibold text-cyan-400">
+        <span>۱۰۰٪ ارگانیک</span> • <span>بدون اکانت فیک یا دیلیت‌شده</span>
+      </div>
+    </div>
+
+    <div class="reveal-scale tilt-card glass p-8 rounded-3xl border border-slate-800 hover:border-cyan-500/30 flex flex-col justify-between">
+      <div>
+        <div class="bento-icon w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 class="text-xl font-bold mb-3">کاملاً امن و ضد دلیلت</h3>
+        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          الگوریتم‌های تزریق ممبر ما مطابق با استانداردهای سخت‌گیرانه تلگرام تنظیم شده‌اند؛ بدون قفل شدن کانال یا جریمه‌های ریپورت.
+        </p>
+      </div>
+    </div>
+
+    <div class="reveal-scale tilt-card glass p-8 rounded-3xl border border-slate-800 hover:border-cyan-500/30 flex flex-col justify-between">
+      <div>
+        <div class="bento-icon w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <h3 class="text-xl font-bold mb-3">ریزش بسیار ناچیز</h3>
+        <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+          به دلیل اینکه فرایند دانلود ممکن است در بازه‌های زمانی مختلف تکرار شود، اعضا کانال شما را مانیتور کرده و نرخ ریزش به حداقلِ ممکن در مارکت می‌رسد.
+        </p>
+      </div>
+    </div>
+
+    <div class="reveal-scale tilt-card md:col-span-2 glass p-8 rounded-3xl flex flex-col justify-between border border-slate-800 hover:border-cyan-500/30">
+      <div>
+        <div class="bento-icon w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-gauge-high"></i>
+        </div>
+        <h3 class="text-xl font-bold mb-3">سرعت تحویل آنی و هوشمند</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          سیستم به محض ثبت سفارش فعال شده و ممبرها را به صورت یکنواخت و طبیعی به کانال تزریق می‌کند تا ساختار آماری کانال کاملاً استاندارد و حرفه‌ای به نظر برسد.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ECOSYSTEM (3D orbit) ============ -->
+<section id="ecosystem" class="py-24 px-4 max-w-7xl mx-auto relative z-10">
+  <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+    <h2 class="text-2xl sm:text-4xl font-black text-gradient">اکوسیستم یکپارچه رشد تلگرام</h2>
+    <p class="text-slate-400 text-sm sm:text-base mt-3">آپلود گرام، هسته مرکزی همه ابزارهای رشد کانال شماست؛ هر مدار یک سرویس متصل به این هسته است.</p>
+  </div>
+
+  <div class="orbit-stage reveal-scale flex justify-center">
+    <div class="orbit-tilt">
+      <div class="orbit-ring" style="width:200px;height:200px;"></div>
+      <div class="orbit-ring" style="width:300px;height:300px;"></div>
+      <div class="orbit-ring" style="width:380px;height:380px;"></div>
+
+      <div class="orbit-core" aria-hidden="true"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+
+      <div class="orbit-node" style="--r:100px; animation-duration:14s;">
+        <div class="orbit-node-card text-cyan-300"><i class="fa-solid fa-users"></i><span>ممبر</span></div>
+      </div>
+      <div class="orbit-node" style="--r:100px; animation-duration:14s; animation-delay:-7s;">
+        <div class="orbit-node-card text-blue-300"><i class="fa-solid fa-eye"></i><span>بازدید</span></div>
+      </div>
+      <div class="orbit-node" style="--r:150px; animation-duration:20s;">
+        <div class="orbit-node-card text-rose-300"><i class="fa-solid fa-heart"></i><span>واکنش</span></div>
+      </div>
+      <div class="orbit-node" style="--r:150px; animation-duration:20s; animation-delay:-10s;">
+        <div class="orbit-node-card text-emerald-300"><i class="fa-solid fa-shield-halved"></i><span>امنیت</span></div>
+      </div>
+      <div class="orbit-node" style="--r:190px; animation-duration:26s;">
+        <div class="orbit-node-card text-amber-300"><i class="fa-solid fa-robot"></i><span>اتومیشن</span></div>
+      </div>
+      <div class="orbit-node" style="--r:190px; animation-duration:26s; animation-delay:-13s;">
+        <div class="orbit-node-card text-indigo-300"><i class="fa-solid fa-chart-pie"></i><span>آنالیز</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRODUCTS ============ -->
+<section id="products" class="py-24 px-4 max-w-7xl mx-auto relative z-10">
+  <div class="text-center max-w-3xl mx-auto mb-10 reveal">
+    <div class="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs px-4 py-2 rounded-full mb-3">
+      لیست قیمت شفاف و اقتصادی
+    </div>
+    <h2 class="text-2xl sm:text-4xl font-black text-gradient">محصولات و پلن‌های آپلود گرام</h2>
+    <p class="text-slate-400 text-sm sm:text-base mt-2">متناسب با بودجه و ابعاد کسب‌وکار شما؛ ابزاری برای جهش آمار</p>
+  </div>
+
+  <div role="tablist" aria-label="دسته‌بندی محصولات" class="flex flex-wrap justify-center gap-3 mb-12 reveal">
+    <button type="button" role="tab" id="tab-members" aria-controls="panel-members" aria-selected="true" tabindex="0" class="tab-btn">ممبر آپلودری</button>
+    <button type="button" role="tab" id="tab-views" aria-controls="panel-views" aria-selected="false" tabindex="-1" class="tab-btn">بازدید پست <span class="soon-badge">به‌زودی</span></button>
+    <button type="button" role="tab" id="tab-reactions" aria-controls="panel-reactions" aria-selected="false" tabindex="-1" class="tab-btn">لایک و واکنش <span class="soon-badge">به‌زودی</span></button>
+  </div>
+
+  <div id="panel-members" role="tabpanel" aria-labelledby="tab-members" class="tab-panel">
+    <div id="membersGrid" class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+
+      <div class="price-card-stagger reveal tilt-card glass rounded-3xl p-8 border border-slate-800 hover:border-slate-700 flex flex-col justify-between relative">
+        <div class="space-y-6">
+          <div class="text-slate-400 text-sm font-bold flex items-center gap-2"><span class="badge3d-bronze" aria-hidden="true"><i class="fa-solid fa-flask"></i></span> پلن برنزی (تست)</div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-4xl font-black text-white">۱,۰۰۰</span>
+            <span class="text-xs text-slate-400">ممبر آپلودری واقعی</span>
+          </div>
+          <div class="text-xl font-bold text-cyan-400">۳۸۰,۰۰۰ <span class="text-xs text-slate-400">تومان</span></div>
+          <ul class="space-y-3 text-sm text-slate-300 border-t border-slate-800/80 pt-6">
+            <li class="flex items-center gap-2"><i class="fa-regular fa-circle-check text-cyan-400"></i> سرعت ارسال معمولی</li>
+            <li class="flex items-center gap-2"><i class="fa-regular fa-circle-check text-cyan-400"></i> ریزش استاندارد مارکت</li>
+            <li class="flex items-center gap-2"><i class="fa-regular fa-circle-check text-cyan-400"></i> پشتیبانی تیکتی ۲۴ ساعته</li>
+          </ul>
+        </div>
+        <button type="button" class="btn-plan btn-plan-ghost magnetic ripple-host js-order-btn mt-8" data-plan-name="پلن برنزی (تست)" data-plan-qty="۱,۰۰۰ ممبر آپلودری واقعی" data-plan-price="۳۸۰,۰۰۰ تومان">
+          <span class="flex items-center gap-2"><i class="fa-solid fa-cart-plus text-sm"></i> انتخاب و سفارش آنلاین</span>
+        </button>
+      </div>
+
+      <div class="price-card-stagger reveal price-featured tilt-card glass rounded-3xl p-8 border-2 border-cyan-500 relative flex flex-col justify-between" data-tilt-strength="8">
+        <div class="ribbon absolute -top-4 right-6 bg-gradient-to-l from-cyan-500 to-blue-600 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-md">
+          پیشنهاد ویژه مدیران کانال
+        </div>
+        <div class="space-y-6">
+          <div class="text-cyan-400 text-sm font-bold flex items-center gap-2">
+            <span class="coin3d" aria-hidden="true"><i class="fa-solid fa-crown"></i></span> پلن طلایی (رشد شتابان)
+          </div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-5xl font-black text-white">۵,۰۰۰</span>
+            <span class="text-xs text-slate-300">ممبر آپلودری پرو</span>
+          </div>
+          <div class="text-2xl font-black text-cyan-400">۱,۷۵۰,۰۰۰ <span class="text-xs text-slate-400">تومان</span></div>
+          <ul class="space-y-3 text-sm text-slate-200 border-t border-slate-800 pt-6">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-cyan-400"></i> اولویت ارسال سیستم (سرعت بالا)</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-cyan-400"></i> ماندگاری تضمین‌شده + هدایای ویژه</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-cyan-400"></i> مانیتورینگ اختصاصی آمار سین پست‌ها</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-cyan-400"></i> پشتیبانی اولویت‌دار تلگرامی</li>
+          </ul>
+        </div>
+        <button type="button" class="btn-plan btn-plan-featured magnetic ripple-host js-order-btn mt-8" data-plan-name="پلن طلایی (رشد شتابان)" data-plan-qty="۵,۰۰۰ ممبر آپلودری پرو" data-plan-price="۱,۷۵۰,۰۰۰ تومان">
+          <span class="flex items-center gap-2"><i class="fa-solid fa-bolt text-sm"></i> سفارش سریع پلن طلایی</span>
+        </button>
+      </div>
+
+      <div class="price-card-stagger reveal tilt-card glass rounded-3xl p-8 border border-slate-800 hover:border-slate-700 flex flex-col justify-between relative">
+        <div class="space-y-6">
+          <div class="text-slate-400 text-sm font-bold flex items-center gap-2"><span class="gem3d" aria-hidden="true"></span> پلن الماس (نهنگ تلگرام)</div>
+          <div class="flex items-baseline gap-2">
+            <span class="text-4xl font-black text-white">۱۰,۰۰۰</span>
+            <span class="text-xs text-slate-400">ممبر آپلودری وی‌آی‌پی</span>
+          </div>
+          <div class="text-xl font-bold text-cyan-400">۳,۲۰۰,۰۰۰ <span class="text-xs text-slate-400">تومان</span></div>
+          <ul class="space-y-3 text-sm text-slate-300 border-t border-slate-800/80 pt-6">
+            <li class="flex items-center gap-2"><i class="fa-regular fa-circle-check text-cyan-400"></i> حداکثر ظرفیت پهنای باند ربات‌ها</li>
+            <li class="flex items-center gap-2"><i class="fa-regular fa-circle-check text-cyan-400"></i> کمترین نرخ ریزش ممکن در کشور</li>
+            <li class="flex items-center gap-2"><i class="fa-regular fa-circle-check text-cyan-400"></i> اد اجباری هدیه (۱۰۰۰ عدد رایگان)</li>
+            <li class="flex items-center gap-2"><i class="fa-regular fa-circle-check text-cyan-400"></i> مدیر پشتیبانی اختصاصی تلفنی</li>
+          </ul>
+        </div>
+        <button type="button" class="btn-plan btn-plan-ghost magnetic ripple-host js-order-btn mt-8" data-plan-name="پلن الماس (نهنگ تلگرام)" data-plan-qty="۱۰,۰۰۰ ممبر آپلودری وی‌آی‌پی" data-plan-price="۳,۲۰۰,۰۰۰ تومان">
+          <span class="flex items-center gap-2"><i class="fa-solid fa-gem text-sm"></i> انتخاب و سفارش آنلاین</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="panel-views" role="tabpanel" aria-labelledby="tab-views" class="tab-panel" hidden>
+    <div class="coming-soon-panel reveal">
+      <i class="fa-solid fa-eye text-3xl text-blue-400"></i>
+      <p class="text-sm">سرویس «بازدید پست» به‌زودی به آپلود گرام اضافه می‌شود.</p>
+    </div>
+  </div>
+
+  <div id="panel-reactions" role="tabpanel" aria-labelledby="tab-reactions" class="tab-panel" hidden>
+    <div class="coming-soon-panel reveal">
+      <i class="fa-solid fa-heart text-3xl text-rose-400"></i>
+      <p class="text-sm">سرویس «لایک و واکنش» به‌زودی به آپلود گرام اضافه می‌شود.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq" class="py-24 px-4 max-w-4xl mx-auto relative z-10">
+  <div class="text-center mb-16 reveal">
+    <h2 class="text-2xl sm:text-4xl font-black text-gradient">پاسخ به سوالات شما در یک نگاه</h2>
+    <p class="text-slate-400 text-sm mt-2">شفافیت کامل در ارائه خدمات، خط قرمز پلتفرم ماست.</p>
+  </div>
+
+  <div class="space-y-4">
+    <details class="faq-item reveal glass rounded-2xl border border-slate-800/80 overflow-hidden" open>
+      <summary class="flex justify-between items-center font-bold p-6 cursor-pointer select-none text-slate-200 hover:text-cyan-400 transition-colors">
+        <span>آیا ممبرهای آپلودری فیک یا ربات هستند؟</span>
+        <span class="faq-icon"><i class="fa-solid fa-chevron-down text-xs"></i></span>
+      </summary>
+      <div class="faq-body"><div class="px-6 pb-6 text-sm text-slate-400 leading-relaxed border-t border-slate-900/50 pt-4">
+        خیر، به هیچ وجه. این ممبرها ۱۰۰٪ اکانت‌های واقعی کاربران فعال تلگرام هستند که برای باز شدن لینک دانلود یک فایل (فیلم، جزوه، پادکست، نرم‌افزار و...) در ربات‌های آپلودر، مجبور به عضویت در کانال شما شده‌اند. آنها اکانت‌های فعالی هستند که چت می‌کنند، پست‌ها را می‌بینند و استوری‌ها را دنبال می‌کنند.
+      </div></div>
+    </details>
+
+    <details class="faq-item reveal glass rounded-2xl border border-slate-800/80 overflow-hidden">
+      <summary class="flex justify-between items-center font-bold p-6 cursor-pointer select-none text-slate-200 hover:text-cyan-400 transition-colors">
+        <span>میزان ریزش این نوع ممبر چقدر است؟</span>
+        <span class="faq-icon"><i class="fa-solid fa-chevron-down text-xs"></i></span>
+      </summary>
+      <div class="faq-body"><div class="px-6 pb-6 text-sm text-slate-400 leading-relaxed border-t border-slate-900/50 pt-4">
+        به دلیل ماهیت اختیاری-اجباری و نیاز کاربر به فایل‌های بعدی ربات، ریزش این متد نسبت به متدهای پاپ‌آپ و اد اجباری بسیار کمتر است (بین ۱۰ الی ۲۵ درصد بسته به جذابیت و موضوع کانال شما). اگر محتوای کانال شما باکیفیت باشد، این نرخ به حداقل می‌رسد.
+      </div></div>
+    </details>
+
+    <details class="faq-item reveal glass rounded-2xl border border-slate-800/80 overflow-hidden">
+      <summary class="flex justify-between items-center font-bold p-6 cursor-pointer select-none text-slate-200 hover:text-cyan-400 transition-colors">
+        <span>چه مدت طول می‌کشد تا سفارش تکمیل شود؟</span>
+        <span class="faq-icon"><i class="fa-solid fa-chevron-down text-xs"></i></span>
+      </summary>
+      <div class="faq-body"><div class="px-6 pb-6 text-sm text-slate-400 leading-relaxed border-t border-slate-900/50 pt-4">
+        فرایند آغاز سفارش به صورت کاملاً آنی و سیستمی انجام می‌شود. تکمیل سفارشات با توجه به حجم پلن انتخابی شما بین ۲ الی ۲۴ ساعت زمان خواهد برد تا روند کاملاً ارگانیک و ایمن پیش برود.
+      </div></div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer-glow border-t border-slate-900 bg-[#010413] py-12 px-4 relative z-10 text-xs sm:text-sm text-slate-500">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 reveal">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+        <i class="fa-solid fa-cloud"></i>
+      </div>
+      <span class="font-bold text-slate-400">آپلود گرام؛ پلتفرم پیشرفته مدیریت آمار تلگرام</span>
+    </div>
+    <div class="flex items-center gap-6 text-slate-400">
+      <a href="#" class="hover:text-cyan-400 transition-colors">قوانین و مقررات</a>
+      <a href="#" class="hover:text-cyan-400 transition-colors">پشتیبانی تلگرام</a>
+      <a href="#" class="hover:text-cyan-400 transition-colors">تیکت مالی</a>
+    </div>
+    <p class="text-center md:text-left">© ۲۰۲۶ آپلود گرام. تمامی حقوق محفوظ است.</p>
+  </div>
+</footer>
+
+<!-- ============ ORDER MODAL ============ -->
+<div id="orderModalOverlay">
+  <div id="orderModal" role="dialog" aria-modal="true" aria-labelledby="orderModalTitle">
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="orderModalTitle" class="text-lg font-bold text-white">ثبت درخواست سفارش</h3>
+      <button type="button" id="orderModalClose" class="text-slate-400 hover:text-white transition-colors" aria-label="بستن">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="glass rounded-2xl border border-slate-800 p-5 mb-5 space-y-2 text-sm">
+      <div class="flex justify-between text-slate-400"><span>پلن</span><span id="orderModalPlan" class="text-white font-bold"></span></div>
+      <div class="flex justify-between text-slate-400"><span>مقدار</span><span id="orderModalQty" class="text-cyan-400 font-bold"></span></div>
+      <div class="flex justify-between text-slate-400"><span>قیمت</span><span id="orderModalPrice" class="text-cyan-400 font-bold"></span></div>
+    </div>
+    <p class="text-xs text-slate-400 leading-relaxed mb-5">برای نهایی‌کردن سفارش، روی دکمه زیر بزنید تا مستقیماً با پشتیبانی آپلود گرام در تلگرام گفتگو را شروع کنید.</p>
+    <a id="orderModalConfirm" href="#" target="_blank" rel="noopener" class="btn-primary magnetic ripple-host w-full py-3.5 text-sm">
+      <span class="flex items-center gap-2"><i class="fa-brands fa-telegram"></i> ادامه در تلگرام</span>
+    </a>
+  </div>
+</div>
+
+<script>
+// ============ NETWORK BACKGROUND (member-flow visualization) ============
+(function () {
+  const canvas = document.getElementById('netCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const animate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  let w, h, particles, raf;
+
+  function resize() {
+    w = canvas.width = innerWidth * dpr;
+    h = canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    const count = innerWidth < 640 ? 24 : innerWidth < 1024 ? 42 : 64;
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.22 * dpr,
+      vy: (Math.random() - 0.5) * 0.22 * dpr,
+    }));
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, w, h);
+    const maxDist = 130 * dpr;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      if (animate) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+      }
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = `rgba(34,211,238,${0.14 * (1 - dist / maxDist)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+        }
+      }
+      ctx.fillStyle = 'rgba(34,211,238,0.6)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.5 * dpr, 0, Math.PI * 2); ctx.fill();
+    }
+    if (animate) raf = requestAnimationFrame(render);
+  }
+
+  resize();
+  render();
+  window.addEventListener('resize', resize);
+  if (animate) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else render();
+    });
+  }
+})();
+</script>
+<script>
+// ============ LOADER ============
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('hide'), 350);
+  // orchestrated hero entrance
+  document.querySelectorAll('.hero-seq').forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = `opacity .7s cubic-bezier(0.22,1,0.36,1) ${0.15 + i * 0.1}s, transform .7s cubic-bezier(0.22,1,0.36,1) ${0.15 + i * 0.1}s`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }));
+  });
+});
+
+// ============ 3D LOGO RISE-IN (waits for the actual model to load) ============
+(() => {
+  const wrap = document.getElementById('logo3dWrap');
+  const viewer = document.getElementById('logo3dViewer');
+  let revealed = false;
+  function reveal(){
+    if (revealed) return;
+    revealed = true;
+    requestAnimationFrame(() => wrap.classList.add('in'));
+  }
+  viewer.addEventListener('load', reveal, { once: true });
+  // safety fallback in case the load event was missed or the model is slow/unavailable
+  setTimeout(reveal, 3000);
+})();
+
+const bar = document.getElementById('scrollbar');
+const nav = document.getElementById('mainNav');
+function onScroll(){
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+  bar.style.width = (isFinite(pct) ? pct : 0) + '%';
+  nav.classList.toggle('scrolled', h.scrollTop > 12);
+}
+window.addEventListener('scroll', onScroll, { passive:true });
+onScroll();
+
+// ============ CURSOR GLOW + DEPTH PARALLAX ============
+const glow = document.getElementById('cursorGlow');
+const depthEls = document.querySelectorAll('.float-badge[data-depth]');
+const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+window.addEventListener('mousemove', (e) => {
+  glow.classList.add('active');
+  glow.style.left = e.clientX + 'px';
+  glow.style.top = e.clientY + 'px';
+  if (finePointer) {
+    const cx = (e.clientX / window.innerWidth - 0.5);
+    const cy = (e.clientY / window.innerHeight - 0.5);
+    depthEls.forEach(el => {
+      const depth = parseFloat(el.dataset.depth) || 10;
+      el.style.transform = `translate(${cx * depth}px, ${cy * depth}px)`;
+    });
+  }
+});
+window.addEventListener('mouseleave', () => glow.classList.remove('active'));
+
+// ============ CUSTOM TELEGRAM CURSOR ============
+if (finePointer) {
+  const tgCursor = document.getElementById('tgCursor');
+  let tgX = window.innerWidth / 2, tgY = window.innerHeight / 2;
+  let tgAngle = 45, tgScale = 1, tgShown = false;
+
+  function paintTg(){
+    tgCursor.style.transform = `translate3d(${tgX}px, ${tgY}px, 0) translate(-50%,-50%) rotate(${tgAngle}deg) scale(${tgScale})`;
+  }
+
+  window.addEventListener('mousemove', (e) => {
+    const dx = e.clientX - tgX, dy = e.clientY - tgY;
+    tgX = e.clientX; tgY = e.clientY;
+    if (!tgShown) { tgShown = true; tgCursor.classList.add('active'); }
+    // point the paper-plane logo in the direction it's flying
+    if (Math.hypot(dx, dy) > 1) {
+      tgAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 45;
+    }
+    paintTg();
+  });
+  window.addEventListener('mousedown', () => { tgScale = .78; paintTg(); });
+  window.addEventListener('mouseup', () => { tgScale = 1; paintTg(); });
+  document.addEventListener('mouseleave', () => { tgShown = false; tgCursor.classList.remove('active'); });
+}
+
+// ============ SCROLL REVEAL ============
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('in'), i * 70);
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+function observeReveals(root = document){
+  root.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => revealObserver.observe(el));
+}
+observeReveals();
+
+// ============ MAGNETIC / RIPPLE / TILT (re-usable so live-loaded cards work too) ============
+function bindMagnetic(root = document){
+  root.querySelectorAll('.magnetic').forEach(btn => {
+    if (btn.dataset.boundMagnetic) return;
+    btn.dataset.boundMagnetic = '1';
+    btn.addEventListener('mousemove', (e) => {
+      const r = btn.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2;
+      const y = e.clientY - r.top - r.height / 2;
+      btn.style.transform = `translate(${x * 0.18}px, ${y * 0.35}px)`;
+    });
+    btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+  });
+}
+function bindRipple(root = document){
+  root.querySelectorAll('.ripple-host').forEach(el => {
+    if (el.dataset.boundRipple) return;
+    el.dataset.boundRipple = '1';
+    el.addEventListener('click', function (e) {
+      const r = this.getBoundingClientRect();
+      const size = Math.max(r.width, r.height);
+      const dot = document.createElement('span');
+      dot.className = 'ripple-dot';
+      dot.style.width = dot.style.height = size + 'px';
+      dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+      dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+      this.appendChild(dot);
+      dot.addEventListener('animationend', () => dot.remove());
+    });
+  });
+}
+function bindTiltCard(root = document){
+  root.querySelectorAll('.tilt-card').forEach(card => {
+    if (card.dataset.boundTilt) return;
+    card.dataset.boundTilt = '1';
+    const strength = parseFloat(card.dataset.tiltStrength) || 5;
+    card.addEventListener('mousemove', (e) => {
+      const r = card.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      card.style.setProperty('--mx', x + 'px');
+      card.style.setProperty('--my', y + 'px');
+      const rx = ((y / r.height) - 0.5) * -strength;
+      const ry = ((x / r.width) - 0.5) * strength;
+      card.style.transform = `translateY(-6px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    });
+    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+  });
+}
+bindMagnetic(); bindRipple(); bindTiltCard();
+
+// ============ ANIMATED COUNTERS ============
+function faDigits(n){ return n.toLocaleString('fa-IR'); }
+function animateCount(el){
+  const target = parseFloat(el.dataset.count);
+  const decimals = parseInt(el.dataset.decimals || '0', 10);
+  const suffix = el.dataset.suffix || '';
+  const useFa = el.dataset.fa === 'true';
+  const dur = 1400;
+  const t0 = performance.now();
+  const ring = el.id === 'retentionNum' ? document.getElementById('retentionRing') : null;
+  function step(t){
+    const p = Math.min((t - t0) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const val = (target * eased).toFixed(decimals);
+    el.textContent = (useFa ? faDigits(parseFloat(val)) : val) + suffix;
+    if (ring) ring.style.strokeDashoffset = String(169.6 - 169.6 * (eased * (target / 100)));
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+const countObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.count-num').forEach(animateCount);
+      countObserver.disconnect();
+    }
+  });
+}, { threshold: 0.5 });
+const heroStats = document.querySelector('.count-num');
+if (heroStats) countObserver.observe(heroStats.closest('section'));
+
+// ============ LIVE PROGRESS TICKER ============
+const progNum = document.getElementById('liveProgress');
+const progBar = document.getElementById('liveProgressBar');
+let prog = 87;
+setInterval(() => {
+  prog = prog >= 99 ? 60 : prog + 1;
+  progNum.textContent = prog.toLocaleString('fa-IR');
+  progBar.style.width = prog + '%';
+}, 1400);
+
+// ============ FAQ: only one open at a time ============
+document.querySelectorAll('.faq-item').forEach(item => {
+  item.addEventListener('toggle', () => {
+    if (item.open) {
+      document.querySelectorAll('.faq-item').forEach(other => {
+        if (other !== item) other.open = false;
+      });
+    }
+  });
+});
+
+// ============ PRODUCTS TABS (ARIA tablist, RTL-aware arrow keys) ============
+(() => {
+  const tabs = Array.from(document.querySelectorAll('#products [role="tab"]'));
+  if (!tabs.length) return;
+  function selectTab(tab){
+    tabs.forEach(t => {
+      const selected = t === tab;
+      t.setAttribute('aria-selected', String(selected));
+      t.tabIndex = selected ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !selected;
+    });
+    tab.focus();
+  }
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', (e) => {
+      const rtl = document.dir === 'rtl';
+      let idx = null;
+      if (e.key === 'ArrowLeft') idx = rtl ? i + 1 : i - 1;
+      if (e.key === 'ArrowRight') idx = rtl ? i - 1 : i + 1;
+      if (e.key === 'Home') idx = 0;
+      if (e.key === 'End') idx = tabs.length - 1;
+      if (idx !== null) {
+        e.preventDefault();
+        selectTab(tabs[(idx + tabs.length) % tabs.length]);
+      }
+    });
+  });
+})();
+
+// ============ ORDER MODAL ============
+const SUPPORT_TG_USERNAME = 'uploadgram_support'; // TODO: replace with the real support Telegram username
+const orderModalOverlay = document.getElementById('orderModalOverlay');
+const orderModal = document.getElementById('orderModal');
+let lastFocusedEl = null;
+
+function openOrderModal(btn){
+  lastFocusedEl = document.activeElement;
+  document.getElementById('orderModalPlan').textContent = btn.dataset.planName || '';
+  document.getElementById('orderModalQty').textContent = btn.dataset.planQty || '';
+  document.getElementById('orderModalPrice').textContent = btn.dataset.planPrice || '';
+  const summary = `سلام، می‌خواهم سفارش ثبت کنم:\nپلن: ${btn.dataset.planName}\nمقدار: ${btn.dataset.planQty}\nقیمت: ${btn.dataset.planPrice}`;
+  document.getElementById('orderModalConfirm').href = `https://t.me/${SUPPORT_TG_USERNAME}?text=${encodeURIComponent(summary)}`;
+  orderModalOverlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  const focusable = orderModal.querySelectorAll('button, a[href]');
+  if (focusable.length) focusable[0].focus();
+}
+function closeOrderModal(){
+  orderModalOverlay.style.display = 'none';
+  document.body.style.overflow = '';
+  if (lastFocusedEl) lastFocusedEl.focus();
+}
+function bindOrderButton(root = document){
+  root.querySelectorAll('.js-order-btn').forEach(btn => {
+    if (btn.dataset.boundOrder) return;
+    btn.dataset.boundOrder = '1';
+    btn.addEventListener('click', () => openOrderModal(btn));
+  });
+}
+bindOrderButton();
+
+document.getElementById('orderModalClose').addEventListener('click', closeOrderModal);
+orderModalOverlay.addEventListener('click', (e) => { if (e.target === orderModalOverlay) closeOrderModal(); });
+document.addEventListener('keydown', (e) => {
+  if (orderModalOverlay.style.display !== 'flex') return;
+  if (e.key === 'Escape') { closeOrderModal(); return; }
+  if (e.key === 'Tab') {
+    const focusable = Array.from(orderModal.querySelectorAll('button, a[href]'));
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+});
+
+// ============ LIVE PRODUCTS LOADER ============
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+(async () => {
+  try {
+    const res = await fetch('api/services.php', { cache: 'no-store' });
+    const data = await res.json();
+    if (!data || data.ok !== true || !Array.isArray(data.services) || !data.services.length) return;
+
+    const grid = document.getElementById('membersGrid');
+    const top = data.services.slice(0, 6);
+    grid.innerHTML = top.map((svc) => {
+      const price = svc.rate !== null ? svc.rate.toLocaleString('fa-IR') + ' تومان' : 'تماس بگیرید';
+      const qtyLabel = svc.min && svc.max ? `${svc.min.toLocaleString('fa-IR')} الی ${svc.max.toLocaleString('fa-IR')}` : 'متغیر';
+      return `
+        <div class="price-card-stagger reveal in tilt-card glass rounded-3xl p-8 border border-slate-800 hover:border-slate-700 flex flex-col justify-between relative">
+          <div class="space-y-6">
+            <div class="text-slate-400 text-sm font-bold flex items-center gap-2"><i class="fa-solid fa-bolt text-cyan-400"></i> ${escapeHtml(svc.name)}</div>
+            <div class="flex items-baseline gap-2">
+              <span class="text-xs text-slate-400">${escapeHtml(svc.category || 'ممبر آپلودری')}</span>
+            </div>
+            <div class="text-xl font-bold text-cyan-400">${escapeHtml(price)}</div>
+            <div class="text-xs text-slate-500 border-t border-slate-800/80 pt-4">ظرفیت سفارش: ${escapeHtml(qtyLabel)}</div>
+          </div>
+          <button type="button" class="btn-plan btn-plan-ghost magnetic ripple-host js-order-btn mt-8" data-plan-name="${escapeHtml(svc.name)}" data-plan-qty="${escapeHtml(qtyLabel)}" data-plan-price="${escapeHtml(price)}">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-cart-plus text-sm"></i> انتخاب و سفارش آنلاین</span>
+          </button>
+        </div>`;
+    }).join('');
+
+    bindMagnetic(grid); bindRipple(grid); bindTiltCard(grid); bindOrderButton(grid);
+    observeReveals(grid);
+  } catch (e) {
+    // network/API unavailable — static fallback cards already in the DOM, nothing to do
+  }
+})();
+</script>
+</body>
+</html>
