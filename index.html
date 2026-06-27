@@ -429,7 +429,7 @@
     animation: logoGlowPulse 4.5s ease-in-out infinite;
   }
   @keyframes logoGlowPulse{ 0%,100%{ opacity:.65; transform:scale(1); } 50%{ opacity:1; transform:scale(1.07); } }
-  .logo3d-stage video{ width:100%; height:100%; object-fit:contain; background:transparent; }
+  .logo3d-stage img{ width:100%; height:100%; object-fit:contain; background:transparent; }
 
   /* ============ 3D LOGO ENTRANCE (rises up, not a flat load) ============ */
   .logo3d-rise{
@@ -786,16 +786,17 @@
       <div class="lg:col-span-7 text-center lg:text-right space-y-6">
 
         <div class="logo3d-stage logo3d-stage--banner">
-          <video
-            id="logo3dVideo"
-            src="logo3d.mp4"
-            aria-hidden="true"
-            autoplay
-            muted
-            playsinline
-            preload="auto"
-            style="width:100%;height:100%;">
-          </video>
+          <picture>
+            <source srcset="assets/logo-3d.webp" type="image/webp">
+            <img
+              id="logo3dImg"
+              src="assets/logo-3d.png"
+              alt="لوگوی آپلود گرام"
+              width="800"
+              height="829"
+              decoding="async"
+              style="width:100%;height:100%;">
+          </picture>
         </div>
 
         <div class="hero-banner-platforms flex items-center justify-center lg:justify-start gap-2.5 flex-wrap" role="list" aria-label="پلتفرم‌های قابل افزایش عضو">
@@ -1469,19 +1470,19 @@ window.addEventListener('load', () => {
   });
 });
 
-// ============ LOGO VIDEO RISE-IN (waits for the video to load, plays once) ============
+// ============ LOGO RISE-IN (waits for the logo image to load) ============
 (() => {
   const wrap = document.getElementById('logo3dWrap');
-  const video = document.getElementById('logo3dVideo');
+  const img = document.getElementById('logo3dImg');
   let revealed = false;
   function reveal(){
     if (revealed) return;
     revealed = true;
     requestAnimationFrame(() => wrap.classList.add('in'));
   }
-  video.addEventListener('loadeddata', reveal, { once: true });
-  video.play().catch(() => {});
-  // safety fallback in case the loadeddata event was missed or the video is slow/unavailable
+  if (img.complete && img.naturalWidth > 0) reveal();
+  else img.addEventListener('load', reveal, { once: true });
+  // safety fallback in case the load event was missed or the image is slow/unavailable
   setTimeout(reveal, 3000);
 })();
 
