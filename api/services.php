@@ -33,6 +33,31 @@ function uploadgram_first(array $row, array $keys) {
     return null;
 }
 
+/**
+ * Classifies a service into one of the platforms UploadGram markets
+ * (Instagram / Telegram / YouTube / SoundCloud / Spotify) by keyword
+ * matching against its name + category, so the frontend can group the
+ * live catalog without needing to trust the upstream's own taxonomy.
+ */
+function uploadgram_detect_platform(string $name, string $category): string {
+    $haystack = mb_strtolower($name . ' ' . $category);
+    $map = [
+        'instagram'  => ['instagram', 'insta', 'اینستاگرام', 'اینستا'],
+        'telegram'   => ['telegram', 'تلگرام'],
+        'youtube'    => ['youtube', 'یوتیوب', 'یوتوب'],
+        'soundcloud' => ['soundcloud', 'sound cloud', 'ساندکلاد', 'ساند کلاد'],
+        'spotify'    => ['spotify', 'اسپاتیفای', 'اسپاتیفاي'],
+    ];
+    foreach ($map as $platform => $needles) {
+        foreach ($needles as $needle) {
+            if (mb_strpos($haystack, $needle) !== false) {
+                return $platform;
+            }
+        }
+    }
+    return 'other';
+}
+
 function uploadgram_normalize_services($decoded): ?array {
     $rows = null;
 
@@ -69,10 +94,14 @@ function uploadgram_normalize_services($decoded): ?array {
             continue;
         }
 
+        $cleanName = uploadgram_sanitize_text($name);
+        $cleanCategory = uploadgram_sanitize_text($category ?? '');
+
         $services[] = [
             'id' => (string) $id,
-            'name' => uploadgram_sanitize_text($name),
-            'category' => uploadgram_sanitize_text($category ?? ''),
+            'name' => $cleanName,
+            'category' => $cleanCategory,
+            'platform' => uploadgram_detect_platform($cleanName, $cleanCategory),
             'rate' => is_numeric($rate) ? (float) $rate : null,
             'min' => is_numeric($min) ? (int) $min : null,
             'max' => is_numeric($max) ? (int) $max : null,
