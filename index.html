@@ -468,6 +468,33 @@
   .prism-face.f4{ background:linear-gradient(145deg,#0e7490,#075985); color:#ecfeff; transform:rotateY(270deg) translateZ(42px); }
   @keyframes prismSpin{ from{ transform:rotateY(0deg); } to{ transform:rotateY(360deg); } }
 
+  /* ============ 3D HERO BANNER (unified showcase panel) ============ */
+  .hero-banner{
+    position:relative; border-radius:1.75rem;
+    background:linear-gradient(160deg, rgba(15,23,42,.72), rgba(8,13,28,.88));
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 30px 90px -25px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  @media (min-width:1024px){ .hero-banner{ border-radius:2.25rem; } }
+  .hero-banner-bg{ position:absolute; inset:0; z-index:0; overflow:hidden; border-radius:inherit; }
+  .hero-banner-canvas{ position:absolute; inset:0; width:100%; height:100%; opacity:.85; }
+  .hero-banner-edge-glow{
+    position:absolute; inset:-15%; pointer-events:none; filter:blur(46px);
+    background:
+      radial-gradient(55% 50% at 16% 10%, rgba(6,182,212,.20), transparent 62%),
+      radial-gradient(50% 45% at 88% 92%, rgba(99,102,241,.18), transparent 65%);
+  }
+  .hero-banner-grid{ position:relative; z-index:1; }
+
+  /* logo stage when nested inside the hero banner: smaller + right-aligned on desktop (RTL) */
+  .logo3d-stage--banner{ width:170px; height:170px; max-width:170px; max-height:170px; margin-inline:auto; }
+  @media (min-width:480px){ .logo3d-stage--banner{ width:200px; height:200px; max-width:200px; max-height:200px; } }
+  @media (min-width:1024px){ .logo3d-stage--banner{ width:230px; height:230px; max-width:230px; max-height:230px; margin-inline:0 auto; } }
+
+  .hero-banner-platforms{ position:relative; }
+  .hero-banner-platforms .bento-icon{ transition: transform .4s var(--ease-pop), background .3s ease; }
+  .hero-banner-platforms .bento-icon:hover{ transform:translateY(-4px) scale(1.1); }
+
   /* ============ 3D COIN (gold plan) ============ */
   .coin3d{
     display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;
@@ -747,158 +774,172 @@
     </h2>
     <p class="hero-seq brand-tagline">همیشه همراه رشد کانال شما</p>
 
-    <!-- ============ 3D LOGO SHOWCASE ============ -->
-    <div class="logo3d-wrap logo3d-rise mx-auto mb-6 lg:mb-8" id="logo3dWrap">
-      <div class="logo3d-stage">
-        <video
-          id="logo3dVideo"
-          src="logo3d.mp4"
-          aria-hidden="true"
-          autoplay
-          muted
-          playsinline
-          preload="auto"
-          style="width:100%;height:100%;">
-        </video>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-
-    <div class="lg:col-span-7 text-center lg:text-right space-y-6">
-      <div class="hero-seq inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs px-4 py-2 rounded-full">
-        <span class="w-1.5 h-1.5 bg-cyan-400 rounded-full pulse-dot"></span>
-        نسل جدید افزایش اعضای کانال‌های تلگرامی
+    <!-- ============ 3D HERO BANNER (unified showcase panel) ============ -->
+    <div class="hero-banner logo3d-rise mx-auto" id="logo3dWrap">
+      <div class="hero-banner-bg" aria-hidden="true">
+        <canvas id="bannerNetCanvas" class="hero-banner-canvas"></canvas>
+        <div class="hero-banner-edge-glow"></div>
       </div>
 
-      <h1 class="hero-seq text-4xl sm:text-5xl lg:text-6xl font-black leading-tight sm:leading-tight lg:leading-tight text-gradient">
-        انفجار آمار کانال با <br class="hidden sm:inline">
-        <span class="text-gradient-flow">ممبر واقعی آپلودری</span>
-      </h1>
+      <div class="hero-banner-grid grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center p-6 sm:p-10 lg:p-14">
 
-      <p class="hero-seq text-slate-400 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-        کاربرانی که برای دانلود فایل‌های مورد نیاز خود وارد کانال شما می‌شوند. ماندگاری خیره‌کننده، نرخ تعامل بالا و بدون ریزش ناگهانی. کانال خود را به هاب دانلود تبدیل کنید.
-      </p>
+      <div class="lg:col-span-7 text-center lg:text-right space-y-6">
 
-      <div class="hero-seq flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-        <a href="#products" class="btn-primary magnetic ripple-host px-8 py-4 text-base">
-          <span class="flex items-center gap-2">
-            <i class="fa-solid fa-basket-shopping"></i> مشاهده قیمت‌ها و خرید
-          </span>
-        </a>
-        <a href="#how" class="btn-ghost magnetic ripple-host px-8 py-4 text-base">
-          <span class="flex items-center gap-2">
-            <i class="fa-solid fa-play text-xs"></i> بررسی نحوه کارکرد
-          </span>
-        </a>
-      </div>
-
-      <div class="hero-seq grid grid-cols-3 gap-4 pt-8 max-w-md mx-auto lg:mx-0 border-t border-slate-800/80">
-        <div class="stat-block">
-          <div class="text-2xl lg:text-3xl font-black text-cyan-400"><span class="count-num" data-count="15" data-suffix="M+" data-fa="true">۰</span></div>
-          <div class="text-xs text-slate-400 mt-1">تعداد جذب موفق</div>
+        <div class="logo3d-stage logo3d-stage--banner">
+          <video
+            id="logo3dVideo"
+            src="logo3d.mp4"
+            aria-hidden="true"
+            autoplay
+            muted
+            playsinline
+            preload="auto"
+            style="width:100%;height:100%;">
+          </video>
         </div>
-        <div class="stat-block">
-          <div class="text-2xl lg:text-3xl font-black text-blue-400"><span class="count-num" data-count="4.8" data-decimals="1" data-fa="true">۰</span></div>
-          <div class="text-xs text-slate-400 mt-1">رضایت مشتریان</div>
+
+        <div class="hero-banner-platforms flex items-center justify-center lg:justify-start gap-2.5 flex-wrap" role="list" aria-label="پلتفرم‌های قابل افزایش عضو">
+          <span class="bento-icon w-10 h-10 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center text-base" title="اینستاگرام"><i class="fa-brands fa-instagram"></i></span>
+          <span class="bento-icon w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-base" title="تلگرام"><i class="fa-brands fa-telegram"></i></span>
+          <span class="bento-icon w-10 h-10 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center text-base" title="یوتیوب"><i class="fa-brands fa-youtube"></i></span>
+          <span class="bento-icon w-10 h-10 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-base" title="ساندکلود"><i class="fa-brands fa-soundcloud"></i></span>
+          <span class="bento-icon w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-base" title="اسپاتیفای"><i class="fa-brands fa-spotify"></i></span>
         </div>
-        <div class="stat-block flex flex-col items-center">
-          <div class="relative w-14 h-14 lg:w-16 lg:h-16">
-            <svg viewBox="0 0 64 64" class="w-full h-full -rotate-0">
-              <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(129,140,248,0.15)" stroke-width="5"/>
-              <circle id="retentionRing" cx="32" cy="32" r="27" fill="none" stroke="#818cf8" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="169.6" transform="rotate(-90 32 32)"/>
-            </svg>
-            <div class="absolute inset-0 flex items-center justify-center text-sm lg:text-base font-black text-indigo-400">٪<span class="count-num" id="retentionNum" data-count="94" data-fa="true">۰</span></div>
+
+        <div class="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs px-4 py-2 rounded-full">
+          <span class="w-1.5 h-1.5 bg-cyan-400 rounded-full pulse-dot"></span>
+          نسل جدید افزایش اعضای کانال‌های تلگرامی
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight sm:leading-tight lg:leading-tight text-gradient">
+          انفجار آمار کانال با <br class="hidden sm:inline">
+          <span class="text-gradient-flow">ممبر واقعی آپلودری</span>
+        </h1>
+
+        <p class="text-slate-400 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+          کاربرانی که برای دانلود فایل‌های مورد نیاز خود وارد کانال شما می‌شوند. ماندگاری خیره‌کننده، نرخ تعامل بالا و بدون ریزش ناگهانی. کانال خود را به هاب دانلود تبدیل کنید.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+          <a href="#products" class="btn-primary magnetic ripple-host px-8 py-4 text-base">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-basket-shopping"></i> مشاهده قیمت‌ها و خرید
+            </span>
+          </a>
+          <a href="#how" class="btn-ghost magnetic ripple-host px-8 py-4 text-base">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-play text-xs"></i> بررسی نحوه کارکرد
+            </span>
+          </a>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 pt-8 max-w-md mx-auto lg:mx-0 border-t border-slate-800/80">
+          <div class="stat-block">
+            <div class="text-2xl lg:text-3xl font-black text-cyan-400"><span class="count-num" data-count="15" data-suffix="M+" data-fa="true">۰</span></div>
+            <div class="text-xs text-slate-400 mt-1">تعداد جذب موفق</div>
           </div>
-          <div class="text-xs text-slate-400 mt-1">نرخ ماندگاری اعضا</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SIGNATURE VISUAL: live unlock pipeline -->
-    <div class="lg:col-span-5 flex justify-center items-center relative float-slow">
-      <div class="w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/10 absolute blur-3xl -z-10"></div>
-
-      <!-- floating live-growth badge -->
-      <div class="float-badge float-badge-a absolute -top-6 -right-2 sm:-right-4 lg:-right-14 hidden sm:block" data-depth="16">
-        <div class="float-badge-inner glass border border-emerald-500/30 rounded-2xl px-4 py-3 shadow-2xl items-center gap-2">
-          <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
-          <div class="text-[11px] leading-tight">
-            <div class="font-bold text-emerald-300">+۲۴۸ عضو جدید</div>
-            <div class="text-slate-400">در یک ساعت گذشته</div>
+          <div class="stat-block">
+            <div class="text-2xl lg:text-3xl font-black text-blue-400"><span class="count-num" data-count="4.8" data-decimals="1" data-fa="true">۰</span></div>
+            <div class="text-xs text-slate-400 mt-1">رضایت مشتریان</div>
+          </div>
+          <div class="stat-block flex flex-col items-center">
+            <div class="relative w-14 h-14 lg:w-16 lg:h-16">
+              <svg viewBox="0 0 64 64" class="w-full h-full -rotate-0">
+                <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(129,140,248,0.15)" stroke-width="5"/>
+                <circle id="retentionRing" cx="32" cy="32" r="27" fill="none" stroke="#818cf8" stroke-width="5" stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="169.6" transform="rotate(-90 32 32)"/>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center text-sm lg:text-base font-black text-indigo-400">٪<span class="count-num" id="retentionNum" data-count="94" data-fa="true">۰</span></div>
+            </div>
+            <div class="text-xs text-slate-400 mt-1">نرخ ماندگاری اعضا</div>
           </div>
         </div>
       </div>
 
-      <!-- floating rating badge -->
-      <div class="float-badge float-badge-b absolute -bottom-6 -left-2 sm:-left-4 lg:-left-14 hidden sm:block" data-depth="-14">
-        <div class="float-badge-inner glass border border-amber-500/30 rounded-2xl px-4 py-3 shadow-2xl items-center gap-2">
-          <i class="fa-solid fa-star text-amber-400 text-sm"></i>
-          <div class="text-[11px] leading-tight">
-            <div class="font-bold text-amber-300">۴.۸ از ۵</div>
-            <div class="text-slate-400">رضایت کاربران</div>
-          </div>
-        </div>
-      </div>
+      <!-- SIGNATURE VISUAL: live unlock pipeline -->
+      <div class="lg:col-span-5 flex justify-center items-center relative float-slow">
+        <div class="w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-600/10 absolute blur-3xl -z-10"></div>
 
-      <!-- 3D rotating pillars: security / speed / retention / scale -->
-      <div class="float-badge absolute -top-10 -left-8 hidden lg:block prism-stage" data-depth="10" aria-hidden="true">
-        <div class="prism3d">
-          <div class="prism-face f1"><i class="fa-solid fa-shield-halved"></i></div>
-          <div class="prism-face f2"><i class="fa-solid fa-bolt"></i></div>
-          <div class="prism-face f3"><i class="fa-solid fa-chart-line"></i></div>
-          <div class="prism-face f4"><i class="fa-solid fa-users"></i></div>
-        </div>
-      </div>
-
-      <div class="glass border border-slate-700/50 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative tilt-card" id="heroCard">
-
-        <!-- mini pipeline diagram -->
-        <svg viewBox="0 0 280 60" class="w-full h-14 mb-4">
-          <path d="M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30" stroke="rgba(255,255,255,0.08)" stroke-width="2" fill="none"/>
-          <path d="M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30" stroke="#22d3ee" stroke-width="2" fill="none" class="pipe-path"/>
-          <circle cx="10" cy="30" r="6" fill="#3b82f6" class="pipe-node"/>
-          <circle cx="140" cy="30" r="6" fill="#06b6d4" class="pipe-node"/>
-          <circle cx="270" cy="30" r="6" fill="#22d3ee" class="pipe-node"/>
-          <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30');"></circle>
-          <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30'); animation-delay:.9s;"></circle>
-          <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30'); animation-delay:1.8s;"></circle>
-          <text x="10" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">کاربر</text>
-          <text x="140" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">ربات آپلودر</text>
-          <text x="270" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">کانال شما</text>
-        </svg>
-
-        <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-4">
-          <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white">DL</div>
-          <div>
-            <div class="text-sm font-bold">کانال دانلود فیلم و فایل</div>
-            <div class="text-xs text-emerald-400 flex items-center gap-1">
-              <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full pulse-dot"></span> در حال جذب ممبر آپلودر...
+        <!-- floating live-growth badge -->
+        <div class="float-badge float-badge-a absolute -top-6 -right-2 sm:-right-4 lg:-right-14 hidden sm:block" data-depth="16">
+          <div class="float-badge-inner glass border border-emerald-500/30 rounded-2xl px-4 py-3 shadow-2xl items-center gap-2">
+            <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
+            <div class="text-[11px] leading-tight">
+              <div class="font-bold text-emerald-300">+۲۴۸ عضو جدید</div>
+              <div class="text-slate-400">در یک ساعت گذشته</div>
             </div>
           </div>
         </div>
 
-        <div class="space-y-3">
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800/80 text-xs text-slate-400">
-            📥 فایل <span class="text-cyan-400">Software_Pro_v2.5.zip</span> آماده دانلود است. برای باز شدن قفل دانلود، وارد کانال زیر شوید.
-          </div>
-          <div class="w-full bg-blue-600/20 border border-blue-500/30 text-blue-400 py-2.5 rounded-lg text-center text-xs font-bold">
-            عضویت در کانال و دانلود فایل
-          </div>
-          <div class="pt-2">
-            <div class="flex justify-between text-[10px] text-slate-400 mb-1">
-              <span>پیشرفت سفارش افزایش اعضا</span>
-              <span class="text-cyan-400 font-bold"><span id="liveProgress">۸۷</span>٪</span>
+        <!-- floating rating badge -->
+        <div class="float-badge float-badge-b absolute -bottom-6 -left-2 sm:-left-4 lg:-left-14 hidden sm:block" data-depth="-14">
+          <div class="float-badge-inner glass border border-amber-500/30 rounded-2xl px-4 py-3 shadow-2xl items-center gap-2">
+            <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+            <div class="text-[11px] leading-tight">
+              <div class="font-bold text-amber-300">۴.۸ از ۵</div>
+              <div class="text-slate-400">رضایت کاربران</div>
             </div>
-            <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden shimmer-bar">
-              <div id="liveProgressBar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)] transition-all duration-700" style="width:87%"></div>
+          </div>
+        </div>
+
+        <!-- 3D rotating pillars: security / speed / retention / scale -->
+        <div class="float-badge absolute -top-10 -left-8 hidden lg:block prism-stage" data-depth="10" aria-hidden="true">
+          <div class="prism3d">
+            <div class="prism-face f1"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="prism-face f2"><i class="fa-solid fa-bolt"></i></div>
+            <div class="prism-face f3"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="prism-face f4"><i class="fa-solid fa-users"></i></div>
+          </div>
+        </div>
+
+        <div class="glass border border-slate-700/50 p-6 rounded-3xl w-full max-w-sm shadow-2xl relative tilt-card" id="heroCard">
+
+          <!-- mini pipeline diagram -->
+          <svg viewBox="0 0 280 60" class="w-full h-14 mb-4">
+            <path d="M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30" stroke="rgba(255,255,255,0.08)" stroke-width="2" fill="none"/>
+            <path d="M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30" stroke="#22d3ee" stroke-width="2" fill="none" class="pipe-path"/>
+            <circle cx="10" cy="30" r="6" fill="#3b82f6" class="pipe-node"/>
+            <circle cx="140" cy="30" r="6" fill="#06b6d4" class="pipe-node"/>
+            <circle cx="270" cy="30" r="6" fill="#22d3ee" class="pipe-node"/>
+            <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30');"></circle>
+            <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30'); animation-delay:.9s;"></circle>
+            <circle r="3.2" fill="#fff" class="pipe-particle" style="offset-path: path('M10,30 C70,30 70,30 140,30 C210,30 210,30 270,30'); animation-delay:1.8s;"></circle>
+            <text x="10" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">کاربر</text>
+            <text x="140" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">ربات آپلودر</text>
+            <text x="270" y="50" font-size="8" fill="#64748b" text-anchor="middle" font-family="Vazirmatn">کانال شما</text>
+          </svg>
+
+          <div class="flex items-center gap-3 border-b border-slate-800 pb-4 mb-4">
+            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white">DL</div>
+            <div>
+              <div class="text-sm font-bold">کانال دانلود فیلم و فایل</div>
+              <div class="text-xs text-emerald-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full pulse-dot"></span> در حال جذب ممبر آپلودر...
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800/80 text-xs text-slate-400">
+              📥 فایل <span class="text-cyan-400">Software_Pro_v2.5.zip</span> آماده دانلود است. برای باز شدن قفل دانلود، وارد کانال زیر شوید.
+            </div>
+            <div class="w-full bg-blue-600/20 border border-blue-500/30 text-blue-400 py-2.5 rounded-lg text-center text-xs font-bold">
+              عضویت در کانال و دانلود فایل
+            </div>
+            <div class="pt-2">
+              <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                <span>پیشرفت سفارش افزایش اعضا</span>
+                <span class="text-cyan-400 font-bold"><span id="liveProgress">۸۷</span>٪</span>
+              </div>
+              <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden shimmer-bar">
+                <div id="liveProgressBar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)] transition-all duration-700" style="width:87%"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-  </div>
+      </div>
+    </div>
 
   </div>
 
@@ -1336,6 +1377,74 @@
   resize();
   render();
   window.addEventListener('resize', resize);
+  if (animate) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else render();
+    });
+  }
+})();
+
+// ============ HERO BANNER NETWORK (localized particle web, scoped to the 3D banner) ============
+(function () {
+  const canvas = document.getElementById('bannerNetCanvas');
+  const wrap = canvas && canvas.closest('.hero-banner');
+  if (!canvas || !wrap) return;
+  const ctx = canvas.getContext('2d');
+  const animate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  const palette = ['34,211,238', '59,130,246', '129,140,248'];
+  let w, h, particles, raf;
+
+  function resize() {
+    // use layout box size (offsetWidth/Height), not getBoundingClientRect: the rise-in
+    // entrance applies a CSS scale() transform that getBoundingClientRect would include.
+    const rectW = wrap.offsetWidth, rectH = wrap.offsetHeight;
+    w = canvas.width = Math.max(1, rectW) * dpr;
+    h = canvas.height = Math.max(1, rectH) * dpr;
+    const count = rectW < 480 ? 22 : rectW < 900 ? 34 : 46;
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.18 * dpr,
+      vy: (Math.random() - 0.5) * 0.18 * dpr,
+      c: palette[Math.floor(Math.random() * palette.length)],
+    }));
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, w, h);
+    const maxDist = 110 * dpr;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      if (animate) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+      }
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = `rgba(${p.c},${0.18 * (1 - dist / maxDist)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+        }
+      }
+      ctx.fillStyle = `rgba(${p.c},0.75)`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.6 * dpr, 0, Math.PI * 2); ctx.fill();
+    }
+    if (animate) raf = requestAnimationFrame(render);
+  }
+
+  resize();
+  render();
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(resize).observe(wrap);
+  } else {
+    window.addEventListener('resize', resize);
+  }
   if (animate) {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) cancelAnimationFrame(raf);
