@@ -8,7 +8,7 @@
  * header through uploadgram_verify_firebase_token() before trusting `sub`.
  */
 
-const UPLOADGRAM_FIREBASE_PROJECT_ID = 'uploader-e2530';
+const UPLOADGRAM_FIREBASE_PROJECT_ID = 'signin-3a5db';
 const UPLOADGRAM_FIREBASE_CERTS_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 const UPLOADGRAM_FIREBASE_CERTS_TTL = 3600; // seconds; Google rotates these infrequently
 
