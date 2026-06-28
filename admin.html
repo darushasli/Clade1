@@ -269,6 +269,8 @@
     <button type="button" class="segnav-btn" data-tab="products"><i class="fa-solid fa-cube"></i> محصولات</button>
     <button type="button" class="segnav-btn" data-tab="tickets"><i class="fa-solid fa-headset"></i> تیکت‌ها</button>
     <button type="button" class="segnav-btn" data-tab="financial"><i class="fa-solid fa-coins"></i> مالی</button>
+    <button type="button" class="segnav-btn" data-tab="pages"><i class="fa-solid fa-file-lines"></i> صفحات</button>
+    <button type="button" class="segnav-btn" data-tab="settings"><i class="fa-solid fa-sliders"></i> تنظیمات سایت</button>
   </nav>
 
   <main class="dash-main">
@@ -322,9 +324,14 @@
       <div class="panel-card">
         <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
           <h2 class="panel-title mb-0"><i class="fa-solid fa-list-check text-cyan-400"></i> مدیریت سفارش‌ها</h2>
-          <div class="inputBox max-w-xs">
-            <input type="text" id="orderUidSearch" placeholder=" " />
-            <label>جستجو بر اساس شناسه کاربر</label>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" id="syncAllStatusBtn" class="btn-soft magnetic ripple-host !py-2.5 !px-4 text-xs">
+              <i class="fa-solid fa-arrows-rotate"></i> بروزرسانی وضعیت‌ها
+            </button>
+            <div class="inputBox max-w-xs">
+              <input type="text" id="orderUidSearch" placeholder=" " />
+              <label>جستجو بر اساس شناسه کاربر</label>
+            </div>
           </div>
         </div>
         <div class="flex flex-wrap gap-2 mb-5" id="orderStatusFilter">
@@ -344,11 +351,22 @@
     <!-- ============ PRODUCTS ============ -->
     <section id="panel-products" class="dash-panel reveal">
       <div class="panel-card">
-        <div class="flex items-center justify-between mb-5 gap-4 flex-wrap">
+        <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
           <h2 class="panel-title mb-0"><i class="fa-solid fa-cube text-cyan-400"></i> مدیریت محصولات</h2>
-          <button type="button" id="newProductBtn" class="btn-submit magnetic ripple-host !py-2.5 !px-5 text-xs">
-            <span><i class="fa-solid fa-plus"></i> محصول جدید</span>
-          </button>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="badge badge-cyan" title="موجودی حساب در سرویس‌دهنده">
+              <i class="fa-solid fa-wallet"></i> <span id="upstreamBalanceText">—</span>
+            </span>
+            <button type="button" id="refreshBalanceBtn" class="icon-btn magnetic" title="بروزرسانی موجودی" aria-label="بروزرسانی موجودی">
+              <i class="fa-solid fa-rotate"></i>
+            </button>
+            <button type="button" id="syncServicesBtn" class="btn-soft magnetic ripple-host !py-2.5 !px-4 text-xs">
+              <i class="fa-solid fa-cloud-arrow-down"></i> همگام‌سازی از API
+            </button>
+            <button type="button" id="newProductBtn" class="btn-submit magnetic ripple-host !py-2.5 !px-5 text-xs">
+              <span><i class="fa-solid fa-plus"></i> محصول جدید</span>
+            </button>
+          </div>
         </div>
         <div id="productsList" class="flex flex-col gap-2.5"></div>
       </div>
@@ -398,6 +416,74 @@
       <div class="panel-card">
         <h2 class="panel-title"><i class="fa-solid fa-receipt text-cyan-400"></i> آخرین تراکنش‌ها</h2>
         <div id="financialTransactions" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGES ============ -->
+    <section id="panel-pages" class="dash-panel reveal">
+      <div class="panel-card">
+        <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+          <h2 class="panel-title mb-0"><i class="fa-solid fa-file-lines text-cyan-400"></i> صفحات سایت</h2>
+          <button type="button" id="newPageBtn" class="btn-submit magnetic ripple-host !py-2.5 !px-5 text-xs">
+            <span><i class="fa-solid fa-plus"></i> صفحه جدید</span>
+          </button>
+        </div>
+        <div id="pagesList" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ SITE SETTINGS ============ -->
+    <section id="panel-settings" class="dash-panel reveal">
+      <div class="panel-card">
+        <h2 class="panel-title"><i class="fa-solid fa-sliders text-cyan-400"></i> تنظیمات و ظاهر سایت</h2>
+        <form id="siteSettingsForm" class="flex flex-col gap-5">
+          <div>
+            <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-image"></i> لوگو</p>
+            <div class="flex items-center gap-4 flex-wrap">
+              <img id="logoPreview" src="" alt="" class="w-16 h-16 rounded-xl object-contain bg-white/5 border border-white/10 hidden" />
+              <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon" class="hidden" />
+              <button type="button" id="logoUploadBtn" class="btn-soft magnetic ripple-host !py-2.5 !px-4 text-xs"><i class="fa-solid fa-upload"></i> بارگذاری لوگوی جدید</button>
+              <input type="hidden" id="sLogoUrl" />
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="inputBox"><input type="text" id="sSiteName" placeholder=" " /><label>نام سایت</label></div>
+            <div class="inputBox"><input type="text" id="sTagline" placeholder=" " /><label>شعار سایت</label></div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5">
+            <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-house"></i> صفحه اصلی</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="inputBox"><input type="text" id="sHeroTitle" placeholder=" " /><label>عنوان هدر اصلی</label></div>
+              <div class="inputBox"><input type="text" id="sHeroSubtitle" placeholder=" " /><label>زیرعنوان هدر اصلی</label></div>
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5">
+            <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-address-book"></i> اطلاعات تماس</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="inputBox"><input type="text" id="sContactEmail" placeholder=" " /><label>ایمیل</label></div>
+              <div class="inputBox"><input type="text" id="sContactPhone" placeholder=" " /><label>تلفن</label></div>
+              <div class="inputBox"><input type="text" id="sContactTelegram" placeholder=" " /><label>آیدی تلگرام</label></div>
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5">
+            <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-share-nodes"></i> شبکه‌های اجتماعی</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="inputBox"><input type="text" id="sSocialInstagram" placeholder=" " /><label>اینستاگرام (لینک)</label></div>
+              <div class="inputBox"><input type="text" id="sSocialYoutube" placeholder=" " /><label>یوتیوب (لینک)</label></div>
+              <div class="inputBox"><input type="text" id="sSocialTwitter" placeholder=" " /><label>توییتر/X (لینک)</label></div>
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5">
+            <div class="inputBox"><textarea id="sFooterText" placeholder=" "></textarea><label>متن فوتر</label></div>
+          </div>
+
+          <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> ذخیره تنظیمات</span></button>
+        </form>
       </div>
     </section>
 
@@ -496,7 +582,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
   // ============ TAB SWITCHING ============
-  const PANELS = ['overview', 'users', 'orders', 'products', 'tickets', 'financial'];
+  const PANELS = ['overview', 'users', 'orders', 'products', 'tickets', 'financial', 'pages', 'settings'];
   function switchTab(tab){
     if (!PANELS.includes(tab)) tab = 'overview';
     PANELS.forEach(p => document.getElementById('panel-' + p).classList.toggle('active', p === tab));
@@ -505,9 +591,11 @@
     if (tab === 'overview') loadStats();
     if (tab === 'users') loadUsers(document.getElementById('userSearchInput').value.trim());
     if (tab === 'orders') loadOrders();
-    if (tab === 'products') loadProducts();
+    if (tab === 'products') { loadProducts(); loadUpstreamBalance(); }
     if (tab === 'tickets') loadTickets();
     if (tab === 'financial') loadStats();
+    if (tab === 'pages') loadPages();
+    if (tab === 'settings') loadSiteSettings();
   }
   document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
@@ -537,7 +625,7 @@
     document.getElementById('welcomeUserName').textContent = ' ' + name + ' 👋';
     document.getElementById('avatarInitial').textContent = name.trim().charAt(0).toUpperCase();
 
-    await Promise.all([loadStats(), loadUsers(), loadOrders(), loadProducts()]);
+    await Promise.all([loadStats(), loadUsers(), loadOrders(), loadProducts(), loadUpstreamBalance(), loadSiteSettings()]);
   });
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -741,6 +829,7 @@
     const canComplete = !['completed', 'refunded', 'cancelled'].includes(o.status);
     const canRetry = o.upstream_status === 'upstream_error' || o.upstream_status === 'manual_required';
     const canRefund = !['completed', 'refunded'].includes(o.status);
+    const canSyncStatus = !!o.upstream_order_id;
     return `
       <div class="row-card flex-wrap sm:flex-nowrap">
         <div class="flex items-center gap-3 min-w-0">
@@ -753,6 +842,7 @@
         <div class="flex items-center gap-2 flex-shrink-0">
           <span class="badge ${cls}">${label}</span>
           ${upstreamBadge ? `<span class="badge ${upstreamBadge[1]}">${upstreamBadge[0]}</span>` : ''}
+          ${canSyncStatus ? `<button type="button" class="btn-soft !py-2 !px-3 order-sync-btn" data-id="${o.id}" title="بروزرسانی وضعیت از سرویس‌دهنده"><i class="fa-solid fa-arrows-rotate"></i></button>` : ''}
           ${canComplete ? `<button type="button" class="btn-soft !py-2 !px-3 order-complete-btn" data-id="${o.id}" title="تکمیل سفارش"><i class="fa-solid fa-check"></i></button>` : ''}
           ${canRetry ? `<button type="button" class="btn-soft !py-2 !px-3 order-retry-btn" data-id="${o.id}" title="تلاش مجدد ارسال"><i class="fa-solid fa-rotate-right"></i></button>` : ''}
           ${canRefund ? `<button type="button" class="btn-soft !py-2 !px-3 order-refund-btn" data-id="${o.id}" title="بازگشت وجه"><i class="fa-solid fa-rotate-left"></i></button>` : ''}
@@ -807,11 +897,41 @@
     orderUidTimer = setTimeout(loadOrders, 350);
   });
 
+  document.getElementById('syncAllStatusBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('syncAllStatusBtn');
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال بروزرسانی...';
+    try {
+      const { ok, data } = await api('admin/orders.php', { method: 'POST', body: JSON.stringify({ action: 'sync_status_bulk' }) });
+      if (!ok || !data || !data.ok) { showToast('خطا در بروزرسانی وضعیت‌ها', false); return; }
+      showToast(`${toFa(data.updated)} سفارش از ${toFa(data.checked)} مورد بررسی‌شده بروزرسانی شد`, true);
+      loadOrders();
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  });
+
   document.getElementById('ordersAdminList').addEventListener('click', async (e) => {
     const completeBtn = e.target.closest('.order-complete-btn');
     const retryBtn = e.target.closest('.order-retry-btn');
     const refundBtn = e.target.closest('.order-refund-btn');
+    const syncBtn = e.target.closest('.order-sync-btn');
 
+    if (syncBtn) {
+      const id = parseInt(syncBtn.dataset.id, 10);
+      syncBtn.disabled = true;
+      try {
+        const { ok, data } = await api('admin/orders.php', { method: 'POST', body: JSON.stringify({ id, action: 'sync_status' }) });
+        if (!ok || !data || !data.ok) { showToast('خطا در بروزرسانی وضعیت', false); return; }
+        showToast('وضعیت سفارش بروزرسانی شد', true);
+        loadOrders();
+      } finally {
+        syncBtn.disabled = false;
+      }
+      return;
+    }
     if (completeBtn) {
       const id = parseInt(completeBtn.dataset.id, 10);
       if (!confirm('این سفارش به عنوان تکمیل‌شده علامت بخورد؟')) return;
@@ -851,7 +971,12 @@
   let productsRaw = [];
 
   function renderProductRow(p){
-    const apiConnected = !!(p.api_url && p.api_key);
+    let sourceBadge;
+    if (p.source === 'upstream') {
+      sourceBadge = p.upstream_service_id ? ['badge-cyan', 'کلید مشترک API'] : ['badge-red', 'بدون شناسه سرویس'];
+    } else {
+      sourceBadge = (p.api_url && p.api_key) ? ['badge-green', 'API اختصاصی متصل'] : ['badge-amber', 'نیاز به اتصال دستی'];
+    }
     return `
       <div class="row-card flex-wrap sm:flex-nowrap">
         <div class="flex items-center gap-3 min-w-0">
@@ -862,7 +987,7 @@
           </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <span class="badge ${apiConnected ? 'badge-green' : 'badge-amber'}">${apiConnected ? 'API متصل' : 'نیاز به اتصال دستی'}</span>
+          <span class="badge ${sourceBadge[0]}">${sourceBadge[1]}</span>
           <button type="button" class="btn-soft !py-2 !px-3 product-edit-btn" data-id="${p.id}" title="ویرایش"><i class="fa-solid fa-pen"></i></button>
           <button type="button" class="btn-soft !py-2 !px-3 product-delete-btn" data-id="${p.id}" title="حذف"><i class="fa-solid fa-trash"></i></button>
         </div>
@@ -880,6 +1005,34 @@
     productsRaw = data.products;
     listEl.innerHTML = productsRaw.map(renderProductRow).join('');
   }
+
+  async function loadUpstreamBalance(){
+    const textEl = document.getElementById('upstreamBalanceText');
+    textEl.textContent = '...';
+    const { ok, data } = await api('admin/balance.php');
+    if (!ok || !data || !data.ok || data.balance === null) {
+      textEl.textContent = 'نامشخص';
+      return;
+    }
+    textEl.textContent = toFa(Math.round(data.balance)) + (data.currency ? ' ' + data.currency : '');
+  }
+  document.getElementById('refreshBalanceBtn').addEventListener('click', loadUpstreamBalance);
+
+  document.getElementById('syncServicesBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('syncServicesBtn');
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال همگام‌سازی...';
+    try {
+      const { ok, data } = await api('admin/sync_services.php', { method: 'POST' });
+      if (!ok || !data || !data.ok) { showToast('خطا در همگام‌سازی با API', false); return; }
+      showToast(`${toFa(data.added)} محصول جدید اضافه شد (${toFa(data.skipped)} مورد قبلاً موجود بود)`, true);
+      loadProducts();
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  });
 
   function openProductModal(p){
     const isEdit = !!p;
@@ -932,8 +1085,14 @@
           </label>
         </div>
         <div class="border-t border-white/10 pt-4 mt-1">
-          <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-plug"></i> تنظیمات API اختصاصی (اختیاری)</p>
-          <div class="flex flex-col gap-4">
+          <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-server"></i> منبع تأمین سفارش</p>
+          <div class="flex gap-2 mb-3">
+            <button type="button" class="chip flex-1 source-chip" data-source="upstream">کلید مشترک (فالووران)</button>
+            <button type="button" class="chip flex-1 source-chip" data-source="local">API اختصاصی</button>
+          </div>
+          <p id="sourceHint" class="text-xs text-slate-500 mb-4 leading-relaxed"></p>
+
+          <div id="sourceLocalFields" class="flex flex-col gap-4 mb-4">
             <div class="inputBox">
               <input type="text" id="pApiUrl" placeholder=" " value="${escapeHtml(p?.api_url || '')}" />
               <label>آدرس API</label>
@@ -944,37 +1103,60 @@
                 <label>کلید API</label>
               </div>
               <div class="inputBox">
-                <input type="text" id="pApiAction" placeholder=" " value="${escapeHtml(p?.api_action || '')}" />
+                <input type="text" id="pApiAction" placeholder=" " value="${escapeHtml(p?.api_action || 'add')}" />
                 <label>اکشن (مثلاً add)</label>
               </div>
             </div>
-            <div class="inputBox">
-              <input type="text" id="pUpstreamServiceId" placeholder=" " value="${escapeHtml(p?.upstream_service_id || '')}" />
-              <label>شناسه سرویس در API</label>
-            </div>
+          </div>
+
+          <div class="inputBox">
+            <input type="text" id="pUpstreamServiceId" placeholder=" " value="${escapeHtml(p?.upstream_service_id || '')}" />
+            <label id="pUpstreamServiceIdLabel">شناسه سرویس</label>
           </div>
         </div>
         <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> ${isEdit ? 'ذخیره تغییرات' : 'ایجاد محصول'}</span></button>
       </form>
     `);
 
+    function applySource(source){
+      document.querySelectorAll('#modalBox .source-chip').forEach(c => c.classList.toggle('active', c.dataset.source === source));
+      document.getElementById('sourceLocalFields').classList.toggle('hidden', source !== 'local');
+      document.getElementById('pApiUrl').required = source === 'local';
+      document.getElementById('pApiKey').required = source === 'local';
+      document.getElementById('pUpstreamServiceId').required = source === 'upstream';
+      document.getElementById('sourceHint').textContent = source === 'upstream'
+        ? 'سفارش این محصول با کلید API مشترک (تنظیم‌شده در سرور برای فالووران) ارسال می‌شود — فقط شناسه سرویس لازم است.'
+        : 'سفارش این محصول با آدرس و کلید API اختصاصی زیر ارسال می‌شود — می‌تواند هر سرویس‌دهنده‌ای غیر از فالووران باشد.';
+      document.getElementById('pUpstreamServiceIdLabel').textContent = source === 'upstream'
+        ? 'شناسه سرویس در فالووران (Service ID)'
+        : 'شناسه سرویس (در صورت نیاز این API)';
+    }
+    document.querySelectorAll('#modalBox .source-chip').forEach(chip => {
+      chip.addEventListener('click', () => applySource(chip.dataset.source));
+    });
+    applySource(p?.source === 'local' ? 'local' : 'upstream');
+
     document.getElementById('productForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const source = document.querySelector('#modalBox .source-chip.active').dataset.source;
       const payload = {
         name: document.getElementById('pName').value.trim(),
         category: document.getElementById('pCategory').value.trim(),
         platform: document.getElementById('pPlatform').value,
+        source,
         base_rate: document.getElementById('pBaseRate').value,
         min_qty: document.getElementById('pMinQty').value,
         max_qty: document.getElementById('pMaxQty').value,
         sort_order: document.getElementById('pSortOrder').value || 0,
         is_active: document.getElementById('pIsActive').checked ? 1 : 0,
-        api_url: document.getElementById('pApiUrl').value.trim(),
-        api_key: document.getElementById('pApiKey').value.trim(),
-        api_action: document.getElementById('pApiAction').value.trim(),
+        api_url: source === 'local' ? document.getElementById('pApiUrl').value.trim() : '',
+        api_key: source === 'local' ? document.getElementById('pApiKey').value.trim() : '',
+        api_action: source === 'local' ? document.getElementById('pApiAction').value.trim() : '',
         upstream_service_id: document.getElementById('pUpstreamServiceId').value.trim(),
       };
       if (!payload.name) { showToast('نام محصول الزامی است', false); return; }
+      if (source === 'upstream' && !payload.upstream_service_id) { showToast('شناسه سرویس برای کلید مشترک الزامی است', false); return; }
+      if (source === 'local' && (!payload.api_url || !payload.api_key)) { showToast('آدرس و کلید API اختصاصی الزامی است', false); return; }
       if (isEdit) payload.id = p.id;
       const { ok, data } = await api('admin/products.php', { method: isEdit ? 'PUT' : 'POST', body: JSON.stringify(payload) });
       if (!ok || !data || !data.ok) { showToast('خطا در ذخیره محصول', false); return; }
@@ -1078,6 +1260,172 @@
     openAdminTicket(activeTicketId);
     loadTickets();
     loadStats();
+  });
+
+  // ============ SITE SETTINGS ============
+  async function loadSiteSettings(){
+    const { ok, data } = await api('admin/site_settings.php');
+    if (!ok || !data || !data.ok) return;
+    const s = data.settings;
+    document.getElementById('sSiteName').value = s.site_name || '';
+    document.getElementById('sTagline').value = s.tagline || '';
+    document.getElementById('sHeroTitle').value = s.hero_title || '';
+    document.getElementById('sHeroSubtitle').value = s.hero_subtitle || '';
+    document.getElementById('sContactEmail').value = s.contact_email || '';
+    document.getElementById('sContactPhone').value = s.contact_phone || '';
+    document.getElementById('sContactTelegram').value = s.contact_telegram || '';
+    document.getElementById('sSocialInstagram').value = s.social_instagram || '';
+    document.getElementById('sSocialYoutube').value = s.social_youtube || '';
+    document.getElementById('sSocialTwitter').value = s.social_twitter || '';
+    document.getElementById('sFooterText').value = s.footer_text || '';
+    document.getElementById('sLogoUrl').value = s.logo_url || '';
+    const preview = document.getElementById('logoPreview');
+    if (s.logo_url) { preview.src = s.logo_url; preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
+  }
+
+  document.getElementById('logoUploadBtn').addEventListener('click', () => document.getElementById('logoFileInput').click());
+  document.getElementById('logoFileInput').addEventListener('change', async () => {
+    const file = document.getElementById('logoFileInput').files[0];
+    if (!file) return;
+    const btn = document.getElementById('logoUploadBtn');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال بارگذاری...';
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const headers = idToken ? { Authorization: `Bearer ${idToken}` } : {};
+      const res = await fetch('api/admin/upload.php', { method: 'POST', headers, body: formData });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || !data.ok) { showToast('خطا در بارگذاری تصویر', false); return; }
+      document.getElementById('sLogoUrl').value = data.url;
+      const preview = document.getElementById('logoPreview');
+      preview.src = data.url;
+      preview.classList.remove('hidden');
+      showToast('لوگو بارگذاری شد — برای ذخیره، روی «ذخیره تنظیمات» بزنید', true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+      document.getElementById('logoFileInput').value = '';
+    }
+  });
+
+  document.getElementById('siteSettingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      site_name: document.getElementById('sSiteName').value.trim(),
+      tagline: document.getElementById('sTagline').value.trim(),
+      logo_url: document.getElementById('sLogoUrl').value.trim(),
+      hero_title: document.getElementById('sHeroTitle').value.trim(),
+      hero_subtitle: document.getElementById('sHeroSubtitle').value.trim(),
+      contact_email: document.getElementById('sContactEmail').value.trim(),
+      contact_phone: document.getElementById('sContactPhone').value.trim(),
+      contact_telegram: document.getElementById('sContactTelegram').value.trim(),
+      social_instagram: document.getElementById('sSocialInstagram').value.trim(),
+      social_youtube: document.getElementById('sSocialYoutube').value.trim(),
+      social_twitter: document.getElementById('sSocialTwitter').value.trim(),
+      footer_text: document.getElementById('sFooterText').value.trim(),
+    };
+    const { ok, data } = await api('admin/site_settings.php', { method: 'PUT', body: JSON.stringify(payload) });
+    if (!ok || !data || !data.ok) { showToast('خطا در ذخیره تنظیمات', false); return; }
+    showToast('تنظیمات سایت ذخیره شد', true);
+  });
+
+  // ============ PAGES ============
+  let pagesRaw = [];
+
+  async function loadPages(){
+    const listEl = document.getElementById('pagesList');
+    listEl.innerHTML = '<div class="skel h-16"></div><div class="skel h-16"></div>';
+    const { ok, data } = await api('admin/pages.php');
+    if (!ok || !data || !data.ok || !data.pages.length) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-file-circle-xmark"></i><p class="text-sm">صفحه‌ای ثبت نشده.</p></div>';
+      return;
+    }
+    pagesRaw = data.pages;
+    listEl.innerHTML = pagesRaw.map(pg => `
+      <div class="row-card flex-wrap sm:flex-nowrap">
+        <div class="flex items-center gap-3 min-w-0">
+          <i class="fa-solid fa-file-lines text-cyan-400/70"></i>
+          <div class="min-w-0">
+            <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(pg.title)}</p>
+            <p class="text-xs text-slate-500 truncate" dir="ltr">page.html?slug=${escapeHtml(pg.slug)}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="badge ${Number(pg.is_published) ? 'badge-green' : 'badge-gray'}">${Number(pg.is_published) ? 'منتشرشده' : 'پیش‌نویس'}</span>
+          <button type="button" class="btn-soft !py-2 !px-3 page-edit-btn" data-id="${pg.id}" title="ویرایش"><i class="fa-solid fa-pen"></i></button>
+          <button type="button" class="btn-soft !py-2 !px-3 page-delete-btn" data-id="${pg.id}" title="حذف"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`).join('');
+  }
+
+  function openPageModal(page){
+    const isEdit = !!page;
+    openModal(`
+      <h3 class="panel-title"><i class="fa-solid fa-file-lines text-cyan-400"></i> ${isEdit ? 'ویرایش صفحه' : 'صفحه جدید'}</h3>
+      <form id="pageForm" class="flex flex-col gap-4">
+        <div class="inputBox">
+          <input type="text" id="pgTitle" required placeholder=" " value="${escapeHtml(page?.title || '')}" />
+          <label>عنوان صفحه</label>
+        </div>
+        <div class="inputBox">
+          <input type="text" id="pgSlug" placeholder=" " dir="ltr" value="${escapeHtml(page?.slug || '')}" />
+          <label>نشانی (slug) — خالی بگذارید تا خودکار ساخته شود</label>
+        </div>
+        <div class="inputBox">
+          <textarea id="pgBody" placeholder=" " style="min-height:220px;" dir="ltr">${escapeHtml(page?.body || '')}</textarea>
+          <label>محتوای صفحه (HTML)</label>
+        </div>
+        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+          <input type="checkbox" id="pgIsPublished" ${(!page || Number(page.is_published)) ? 'checked' : ''} class="w-4 h-4" /> منتشرشده (در سایت نمایش داده شود)
+        </label>
+        <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> ${isEdit ? 'ذخیره تغییرات' : 'ایجاد صفحه'}</span></button>
+      </form>
+    `);
+
+    document.getElementById('pageForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById('pgTitle').value.trim(),
+        slug: document.getElementById('pgSlug').value.trim(),
+        body: document.getElementById('pgBody').value,
+        is_published: document.getElementById('pgIsPublished').checked ? 1 : 0,
+      };
+      if (!payload.title) { showToast('عنوان صفحه الزامی است', false); return; }
+      if (isEdit) payload.id = page.id;
+      const { ok, data } = await api('admin/pages.php', { method: isEdit ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+      if (!ok || !data || !data.ok) {
+        showToast(data?.error === 'slug_taken' ? 'این نشانی قبلاً استفاده شده' : 'خطا در ذخیره صفحه', false);
+        return;
+      }
+      showToast(isEdit ? 'صفحه بروزرسانی شد' : 'صفحه ایجاد شد', true);
+      closeModal();
+      loadPages();
+    });
+  }
+
+  document.getElementById('newPageBtn').addEventListener('click', () => openPageModal(null));
+
+  document.getElementById('pagesList').addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.page-edit-btn');
+    const delBtn = e.target.closest('.page-delete-btn');
+
+    if (editBtn) {
+      const { ok, data } = await api('admin/pages.php?id=' + editBtn.dataset.id);
+      if (!ok || !data || !data.ok) { showToast('خطا در دریافت صفحه', false); return; }
+      openPageModal(data.page);
+      return;
+    }
+    if (delBtn) {
+      const id = parseInt(delBtn.dataset.id, 10);
+      if (!confirm('این صفحه حذف شود؟ این عمل قابل بازگشت نیست.')) return;
+      const { ok, data } = await api('admin/pages.php', { method: 'DELETE', body: JSON.stringify({ id }) });
+      if (!ok || !data || !data.ok) { showToast('خطا در حذف صفحه', false); return; }
+      showToast('صفحه حذف شد', true);
+      loadPages();
+    }
   });
 </script>
 

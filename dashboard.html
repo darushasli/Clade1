@@ -263,10 +263,11 @@
   <!-- ============ TOP BAR ============ -->
   <header class="dash-topbar glass">
     <a href="index.html" class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+      <img id="navLogoImg" src="" alt="" class="w-10 h-10 rounded-xl hidden object-contain" />
+      <div id="navLogoFallback" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
         <i class="fa-solid fa-cloud-arrow-up text-white text-lg"></i>
       </div>
-      <span dir="ltr" class="hidden sm:inline text-lg font-mono font-bold text-gradient-flow">UploadGram</span>
+      <span dir="ltr" id="navSiteName" class="hidden sm:inline text-lg font-mono font-bold text-gradient-flow">UploadGram</span>
     </a>
 
     <div class="flex items-center gap-2 sm:gap-3">
@@ -512,6 +513,17 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+
+  // ============ BRANDING (from site settings) ============
+  fetch('api/site_settings.php').then(r => r.json()).then(({ ok, settings }) => {
+    if (!ok || !settings) return;
+    if (settings.site_name) document.getElementById('navSiteName').textContent = settings.site_name;
+    if (settings.logo_url) {
+      document.getElementById('navLogoImg').src = settings.logo_url;
+      document.getElementById('navLogoImg').classList.remove('hidden');
+      document.getElementById('navLogoFallback').classList.add('hidden');
+    }
+  }).catch(() => {});
 
   function escapeHtml(str){
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

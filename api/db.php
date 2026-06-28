@@ -131,6 +131,26 @@ function uploadgram_migrate(PDO $pdo): void {
             FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS site_settings (
+            setting_key VARCHAR(64) PRIMARY KEY,
+            setting_value TEXT,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS pages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            slug VARCHAR(128) NOT NULL UNIQUE,
+            title VARCHAR(255) NOT NULL,
+            body MEDIUMTEXT,
+            is_published TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
 }
 
 /** Creates the user row on first sight (idempotent) and returns the current profile row. */

@@ -710,10 +710,11 @@
 <header class="fixed top-0 left-0 right-0 z-50 px-4 lg:px-8 py-4">
   <nav id="mainNav" class="max-w-7xl mx-auto glass rounded-2xl px-6 py-4 flex items-center justify-between border border-slate-800/60">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+      <img id="navLogoImg" src="" alt="" class="w-10 h-10 rounded-xl hidden object-contain" />
+      <div id="navLogoFallback" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
         <i class="fa-solid fa-cloud-arrow-up text-white text-lg"></i>
       </div>
-      <span dir="ltr" class="text-xl font-mono font-bold tracking-tight bg-gradient-to-l from-white to-cyan-400 bg-clip-text text-transparent">UploadGram</span>
+      <span dir="ltr" id="navSiteName" class="text-xl font-mono font-bold tracking-tight bg-gradient-to-l from-white to-cyan-400 bg-clip-text text-transparent">UploadGram</span>
     </div>
 
     <div class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
@@ -1291,7 +1292,7 @@
       <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
         <i class="fa-solid fa-cloud"></i>
       </div>
-      <span class="font-bold text-slate-400">آپلود گرام؛ پلتفرم پیشرفته مدیریت آمار تلگرام</span>
+      <span id="footerText" class="font-bold text-slate-400">آپلود گرام؛ پلتفرم پیشرفته مدیریت آمار تلگرام</span>
     </div>
     <div class="flex flex-wrap items-center justify-center gap-6 text-slate-400">
       <a href="products.html" class="hover:text-cyan-400 transition-colors">محصولات</a>
@@ -1522,6 +1523,18 @@ navToggle.addEventListener('click', () => {
 mobileMenuPanel.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMobileMenu));
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobileMenu(); });
 window.addEventListener('resize', () => { if (window.innerWidth >= 1024) closeMobileMenu(); });
+
+// ============ BRANDING (from site settings) ============
+fetch('api/site_settings.php').then(r => r.json()).then(({ ok, settings }) => {
+  if (!ok || !settings) return;
+  if (settings.site_name) document.getElementById('navSiteName').textContent = settings.site_name;
+  if (settings.logo_url) {
+    document.getElementById('navLogoImg').src = settings.logo_url;
+    document.getElementById('navLogoImg').classList.remove('hidden');
+    document.getElementById('navLogoFallback').classList.add('hidden');
+  }
+  if (settings.footer_text) document.getElementById('footerText').textContent = settings.footer_text;
+}).catch(() => {});
 
 // ============ CURSOR GLOW + DEPTH PARALLAX ============
 const glow = document.getElementById('cursorGlow');

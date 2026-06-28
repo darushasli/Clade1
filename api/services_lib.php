@@ -156,8 +156,8 @@ function uploadgram_upstream_call(string $apiKey, array $fields): ?array {
  * so admin-managed local products (below) are never stuck behind the file
  * cache and always reflect the latest edit immediately.
  */
-function uploadgram_get_upstream_services(): array {
-    if (is_file(UPLOADGRAM_CACHE_FILE) && (time() - filemtime(UPLOADGRAM_CACHE_FILE)) < UPLOADGRAM_CACHE_TTL) {
+function uploadgram_get_upstream_services(bool $forceRefresh = false): array {
+    if (!$forceRefresh && is_file(UPLOADGRAM_CACHE_FILE) && (time() - filemtime(UPLOADGRAM_CACHE_FILE)) < UPLOADGRAM_CACHE_TTL) {
         $cached = file_get_contents(UPLOADGRAM_CACHE_FILE);
         $cachedDecoded = json_decode($cached, true);
         if (is_array($cachedDecoded)) {
@@ -238,6 +238,19 @@ function uploadgram_get_product(int $id): ?array {
 }
 
 /**
+ * Set of upstream service ids already imported as local product rows
+ * (active or not), keyed by id for O(1) lookup — used to keep the live
+ * upstream catalog from showing a service twice once it has been synced
+ * into the admin-managed `products` table.
+ */
+function uploadgram_imported_upstream_ids(): array {
+    $db = uploadgram_db();
+    $rows = $db->query("SELECT upstream_service_id FROM products WHERE upstream_service_id IS NOT NULL AND upstream_service_id <> ''")
+        ->fetchAll(PDO::FETCH_COLUMN);
+    return array_fill_keys(array_map('strval', $rows), true);
+}
+
+/**
  * Returns the full catalog as { ok, services?, error? } — the exact contract
  * services.php responds with — merging admin-managed local products (always
  * fresh) ahead of the cached upstream catalog. The catalog is considered
@@ -247,7 +260,17 @@ function uploadgram_get_product(int $id): ?array {
 function uploadgram_get_services(): array {
     $local = uploadgram_local_products_as_services();
     $upstream = uploadgram_get_upstream_services();
-    $services = array_merge($local, $upstream['ok'] ? $upstream['services'] : []);
+    $upstreamServices = $upstream['ok'] ? $upstream['services'] : [];
+
+    $imported = uploadgram_imported_upstream_ids();
+    if (!empty($imported)) {
+        $upstreamServices = array_values(array_filter(
+            $upstreamServices,
+            fn($service) => !isset($imported[(string) $service['id']])
+        ));
+    }
+
+    $services = array_merge($local, $upstreamServices);
 
     if (count($services) === 0) {
         return ['ok' => false, 'error' => $upstream['error'] ?? 'catalog_unavailable'];
@@ -256,38 +279,102 @@ function uploadgram_get_services(): array {
     return ['ok' => true, 'services' => $services];
 }
 
+/** Account balance on the shared upstream reseller key — { action: balance }. */
+function uploadgram_check_upstream_balance(): ?array {
+    $apiKey = uploadgram_resolve_api_key();
+    if (!$apiKey) {
+        return null;
+    }
+    return uploadgram_upstream_call($apiKey, ['action' => 'balance']);
+}
+
+/** Status of one order on the shared upstream key — { action: status, order: ID }. */
+function uploadgram_check_upstream_order_status(string $upstreamOrderId): ?array {
+    $apiKey = uploadgram_resolve_api_key();
+    if (!$apiKey || $upstreamOrderId === '') {
+        return null;
+    }
+    return uploadgram_upstream_call($apiKey, ['action' => 'status', 'order' => $upstreamOrderId]);
+}
+
+/**
+ * Bulk status check — per the upstream docs this endpoint takes the key
+ * under "api" (not "key") and a comma-separated "orders" list; "key" is
+ * still sent too since uploadgram_fetch_from_upstream() always includes it
+ * and the upstream API ignores fields it doesn't recognize.
+ */
+function uploadgram_check_upstream_order_statuses(array $upstreamOrderIds): ?array {
+    $apiKey = uploadgram_resolve_api_key();
+    if (!$apiKey || empty($upstreamOrderIds)) {
+        return null;
+    }
+    return uploadgram_upstream_call($apiKey, [
+        'action' => 'status',
+        'orders' => implode(',', $upstreamOrderIds),
+        'api' => $apiKey,
+    ]);
+}
+
+/** Places an order on the single shared reseller key (config.local.php). */
+function uploadgram_place_via_shared_key(string $upstreamServiceId, string $link, int $quantity): ?array {
+    $apiKey = uploadgram_resolve_api_key();
+    if (!$apiKey) {
+        return null;
+    }
+    return uploadgram_upstream_call($apiKey, [
+        'action' => 'add',
+        'service' => $upstreamServiceId,
+        'link' => $link,
+        'quantity' => $quantity,
+    ]);
+}
+
 /**
  * Places the order with whichever upstream API backs this service, and
- * records the upstream's order id/status. Local products (source==='local')
- * use their own per-product api_url/api_key/api_action — set in the admin
- * panel — instead of the single shared reseller key, so each product can be
- * wired to a different provider. A local product with no API configured is
- * flagged 'manual_required' for an admin to fulfill by hand. Upstream
- * failure never undoes the payment — the order stays "paid" with
- * upstream_status = 'upstream_error' so an admin can retry it manually.
+ * records the upstream's order id/status. Catalog entries that come from
+ * the admin-managed `products` table (identified by a `product_id`, set in
+ * uploadgram_local_products_as_services()) branch on that row's own
+ * `source` column:
+ *   - source = 'upstream' — rides the single shared reseller key, using the
+ *     product's `upstream_service_id` (this is how an admin "imports" or
+ *     wires a product to the shared Followeran-style key without owning a
+ *     separate API account).
+ *   - source = 'local'    — uses the product's own api_url/api_key/api_action,
+ *     so each product can be wired to a different third-party provider.
+ *     A product with no API configured is flagged 'manual_required' for an
+ *     admin to fulfill by hand.
+ * Anything else (a raw, not-yet-imported upstream catalog entry) always
+ * rides the shared key. Upstream failure never undoes the payment — the
+ * order stays "paid" with upstream_status = 'upstream_error' so an admin
+ * can retry it manually.
  */
 function uploadgram_place_upstream_order(PDO $db, int $orderId, array $service, string $link, int $quantity): void {
-    if (($service['source'] ?? 'upstream') === 'local') {
+    if (isset($service['product_id'])) {
         $product = uploadgram_get_product((int) $service['product_id']);
-        if (!$product || empty($product['api_url']) || empty($product['api_key'])) {
+        if (!$product) {
             $db->prepare("UPDATE orders SET upstream_status = 'manual_required', status = 'processing' WHERE id = ?")
                 ->execute([$orderId]);
             return;
         }
-        $result = uploadgram_fetch_from_upstream($product['api_url'], $product['api_key'], [
-            'action' => $product['api_action'] ?: 'add',
-            'service' => $product['upstream_service_id'] ?: $service['id'],
-            'link' => $link,
-            'quantity' => $quantity,
-        ]);
+
+        $upstreamServiceId = $product['upstream_service_id'] ?: $service['id'];
+
+        if (($product['source'] ?? 'local') === 'upstream') {
+            $result = uploadgram_place_via_shared_key($upstreamServiceId, $link, $quantity);
+        } elseif (!empty($product['api_url']) && !empty($product['api_key'])) {
+            $result = uploadgram_fetch_from_upstream($product['api_url'], $product['api_key'], [
+                'action' => $product['api_action'] ?: 'add',
+                'service' => $upstreamServiceId,
+                'link' => $link,
+                'quantity' => $quantity,
+            ]);
+        } else {
+            $db->prepare("UPDATE orders SET upstream_status = 'manual_required', status = 'processing' WHERE id = ?")
+                ->execute([$orderId]);
+            return;
+        }
     } else {
-        $apiKey = uploadgram_resolve_api_key();
-        $result = $apiKey ? uploadgram_upstream_call($apiKey, [
-            'action' => 'add',
-            'service' => $service['id'],
-            'link' => $link,
-            'quantity' => $quantity,
-        ]) : null;
+        $result = uploadgram_place_via_shared_key($service['id'], $link, $quantity);
     }
 
     $upstreamOrderId = $result['order'] ?? null;
