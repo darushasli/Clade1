@@ -4,8 +4,10 @@
  * GET ?id=N   -> one ticket + its messages + the owning user's email/display_name.
  * GET (no id) -> list of every ticket, optional ?status= filter, newest first,
  *                joined with the owning user's email/display_name.
- * POST { ticket_id, message }          -> admin reply, re-opens a closed ticket.
- * POST { ticket_id, status }           -> change status ('open'|'closed'), no message required.
+ * POST { ticket_id, message }            -> admin reply, re-opens a closed ticket.
+ * POST { ticket_id, status }             -> change status ('open'|'closed'), no message required.
+ * POST { ticket_id, priority }           -> change priority ('urgent'|'medium'|'low'), no message required.
+ * POST { ticket_id, department }         -> change department, no message required.
  */
 
 require_once __DIR__ . '/../config.php';
@@ -34,12 +36,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     $status = trim((string) ($_GET['status'] ?? ''));
-    $sql = 'SELECT t.id, t.uid, t.subject, t.status, t.created_at, t.updated_at, u.email, u.display_name, u.username
+    $department = trim((string) ($_GET['department'] ?? ''));
+    $priority = trim((string) ($_GET['priority'] ?? ''));
+    $sql = 'SELECT t.id, t.uid, t.subject, t.department, t.priority, t.status, t.created_at, t.updated_at, u.email, u.display_name, u.username
         FROM tickets t LEFT JOIN users u ON u.uid = t.uid WHERE 1=1';
     $params = [];
     if ($status !== '') {
         $sql .= ' AND t.status = ?';
         $params[] = $status;
+    }
+    if ($department !== '') {
+        $sql .= ' AND t.department = ?';
+        $params[] = $department;
+    }
+    if ($priority !== '') {
+        $sql .= ' AND t.priority = ?';
+        $params[] = $priority;
     }
     $sql .= ' ORDER BY t.id DESC LIMIT 300';
 
@@ -78,6 +90,14 @@ if ($message !== '') {
 if (isset($input['status'])) {
     $status = $input['status'] === 'closed' ? 'closed' : 'open';
     $db->prepare('UPDATE tickets SET status = ? WHERE id = ?')->execute([$status, $ticketId]);
+}
+
+if (isset($input['priority']) && in_array($input['priority'], uploadgram_ticket_priorities(), true)) {
+    $db->prepare('UPDATE tickets SET priority = ? WHERE id = ?')->execute([$input['priority'], $ticketId]);
+}
+
+if (isset($input['department']) && in_array($input['department'], uploadgram_ticket_departments(), true)) {
+    $db->prepare('UPDATE tickets SET department = ? WHERE id = ?')->execute([$input['department'], $ticketId]);
 }
 
 $stmt = $db->prepare('SELECT * FROM tickets WHERE id = ?');

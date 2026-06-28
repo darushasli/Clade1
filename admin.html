@@ -11,6 +11,10 @@
 <link rel="icon" type="image/png" sizes="16x16" href="assets/icon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
 <meta name="theme-color" content="#020617">
+<link rel="preconnect" href="https://cdn.tailwindcss.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -79,7 +83,7 @@
 
   .magnetic{ position:relative; will-change:transform; transition:transform .25s var(--ease-spring); }
   .ripple-host{ position:relative; overflow:hidden; }
-  .ripple-dot{ position:absolute; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards; }
+  .ripple-dot{ position:absolute !important; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards; }
   @keyframes rippleAnim{ to{ transform:scale(3.4); opacity:0; } }
 
   @media (prefers-reduced-motion: reduce){
@@ -270,6 +274,7 @@
     <button type="button" class="segnav-btn" data-tab="tickets"><i class="fa-solid fa-headset"></i> تیکت‌ها</button>
     <button type="button" class="segnav-btn" data-tab="financial"><i class="fa-solid fa-coins"></i> مالی</button>
     <button type="button" class="segnav-btn" data-tab="pages"><i class="fa-solid fa-file-lines"></i> صفحات</button>
+    <button type="button" class="segnav-btn" data-tab="content"><i class="fa-solid fa-pen-to-square"></i> محتوا و متون</button>
     <button type="button" class="segnav-btn" data-tab="settings"><i class="fa-solid fa-sliders"></i> تنظیمات سایت</button>
   </nav>
 
@@ -377,10 +382,23 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="panel-card lg:col-span-1">
           <h2 class="panel-title"><i class="fa-solid fa-headset text-cyan-400"></i> تیکت‌ها</h2>
-          <div class="flex flex-wrap gap-2 mb-4" id="ticketStatusFilter">
-            <button type="button" class="chip active" data-status="">همه</button>
+          <div class="flex flex-wrap gap-2 mb-2" id="ticketStatusFilter">
+            <button type="button" class="chip active" data-status="">همه وضعیت‌ها</button>
             <button type="button" class="chip" data-status="open">باز</button>
             <button type="button" class="chip" data-status="closed">بسته</button>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-2" id="ticketPriorityFilter">
+            <button type="button" class="chip active" data-priority="">همه اولویت‌ها</button>
+            <button type="button" class="chip" data-priority="urgent"><i class="fa-solid fa-circle-exclamation"></i> فوری</button>
+            <button type="button" class="chip" data-priority="medium"><i class="fa-solid fa-circle-minus"></i> متوسط</button>
+            <button type="button" class="chip" data-priority="low"><i class="fa-solid fa-circle-arrow-down"></i> کم</button>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-4" id="ticketDepartmentFilter">
+            <button type="button" class="chip active" data-department="">همه دپارتمان‌ها</button>
+            <button type="button" class="chip" data-department="financial"><i class="fa-solid fa-file-invoice-dollar"></i> مالی</button>
+            <button type="button" class="chip" data-department="technical"><i class="fa-solid fa-screwdriver-wrench"></i> فنی</button>
+            <button type="button" class="chip" data-department="presale"><i class="fa-solid fa-bag-shopping"></i> پیش‌فروش</button>
+            <button type="button" class="chip" data-department="general"><i class="fa-solid fa-list-check"></i> عمومی</button>
           </div>
           <div id="adminTicketsList" class="flex flex-col gap-2"></div>
         </div>
@@ -392,9 +410,22 @@
           <div id="adminTicketThreadView" class="hidden">
             <div class="flex items-center justify-between mb-1 gap-3 flex-wrap">
               <h3 id="adminTicketThreadSubject" class="font-bold text-white"></h3>
-              <span id="adminTicketThreadStatus"></span>
+              <span id="adminTicketThreadStatus" class="flex items-center gap-1.5 flex-wrap"></span>
             </div>
-            <p id="adminTicketThreadWho" class="text-xs text-slate-500 mb-4"></p>
+            <p id="adminTicketThreadWho" class="text-xs text-slate-500 mb-3"></p>
+            <div class="flex items-center gap-2 mb-4 flex-wrap">
+              <select id="adminTicketPrioritySelect" class="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50">
+                <option value="urgent">🔴 فوری</option>
+                <option value="medium">🟡 متوسط</option>
+                <option value="low">🟢 کم</option>
+              </select>
+              <select id="adminTicketDepartmentSelect" class="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50">
+                <option value="financial">🧾 مالی و تراکنش‌ها</option>
+                <option value="technical">⚙️ فنی و سفارش‌ها</option>
+                <option value="presale">🛍️ پیش از خرید</option>
+                <option value="general">📋 عمومی</option>
+              </select>
+            </div>
             <div id="adminTicketThreadMessages" class="flex flex-col gap-3 mb-5 max-h-[420px] overflow-y-auto pe-1"></div>
             <form id="adminTicketReplyForm" class="flex gap-2 mb-3">
               <input type="text" id="adminTicketReplyInput" required placeholder="پاسخ خود را بنویسید..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-cyan-500/50" />
@@ -433,6 +464,17 @@
     </section>
 
     <!-- ============ SITE SETTINGS ============ -->
+    <section id="panel-content" class="dash-panel reveal">
+      <div class="panel-card">
+        <h2 class="panel-title"><i class="fa-solid fa-pen-to-square text-cyan-400"></i> محتوا و متون سایت</h2>
+        <p class="text-xs text-slate-500 mb-5">تمام متن‌های صفحه اصلی، درباره ما و محصولات از همین‌جا قابل ویرایش است؛ تغییرات بلافاصله بعد از ذخیره روی سایت اعمال می‌شود.</p>
+        <form id="contentSettingsForm" class="flex flex-col gap-5">
+          <div id="contentFieldsContainer"></div>
+          <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> ذخیره تغییرات محتوا</span></button>
+        </form>
+      </div>
+    </section>
+
     <section id="panel-settings" class="dash-panel reveal">
       <div class="panel-card">
         <h2 class="panel-title"><i class="fa-solid fa-sliders text-cyan-400"></i> تنظیمات و ظاهر سایت</h2>
@@ -526,8 +568,8 @@
     const toast = document.createElement('div');
     const color = ok ? '6,182,212' : '239,68,68';
     const textColor = ok ? '#22d3ee' : '#f87171';
-    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);max-width:90vw;text-align:center;`;
-    toast.textContent = (ok ? '✓ ' : '❌ ') + message;
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);max-width:90vw;text-align:center;display:inline-flex;align-items:center;gap:8px;`;
+    toast.innerHTML = `<i class="fa-solid ${ok ? 'fa-circle-check' : 'fa-circle-xmark'}"></i><span>${escapeHtml(message)}</span>`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4500);
   }
@@ -582,7 +624,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
   // ============ TAB SWITCHING ============
-  const PANELS = ['overview', 'users', 'orders', 'products', 'tickets', 'financial', 'pages', 'settings'];
+  const PANELS = ['overview', 'users', 'orders', 'products', 'tickets', 'financial', 'pages', 'content', 'settings'];
   function switchTab(tab){
     if (!PANELS.includes(tab)) tab = 'overview';
     PANELS.forEach(p => document.getElementById('panel-' + p).classList.toggle('active', p === tab));
@@ -595,6 +637,7 @@
     if (tab === 'tickets') loadTickets();
     if (tab === 'financial') loadStats();
     if (tab === 'pages') loadPages();
+    if (tab === 'content') loadContentSettings();
     if (tab === 'settings') loadSiteSettings();
   }
   document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
@@ -1189,7 +1232,11 @@
 
   // ============ TICKETS ============
   let ticketsStatusFilter = '';
+  let ticketsPriorityFilter = '';
+  let ticketsDepartmentFilter = '';
   let activeTicketId = null;
+  const ticketPriorityMap = { urgent: ['<i class="fa-solid fa-circle-exclamation"></i> فوری', 'badge-red'], medium: ['<i class="fa-solid fa-circle-minus"></i> متوسط', 'badge-amber'], low: ['<i class="fa-solid fa-circle-arrow-down"></i> کم', 'badge-green'] };
+  const ticketDepartmentMap = { financial: ['<i class="fa-solid fa-file-invoice-dollar"></i> مالی', 'badge-blue'], technical: ['<i class="fa-solid fa-screwdriver-wrench"></i> فنی', 'badge-cyan'], presale: ['<i class="fa-solid fa-bag-shopping"></i> پیش‌فروش', 'badge-amber'], general: ['<i class="fa-solid fa-list-check"></i> عمومی', 'badge-gray'] };
 
   document.querySelectorAll('#ticketStatusFilter .chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -1198,11 +1245,29 @@
       loadTickets();
     });
   });
+  document.querySelectorAll('#ticketPriorityFilter .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      ticketsPriorityFilter = chip.dataset.priority;
+      document.querySelectorAll('#ticketPriorityFilter .chip').forEach(c => c.classList.toggle('active', c === chip));
+      loadTickets();
+    });
+  });
+  document.querySelectorAll('#ticketDepartmentFilter .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      ticketsDepartmentFilter = chip.dataset.department;
+      document.querySelectorAll('#ticketDepartmentFilter .chip').forEach(c => c.classList.toggle('active', c === chip));
+      loadTickets();
+    });
+  });
 
   async function loadTickets(){
     const listEl = document.getElementById('adminTicketsList');
     listEl.innerHTML = '<div class="skel h-14"></div><div class="skel h-14"></div>';
-    const path = 'admin/tickets.php' + (ticketsStatusFilter ? '?status=' + encodeURIComponent(ticketsStatusFilter) : '');
+    const qs = new URLSearchParams();
+    if (ticketsStatusFilter) qs.set('status', ticketsStatusFilter);
+    if (ticketsPriorityFilter) qs.set('priority', ticketsPriorityFilter);
+    if (ticketsDepartmentFilter) qs.set('department', ticketsDepartmentFilter);
+    const path = 'admin/tickets.php' + (qs.toString() ? '?' + qs.toString() : '');
     const { ok, data } = await api(path);
     if (!ok || !data || !data.ok || !data.tickets.length) {
       listEl.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">تیکتی یافت نشد.</p>';
@@ -1210,6 +1275,8 @@
     }
     listEl.innerHTML = data.tickets.map(t => {
       const [label, cls] = ticketStatusMap[t.status] || [t.status, 'badge-gray'];
+      const [pLabel, pCls] = ticketPriorityMap[t.priority] || [t.priority, 'badge-gray'];
+      const [dLabel, dCls] = ticketDepartmentMap[t.department] || [t.department, 'badge-gray'];
       const who = escapeHtml(t.display_name || t.email || t.uid);
       return `
         <button type="button" class="row-card w-full text-right admin-ticket-item" data-id="${t.id}">
@@ -1217,7 +1284,11 @@
             <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(t.subject)}</p>
             <p class="text-xs text-slate-500 truncate">${who}</p>
           </div>
-          <span class="badge ${cls}">${label}</span>
+          <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+            <span class="badge ${dCls}">${dLabel}</span>
+            <span class="badge ${pCls}">${pLabel}</span>
+            <span class="badge ${cls}">${label}</span>
+          </div>
         </button>`;
     }).join('');
     listEl.querySelectorAll('.admin-ticket-item').forEach(btn => btn.addEventListener('click', () => openAdminTicket(parseInt(btn.dataset.id, 10))));
@@ -1234,10 +1305,24 @@
     const [label, cls] = ticketStatusMap[data.ticket.status] || [data.ticket.status, 'badge-gray'];
     document.getElementById('adminTicketThreadStatus').innerHTML = `<span class="badge ${cls}">${label}</span>`;
     document.getElementById('adminTicketToggleBtn').textContent = data.ticket.status === 'open' ? 'بستن تیکت' : 'بازکردن تیکت';
+    document.getElementById('adminTicketPrioritySelect').value = data.ticket.priority || 'medium';
+    document.getElementById('adminTicketDepartmentSelect').value = data.ticket.department || 'general';
     document.getElementById('adminTicketThreadMessages').innerHTML = data.messages.map(m => `
       <div class="msg-bubble ${m.sender === 'admin' ? 'msg-user' : 'msg-admin'}">${escapeHtml(m.message)}</div>
     `).join('');
   }
+
+  document.getElementById('adminTicketPrioritySelect').addEventListener('change', async (e) => {
+    if (!activeTicketId) return;
+    await api('admin/tickets.php', { method: 'POST', body: JSON.stringify({ ticket_id: activeTicketId, priority: e.target.value }) });
+    loadTickets();
+  });
+
+  document.getElementById('adminTicketDepartmentSelect').addEventListener('change', async (e) => {
+    if (!activeTicketId) return;
+    await api('admin/tickets.php', { method: 'POST', body: JSON.stringify({ ticket_id: activeTicketId, department: e.target.value }) });
+    loadTickets();
+  });
 
   document.getElementById('adminTicketReplyForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1260,6 +1345,179 @@
     openAdminTicket(activeTicketId);
     loadTickets();
     loadStats();
+  });
+
+  // ============ CONTENT & COPY ============
+  const CONTENT_FIELD_GROUPS = [
+    {
+      title: 'صفحه اصلی — هدر', icon: 'fa-house',
+      fields: [
+        { key: 'idx_brand_tagline', label: 'شعار زیر لوگو', type: 'text' },
+        { key: 'idx_hero_badge', label: 'بج بالای هدر', type: 'text' },
+        { key: 'idx_hero_title', label: 'عنوان اصلی هدر', type: 'text' },
+        { key: 'idx_hero_title_em', label: 'عنوان اصلی هدر (بخش رنگی)', type: 'text' },
+        { key: 'idx_hero_subtitle', label: 'زیرعنوان هدر', type: 'textarea' },
+        { key: 'idx_cta_primary', label: 'دکمه CTA اصلی', type: 'text' },
+        { key: 'idx_cta_secondary', label: 'دکمه CTA ثانویه', type: 'text' },
+        { key: 'idx_stat1_label', label: 'برچسب آمار ۱', type: 'text' },
+        { key: 'idx_stat2_label', label: 'برچسب آمار ۲', type: 'text' },
+        { key: 'idx_stat3_label', label: 'برچسب آمار ۳', type: 'text' },
+      ],
+    },
+    {
+      title: 'صفحه اصلی — نوار اعتماد', icon: 'fa-shield-halved',
+      fields: [
+        { key: 'idx_trust_1', label: 'آیتم اعتماد ۱', type: 'text' },
+        { key: 'idx_trust_2', label: 'آیتم اعتماد ۲', type: 'text' },
+        { key: 'idx_trust_3', label: 'آیتم اعتماد ۳', type: 'text' },
+        { key: 'idx_trust_4', label: 'آیتم اعتماد ۴', type: 'text' },
+        { key: 'idx_trust_5', label: 'آیتم اعتماد ۵', type: 'text' },
+        { key: 'idx_trust_6', label: 'آیتم اعتماد ۶', type: 'text' },
+      ],
+    },
+    {
+      title: 'صفحه اصلی — نحوه کار سیستم', icon: 'fa-diagram-project',
+      fields: [
+        { key: 'idx_how_title', label: 'عنوان بخش', type: 'text' },
+        { key: 'idx_how_subtitle', label: 'زیرعنوان بخش', type: 'textarea' },
+        { key: 'idx_step1_title', label: 'عنوان مرحله ۱', type: 'text' },
+        { key: 'idx_step1_desc', label: 'توضیح مرحله ۱', type: 'textarea' },
+        { key: 'idx_step2_title', label: 'عنوان مرحله ۲', type: 'text' },
+        { key: 'idx_step2_desc', label: 'توضیح مرحله ۲', type: 'textarea' },
+        { key: 'idx_step3_title', label: 'عنوان مرحله ۳', type: 'text' },
+        { key: 'idx_step3_desc', label: 'توضیح مرحله ۳', type: 'textarea' },
+      ],
+    },
+    {
+      title: 'صفحه اصلی — ویژگی‌ها', icon: 'fa-layer-group',
+      fields: [
+        { key: 'idx_bento_title', label: 'عنوان بخش', type: 'text' },
+        { key: 'idx_bento_subtitle', label: 'زیرعنوان بخش', type: 'textarea' },
+        { key: 'idx_feature1_title', label: 'عنوان ویژگی ۱', type: 'text' },
+        { key: 'idx_feature1_desc', label: 'توضیح ویژگی ۱', type: 'textarea' },
+        { key: 'idx_feature2_title', label: 'عنوان ویژگی ۲', type: 'text' },
+        { key: 'idx_feature2_desc', label: 'توضیح ویژگی ۲', type: 'textarea' },
+        { key: 'idx_feature3_title', label: 'عنوان ویژگی ۳', type: 'text' },
+        { key: 'idx_feature3_desc', label: 'توضیح ویژگی ۳', type: 'textarea' },
+        { key: 'idx_feature4_title', label: 'عنوان ویژگی ۴', type: 'text' },
+        { key: 'idx_feature4_desc', label: 'توضیح ویژگی ۴', type: 'textarea' },
+      ],
+    },
+    {
+      title: 'صفحه اصلی — محصولات و سوالات متداول', icon: 'fa-circle-question',
+      fields: [
+        { key: 'idx_products_badge', label: 'بج بخش محصولات', type: 'text' },
+        { key: 'idx_products_title', label: 'عنوان بخش محصولات', type: 'text' },
+        { key: 'idx_faq_title', label: 'عنوان بخش سوالات متداول', type: 'text' },
+        { key: 'idx_faq_subtitle', label: 'زیرعنوان سوالات متداول', type: 'text' },
+        { key: 'idx_faq1_q', label: 'سوال ۱', type: 'text' },
+        { key: 'idx_faq1_a', label: 'پاسخ ۱', type: 'textarea' },
+        { key: 'idx_faq2_q', label: 'سوال ۲', type: 'text' },
+        { key: 'idx_faq2_a', label: 'پاسخ ۲', type: 'textarea' },
+        { key: 'idx_faq3_q', label: 'سوال ۳', type: 'text' },
+        { key: 'idx_faq3_a', label: 'پاسخ ۳', type: 'textarea' },
+      ],
+    },
+    {
+      title: 'درباره ما', icon: 'fa-users',
+      fields: [
+        { key: 'about_hero_title', label: 'عنوان هدر', type: 'text' },
+        { key: 'about_hero_desc', label: 'توضیح هدر', type: 'textarea' },
+        { key: 'about_mission_title', label: 'عنوان ماموریت', type: 'text' },
+        { key: 'about_mission_p1', label: 'متن ماموریت — پاراگراف ۱', type: 'textarea' },
+        { key: 'about_mission_p2', label: 'متن ماموریت — پاراگراف ۲', type: 'textarea' },
+        { key: 'about_process_title', label: 'عنوان فرایند کار', type: 'text' },
+        { key: 'about_process_subtitle', label: 'زیرعنوان فرایند کار', type: 'text' },
+        { key: 'about_step1_title', label: 'عنوان قدم ۱', type: 'text' },
+        { key: 'about_step1_desc', label: 'توضیح قدم ۱', type: 'textarea' },
+        { key: 'about_step2_title', label: 'عنوان قدم ۲', type: 'text' },
+        { key: 'about_step2_desc', label: 'توضیح قدم ۲', type: 'textarea' },
+        { key: 'about_step3_title', label: 'عنوان قدم ۳', type: 'text' },
+        { key: 'about_step3_desc', label: 'توضیح قدم ۳', type: 'textarea' },
+        { key: 'about_step4_title', label: 'عنوان قدم ۴', type: 'text' },
+        { key: 'about_step4_desc', label: 'توضیح قدم ۴', type: 'textarea' },
+        { key: 'about_values_title', label: 'عنوان بخش ارزش‌ها', type: 'text' },
+        { key: 'about_cta_title', label: 'عنوان بنر CTA', type: 'text' },
+        { key: 'about_cta_subtitle', label: 'زیرعنوان بنر CTA', type: 'text' },
+      ],
+    },
+    {
+      title: 'محصولات', icon: 'fa-cube',
+      fields: [
+        { key: 'prd_hero_title', label: 'عنوان هدر', type: 'text' },
+        { key: 'prd_hero_subtitle', label: 'زیرعنوان هدر', type: 'textarea' },
+        { key: 'prd_why_title', label: 'عنوان «چرا ما؟»', type: 'text' },
+        { key: 'prd_cta_title', label: 'عنوان بنر CTA', type: 'text' },
+        { key: 'prd_cta_subtitle', label: 'زیرعنوان بنر CTA', type: 'text' },
+      ],
+    },
+  ];
+
+  const CONTENT_TOGGLE_FIELDS = [
+    { key: 'show_section_ecosystem', label: 'نمایش بخش اکوسیستم پلتفرم‌ها (صفحه اصلی)' },
+    { key: 'show_section_faq', label: 'نمایش بخش سوالات متداول (صفحه اصلی)' },
+    { key: 'show_section_trust_marquee', label: 'نمایش نوار اعتماد متحرک (صفحه اصلی)' },
+  ];
+
+  function renderContentFields(){
+    const container = document.getElementById('contentFieldsContainer');
+    let html = CONTENT_FIELD_GROUPS.map(group => `
+      <div class="border-t border-white/10 pt-5 first:border-t-0 first:pt-0">
+        <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid ${group.icon}"></i> ${escapeHtml(group.title)}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          ${group.fields.map(f => `
+            <div class="inputBox${f.type === 'textarea' ? ' sm:col-span-2' : ''}">
+              ${f.type === 'textarea' ? `<textarea id="cf_${f.key}" placeholder=" "></textarea>` : `<input type="text" id="cf_${f.key}" placeholder=" " />`}
+              <label>${escapeHtml(f.label)}</label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+    html += `
+      <div class="border-t border-white/10 pt-5">
+        <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-eye"></i> نمایش بخش‌ها</p>
+        <div class="flex flex-col gap-3">
+          ${CONTENT_TOGGLE_FIELDS.map(f => `
+            <label class="flex items-center gap-2 text-sm text-slate-300">
+              <input type="checkbox" id="cf_${f.key}" class="w-4 h-4" /> ${escapeHtml(f.label)}
+            </label>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    container.innerHTML = html;
+  }
+  renderContentFields();
+
+  async function loadContentSettings(){
+    const { ok, data } = await api('admin/site_settings.php');
+    if (!ok || !data || !data.ok) return;
+    const s = data.settings;
+    CONTENT_FIELD_GROUPS.forEach(group => group.fields.forEach((f) => {
+      const el = document.getElementById('cf_' + f.key);
+      if (el) el.value = s[f.key] || '';
+    }));
+    CONTENT_TOGGLE_FIELDS.forEach((f) => {
+      const el = document.getElementById('cf_' + f.key);
+      if (el) el.checked = s[f.key] !== '0';
+    });
+  }
+
+  document.getElementById('contentSettingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {};
+    CONTENT_FIELD_GROUPS.forEach(group => group.fields.forEach((f) => {
+      const el = document.getElementById('cf_' + f.key);
+      if (el) payload[f.key] = el.value.trim();
+    }));
+    CONTENT_TOGGLE_FIELDS.forEach((f) => {
+      const el = document.getElementById('cf_' + f.key);
+      if (el) payload[f.key] = el.checked ? '1' : '0';
+    });
+    const { ok, data } = await api('admin/site_settings.php', { method: 'PUT', body: JSON.stringify(payload) });
+    if (!ok || !data || !data.ok) { showToast('خطا در ذخیره محتوا', false); return; }
+    showToast('محتوای سایت ذخیره شد', true);
   });
 
   // ============ SITE SETTINGS ============

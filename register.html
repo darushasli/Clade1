@@ -18,6 +18,10 @@
 <meta property="og:url" content="https://uploadgram.ir/register.html">
 <meta property="og:site_name" content="آپلود گرام">
 <meta property="og:locale" content="fa_IR">
+<link rel="preconnect" href="https://cdn.tailwindcss.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -42,12 +46,16 @@
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
 
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
   function showToast(message, ok) {
     const toast = document.createElement('div');
     const color = ok ? '6,182,212' : '239,68,68';
     const textColor = ok ? '#22d3ee' : '#f87171';
-    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);`;
-    toast.textContent = (ok ? '✓ ' : '❌ ') + message;
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);display:flex;align-items:center;gap:8px;`;
+    toast.innerHTML = `<i class="fa-solid ${ok ? 'fa-circle-check' : 'fa-circle-xmark'}"></i><span>${escapeHtml(message)}</span>`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
   }
@@ -329,7 +337,7 @@
   .magnetic{ position:relative; will-change:transform; transition:transform .25s var(--ease-spring); }
   .ripple-host{ position:relative; overflow:hidden; }
   .ripple-dot{
-    position:absolute; border-radius:50%; background:rgba(255,255,255,.5);
+    position:absolute !important; border-radius:50%; background:rgba(255,255,255,.5);
     transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards;
   }
   @keyframes rippleAnim{ to{ transform:scale(3.4); opacity:0; } }

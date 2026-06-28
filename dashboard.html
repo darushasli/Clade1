@@ -11,6 +11,10 @@
 <link rel="icon" type="image/png" sizes="16x16" href="assets/icon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
 <meta name="theme-color" content="#020617">
+<link rel="preconnect" href="https://cdn.tailwindcss.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -79,7 +83,7 @@
 
   .magnetic{ position:relative; will-change:transform; transition:transform .25s var(--ease-spring); }
   .ripple-host{ position:relative; overflow:hidden; }
-  .ripple-dot{ position:absolute; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards; }
+  .ripple-dot{ position:absolute !important; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards; }
   @keyframes rippleAnim{ to{ transform:scale(3.4); opacity:0; } }
 
   @media (prefers-reduced-motion: reduce){
@@ -439,6 +443,25 @@
               <label>موضوع</label>
             </div>
             <div class="inputBox">
+              <select id="ticketDepartment" required>
+                <option value="" disabled selected></option>
+                <option value="financial">🧾 پشتیبانی مالی و تراکنش‌ها</option>
+                <option value="technical">⚙️ پشتیبانی فنی و سفارش‌ها</option>
+                <option value="presale">🛍️ مشاوره پیش از خرید</option>
+                <option value="general">📋 سایر موضوعات</option>
+              </select>
+              <label>دپارتمان</label>
+              <i class="fa-solid fa-chevron-down select-chevron"></i>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-2">اولویت تیکت</label>
+              <div class="flex flex-wrap gap-2" id="ticketPriorityPicker">
+                <button type="button" class="chip" data-priority="low"><i class="fa-solid fa-circle-arrow-down"></i> کم</button>
+                <button type="button" class="chip active" data-priority="medium"><i class="fa-solid fa-circle-minus"></i> متوسط</button>
+                <button type="button" class="chip" data-priority="urgent"><i class="fa-solid fa-circle-exclamation"></i> فوری</button>
+              </div>
+            </div>
+            <div class="inputBox">
               <textarea id="ticketMessage" required placeholder=" "></textarea>
               <label>پیام</label>
             </div>
@@ -455,9 +478,9 @@
             <p class="text-sm">برای مشاهده گفتگو، یک تیکت را از لیست انتخاب کنید.</p>
           </div>
           <div id="ticketThreadView" class="hidden">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
               <h3 id="ticketThreadSubject" class="font-bold text-white"></h3>
-              <span id="ticketThreadStatus"></span>
+              <span id="ticketThreadStatus" class="flex items-center gap-1.5 flex-wrap"></span>
             </div>
             <div id="ticketThreadMessages" class="flex flex-col gap-3 mb-5 max-h-[420px] overflow-y-auto pe-1"></div>
             <form id="ticketReplyForm" class="flex gap-2">
@@ -534,8 +557,8 @@
     const toast = document.createElement('div');
     const color = ok ? '6,182,212' : '239,68,68';
     const textColor = ok ? '#22d3ee' : '#f87171';
-    toast.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);max-width:90vw;text-align:center;`;
-    toast.textContent = (ok ? '✓ ' : '❌ ') + message;
+    toast.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);max-width:90vw;text-align:center;display:inline-flex;align-items:center;gap:8px;`;
+    toast.innerHTML = `<i class="fa-solid ${ok ? 'fa-circle-check' : 'fa-circle-xmark'}"></i><span>${escapeHtml(message)}</span>`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4500);
   }
@@ -832,6 +855,16 @@
 
   // ============ TICKETS ============
   const ticketStatusMap = { open: ['باز', 'badge-cyan'], closed: ['بسته', 'badge-gray'] };
+  const ticketPriorityMap = { urgent: ['<i class="fa-solid fa-circle-exclamation"></i> فوری', 'badge-red'], medium: ['<i class="fa-solid fa-circle-minus"></i> متوسط', 'badge-amber'], low: ['<i class="fa-solid fa-circle-arrow-down"></i> کم', 'badge-green'] };
+  const ticketDepartmentMap = { financial: ['مالی', 'badge-blue'], technical: ['فنی', 'badge-cyan'], presale: ['پیش‌فروش', 'badge-amber'], general: ['عمومی', 'badge-gray'] };
+  let selectedTicketPriority = 'medium';
+
+  document.querySelectorAll('#ticketPriorityPicker .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      selectedTicketPriority = chip.dataset.priority;
+      document.querySelectorAll('#ticketPriorityPicker .chip').forEach(c => c.classList.toggle('active', c === chip));
+    });
+  });
 
   async function loadTickets(){
     const listEl = document.getElementById('ticketsList');
@@ -843,10 +876,14 @@
     }
     listEl.innerHTML = data.tickets.map(t => {
       const [label, cls] = ticketStatusMap[t.status] || [t.status, 'badge-gray'];
+      const [pLabel, pCls] = ticketPriorityMap[t.priority] || [t.priority, 'badge-gray'];
       return `
         <button type="button" class="row-card w-full text-right ticket-item" data-id="${t.id}">
           <div class="min-w-0"><p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(t.subject)}</p></div>
-          <span class="badge ${cls}">${label}</span>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="badge ${pCls}">${pLabel}</span>
+            <span class="badge ${cls}">${label}</span>
+          </div>
         </button>`;
     }).join('');
     listEl.querySelectorAll('.ticket-item').forEach(btn => btn.addEventListener('click', () => openTicket(parseInt(btn.dataset.id, 10))));
@@ -860,7 +897,9 @@
     document.getElementById('ticketThreadView').classList.remove('hidden');
     document.getElementById('ticketThreadSubject').textContent = data.ticket.subject;
     const [label, cls] = ticketStatusMap[data.ticket.status] || [data.ticket.status, 'badge-gray'];
-    document.getElementById('ticketThreadStatus').innerHTML = `<span class="badge ${cls}">${label}</span>`;
+    const [pLabel, pCls] = ticketPriorityMap[data.ticket.priority] || [data.ticket.priority, 'badge-gray'];
+    const [dLabel, dCls] = ticketDepartmentMap[data.ticket.department] || [data.ticket.department, 'badge-gray'];
+    document.getElementById('ticketThreadStatus').innerHTML = `<span class="badge ${dCls}">${dLabel}</span> <span class="badge ${pCls}">${pLabel}</span> <span class="badge ${cls}">${label}</span>`;
     document.getElementById('ticketThreadMessages').innerHTML = data.messages.map(m => `
       <div class="msg-bubble ${m.sender === 'user' ? 'msg-user' : 'msg-admin'}">${escapeHtml(m.message)}</div>
     `).join('');
@@ -869,12 +908,15 @@
   document.getElementById('newTicketForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const subject = document.getElementById('ticketSubject').value.trim();
+    const department = document.getElementById('ticketDepartment').value;
     const message = document.getElementById('ticketMessage').value.trim();
-    if (!subject || !message) return;
-    const { ok, data } = await api('tickets.php', { method: 'POST', body: JSON.stringify({ subject, message }) });
+    if (!subject || !department || !message) return;
+    const { ok, data } = await api('tickets.php', { method: 'POST', body: JSON.stringify({ subject, department, priority: selectedTicketPriority, message }) });
     if (!ok || !data || !data.ok) { showToast('خطا در ارسال تیکت', false); return; }
     showToast('تیکت با موفقیت ثبت شد', true);
     document.getElementById('newTicketForm').reset();
+    selectedTicketPriority = 'medium';
+    document.querySelectorAll('#ticketPriorityPicker .chip').forEach(c => c.classList.toggle('active', c.dataset.priority === 'medium'));
     await loadTickets();
     await loadMe();
     openTicket(data.ticket_id);

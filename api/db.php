@@ -113,12 +113,18 @@ function uploadgram_migrate(PDO $pdo): void {
             id INT AUTO_INCREMENT PRIMARY KEY,
             uid VARCHAR(128) NOT NULL,
             subject VARCHAR(255) NOT NULL,
+            department VARCHAR(16) NOT NULL DEFAULT 'general',
+            priority VARCHAR(16) NOT NULL DEFAULT 'medium',
             status VARCHAR(16) NOT NULL DEFAULT 'open',
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            INDEX idx_tickets_uid (uid)
+            INDEX idx_tickets_uid (uid),
+            INDEX idx_tickets_department (department),
+            INDEX idx_tickets_priority (priority)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+    uploadgram_ensure_column($pdo, 'tickets', 'department', "department VARCHAR(16) NOT NULL DEFAULT 'general' AFTER subject");
+    uploadgram_ensure_column($pdo, 'tickets', 'priority', "priority VARCHAR(16) NOT NULL DEFAULT 'medium' AFTER department");
 
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS ticket_messages (
@@ -168,6 +174,25 @@ function uploadgram_get_or_create_user(string $uid, string $email = '', string $
 
     $stmt->execute([$uid]);
     return $stmt->fetch();
+}
+
+/** Adds a column to an already-existing table if it isn't there yet (idempotent, for installs created before this column existed). */
+function uploadgram_ensure_column(PDO $pdo, string $table, string $column, string $definition): void {
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?'
+    );
+    $stmt->execute([$table, $column]);
+    if ((int) $stmt->fetchColumn() === 0) {
+        $pdo->exec("ALTER TABLE {$table} ADD COLUMN {$definition}");
+    }
+}
+
+function uploadgram_ticket_departments(): array {
+    return ['financial', 'technical', 'presale', 'general'];
+}
+
+function uploadgram_ticket_priorities(): array {
+    return ['urgent', 'medium', 'low'];
 }
 
 function uploadgram_is_admin(string $uid): bool {

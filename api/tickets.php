@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         uploadgram_send_json(['ok' => true, 'ticket' => $ticket, 'messages' => $stmt->fetchAll()]);
     }
 
-    $stmt = $db->prepare('SELECT id, subject, status, created_at, updated_at FROM tickets WHERE uid = ? ORDER BY id DESC LIMIT 200');
+    $stmt = $db->prepare('SELECT id, subject, department, priority, status, created_at, updated_at FROM tickets WHERE uid = ? ORDER BY id DESC LIMIT 200');
     $stmt->execute([$uid]);
     uploadgram_send_json(['ok' => true, 'tickets' => $stmt->fetchAll()]);
 }
@@ -80,7 +80,16 @@ if ($subject === '') {
     uploadgram_send_json(['ok' => false, 'error' => 'missing_subject'], 400);
 }
 
-$db->prepare('INSERT INTO tickets (uid, subject) VALUES (?, ?)')->execute([$uid, $subject]);
+$department = (string) ($input['department'] ?? '');
+if (!in_array($department, uploadgram_ticket_departments(), true)) {
+    $department = 'general';
+}
+$priority = (string) ($input['priority'] ?? '');
+if (!in_array($priority, uploadgram_ticket_priorities(), true)) {
+    $priority = 'medium';
+}
+
+$db->prepare('INSERT INTO tickets (uid, subject, department, priority) VALUES (?, ?, ?, ?)')->execute([$uid, $subject, $department, $priority]);
 $ticketId = (int) $db->lastInsertId();
 $db->prepare("INSERT INTO ticket_messages (ticket_id, sender, message) VALUES (?, 'user', ?)")->execute([$ticketId, $message]);
 
