@@ -160,9 +160,10 @@
       <a href="products.html" class="hover:text-cyan-400 transition-colors">محصولات</a>
       <a href="about.html" class="hover:text-cyan-400 transition-colors">درباره ما</a>
     </div>
-    <p class="text-center md:text-left">© ۲۰۲۶ آپلود گرام. تمامی حقوق محفوظ است.</p>
+    <p class="text-center md:text-left">© <span class="copyright-year">۲۰۲۶</span> آپلود گرام. تمامی حقوق محفوظ است.</p>
   </div>
 </footer>
+<script>document.querySelectorAll('.copyright-year').forEach(function(el){ el.textContent = new Date().getFullYear().toLocaleString('fa-IR'); });</script>
 
 <script>
   // ============ MOBILE NAV MENU ============

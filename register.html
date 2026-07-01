@@ -216,6 +216,32 @@
       else { inp.type = 'password'; icon.className = 'fa-solid fa-eye'; }
     });
 
+    document.getElementById('regPassword').addEventListener('input', (e) => {
+      const val = e.target.value;
+      const meter = document.getElementById('pwStrength');
+      const label = document.getElementById('pwStrengthLabel');
+      const bars = meter.querySelectorAll('.strength-bar');
+      bars.forEach((b) => { b.className = 'strength-bar'; });
+      label.className = 'strength-label';
+
+      if (!val) { meter.style.display = 'none'; label.style.display = 'none'; return; }
+      meter.style.display = 'flex'; label.style.display = 'flex';
+
+      let tier, text;
+      if (val.length < 6) {
+        tier = 'weak'; text = 'ضعیف';
+        bars[0].classList.add('weak');
+      } else if (val.length < 10 || !/[A-Z]/.test(val) || !/[0-9]/.test(val)) {
+        tier = 'medium'; text = 'متوسط';
+        bars[0].classList.add('medium'); bars[1].classList.add('medium');
+      } else {
+        tier = 'strong'; text = 'قوی';
+        bars.forEach((b) => b.classList.add('strong'));
+      }
+      label.classList.add(tier);
+      label.innerHTML = (tier === 'strong' ? '<i class="fa-solid fa-circle-check"></i> ' : '') + text;
+    });
+
   });
 </script>
 
@@ -237,6 +263,21 @@
     --cyan:#06b6d4; --blue:#3b82f6; --indigo:#6366f1; --amber:#f59e0b;
     --ease-spring: cubic-bezier(0.22,1,0.36,1);
     --ease-pop: cubic-bezier(0.34,1.56,0.64,1);
+    --color-primary: var(--cyan);
+    --color-primary-light: #22d3ee;
+    --color-accent: var(--indigo);
+    --color-gold: var(--amber);
+    --color-bg: #020617;
+    --color-bg-card: rgba(15,23,42,0.55);
+    --color-border: rgba(255,255,255,0.06);
+    --color-border-active: rgba(34,211,238,0.4);
+    --color-text: #f1f5f9;
+    --color-text-muted: #94a3b8;
+    --radius-card: 24px;
+    --radius-btn: 12px;
+    --shadow-cyan: 0 20px 40px rgba(6,182,212,0.15);
+    --shadow-accent: 0 20px 40px rgba(99,102,241,0.15);
+    --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
   }
 
   *{ scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.4) transparent; }
@@ -484,6 +525,16 @@
   }
   .error-msg.show{ display:block; }
 
+  .password-strength{ display:none; gap:4px; margin-top:8px; }
+  .strength-bar{ flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,.09); transition:.3s; }
+  .strength-bar.weak{ background:#f87171; }
+  .strength-bar.medium{ background:#f59e0b; }
+  .strength-bar.strong{ background:#4ade80; }
+  .strength-label{ display:none; align-items:center; gap:4px; font-size:.72rem; color:#94a3b8; margin-top:5px; }
+  .strength-label.weak{ color:#f87171; }
+  .strength-label.medium{ color:#f59e0b; }
+  .strength-label.strong{ color:#4ade80; }
+
   .eye-toggle-btn{
     position:absolute; left:14px; top:50%; transform:translateY(-50%);
     background:none; border:none; padding:0; font-size:.85rem;
@@ -682,6 +733,12 @@
         </button>
       </div>
       <p class="error-msg" id="err-password">رمز عبور باید حداقل ۶ کاراکتر باشد</p>
+      <div class="password-strength" id="pwStrength">
+        <div class="strength-bar"></div>
+        <div class="strength-bar"></div>
+        <div class="strength-bar"></div>
+      </div>
+      <p class="strength-label" id="pwStrengthLabel"></p>
     </div>
 
     <!-- Confirm Password -->
