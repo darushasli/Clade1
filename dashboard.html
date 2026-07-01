@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پنل کاربری | UploadGram</title>
+<meta name="description" content="پنل کاربری آپلود گرام — ثبت سفارش، پرداخت با زرین‌پال، کیف پول، تیکت پشتیبانی و پیگیری سفارش‌ها.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
+<meta name="theme-color" content="#020617">
+<link rel="preconnect" href="https://cdn.tailwindcss.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+  tailwind.config = {
+    theme: { extend: { fontFamily: { sans: ['Vazirmatn', 'sans-serif'], mono: ['Space Grotesk', 'sans-serif'] } } }
+  }
+</script>
+
+<style>
+  :root{
+    --cyan:#06b6d4; --blue:#3b82f6; --indigo:#6366f1; --amber:#f59e0b;
+    --ease-spring: cubic-bezier(0.22,1,0.36,1);
+    --ease-pop: cubic-bezier(0.34,1.56,0.64,1);
+    --color-primary: var(--cyan);
+    --color-primary-light: #22d3ee;
+    --color-accent: var(--indigo);
+    --color-gold: var(--amber);
+    --color-bg: #020617;
+    --color-bg-card: rgba(15,23,42,0.55);
+    --color-border: rgba(255,255,255,0.06);
+    --color-border-active: rgba(34,211,238,0.4);
+    --color-text: #f1f5f9;
+    --color-text-muted: #94a3b8;
+    --radius-card: 24px;
+    --radius-btn: 12px;
+    --shadow-cyan: 0 20px 40px rgba(6,182,212,0.15);
+    --shadow-accent: 0 20px 40px rgba(99,102,241,0.15);
+    --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  *{ scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.4) transparent; }
+  html{ scroll-behavior:smooth; }
+  body{ background:#020617; color:#f1f5f9; min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+
+  #cursorGlow{
+    position:fixed; width:380px; height:380px; border-radius:50%;
+    background:radial-gradient(circle, rgba(6,182,212,0.08), transparent 70%);
+    pointer-events:none; z-index:1; transform:translate(-50%,-50%);
+    transition: opacity .4s ease; opacity:0;
+  }
+  @media (hover:hover) and (pointer:fine){ #cursorGlow.active{ opacity:1; } }
+  @media (hover:hover) and (pointer:fine){ *{ cursor:none !important; } }
+  #tgCursor{
+    position:fixed; top:0; left:0; z-index:10000; pointer-events:none; display:none;
+    transform:translate3d(0,0,0) translate(-50%,-50%) rotate(45deg);
+    opacity:0; transition: opacity .35s ease, transform .12s linear;
+    filter: drop-shadow(0 4px 14px rgba(34,211,238,.55));
+  }
+  @media (hover:hover) and (pointer:fine){ #tgCursor{ display:block; } }
+  #tgCursor.active{ opacity:1; }
+  #tgCursor i{ font-size:30px; background:linear-gradient(135deg,#2AABEE,#229ED9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+  .aurora{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .aurora span{ position:absolute; border-radius:50%; filter:blur(90px); animation: auroraDrift 22s ease-in-out infinite; opacity:.3; }
+  .aurora span:nth-child(1){ width:520px;height:520px; background:#0891b2; top:-10%; right:-8%; }
+  .aurora span:nth-child(2){ width:420px;height:420px; background:#4338ca; bottom:-15%; left:-10%; animation-delay:-7s; animation-duration:26s; }
+  .aurora span:nth-child(3){ width:340px;height:340px; background:#1d4ed8; top:40%; left:50%; animation-delay:-14s; animation-duration:30s; }
+  @keyframes auroraDrift{ 0%,100%{ transform:translate(0,0) scale(1); } 33%{ transform:translate(40px,-30px) scale(1.12); } 66%{ transform:translate(-30px,25px) scale(0.94); } }
+
+  .grid-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+  #netCanvas{ position:fixed; inset:0; z-index:0; pointer-events:none; mix-blend-mode:screen; }
+
+  .glass{ background:rgba(15,23,42,0.55); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.06); }
+  .text-gradient-flow{
+    background:linear-gradient(90deg,#22d3ee,#3b82f6,#818cf8,#22d3ee); background-size:300% auto;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    animation: gradFlow 6s linear infinite;
+  }
+  @keyframes gradFlow{ to{ background-position:300% center; } }
+  ::selection{ background:rgba(6,182,212,.35); color:#fff; }
+  a:focus-visible, button:focus-visible{ outline:2px solid #22d3ee; outline-offset:3px; border-radius:6px; }
+
+  .reveal{ opacity:0; transform:translateY(24px) scale(.98); transition: opacity .7s var(--ease-spring), transform .7s var(--ease-spring); }
+  .reveal.in{ opacity:1; transform:translateY(0) scale(1); }
+
+  .magnetic{ position:relative; will-change:transform; transition:transform .25s var(--ease-spring); }
+  .ripple-host{ position:relative; overflow:hidden; }
+  .ripple-dot{ position:absolute !important; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards; }
+  @keyframes rippleAnim{ to{ transform:scale(3.4); opacity:0; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+  }
+
+  /* ============ AUTH GATE ============ */
+  #authGate{ position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center; background:#020617; flex-direction:column; gap:14px; }
+
+  /* ============ TOP BAR ============ */
+  .dash-topbar{
+    position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; margin:14px; border-radius:18px;
+  }
+  @media (min-width:1024px){ .dash-topbar{ margin:18px 24px 0; } }
+  .badge-balance{
+    display:flex; align-items:center; gap:8px; background:rgba(6,182,212,.1); border:1px solid rgba(6,182,212,.25);
+    color:#22d3ee; font-weight:700; font-size:.8rem; padding:8px 14px; border-radius:50px; white-space:nowrap;
+  }
+  .icon-btn{
+    width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); color:#94a3b8;
+    transition:.25s; position:relative; cursor:none;
+  }
+  .icon-btn:hover{ color:#22d3ee; border-color:rgba(34,211,238,.4); background:rgba(34,211,238,.06); }
+  .notif-dot{ position:absolute; top:6px; left:7px; width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow:0 0 0 2px #020617; }
+  .user-chip{ display:flex; align-items:center; gap:10px; }
+  .avatar{
+    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6); font-weight:800; color:#fff; font-size:.95rem; flex-shrink:0;
+  }
+
+  /* ============ SEGMENTED NAV (desktop) ============ */
+  .dash-segnav{
+    gap:8px; padding:8px; margin:0 24px 18px; border-radius:16px; background:rgba(15,23,42,.4);
+    border:1px solid rgba(255,255,255,.05); overflow-x:auto;
+  }
+  .segnav-btn{
+    position:relative; padding:10px 20px; border-radius:12px; font-weight:700; font-size:.85rem; color:#94a3b8;
+    transition:color .3s,background .3s; cursor:none; border:none; white-space:nowrap; display:flex; align-items:center; gap:8px;
+  }
+  .segnav-btn.active{ color:#fff; background:linear-gradient(135deg,#06b6d4,#3b82f6); box-shadow:0 6px 18px -6px rgba(6,182,212,.5); }
+
+  .dash-main{ position:relative; z-index:10; max-width:1280px; margin:0 auto; padding:0 18px 110px; }
+  @media (min-width:1024px){ .dash-main{ padding:0 24px 48px; } }
+
+  /* ============ STAT CARDS ============ */
+  .stat-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:24px; }
+  @media (min-width:768px){ .stat-grid{ grid-template-columns:repeat(4,1fr); } }
+  .stat-card{
+    display:flex; align-items:center; gap:14px; padding:18px; border-radius:18px;
+    background:rgba(15,23,42,.55); border:1px solid rgba(255,255,255,.06);
+    transition:.3s var(--ease-spring);
+  }
+  .stat-card:hover{ transform:translateY(-3px); border-color:rgba(34,211,238,.3); }
+  .stat-card i{
+    width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    background:rgba(6,182,212,.12); color:#22d3ee; font-size:1.1rem; flex-shrink:0;
+  }
+  .stat-card span{ display:block; font-size:1.3rem; font-weight:800; font-family:'Space Grotesk',sans-serif; }
+  .stat-card label{ display:block; font-size:.72rem; color:#64748b; margin-top:2px; }
+
+  /* ============ PANELS ============ */
+  .dash-panel{ display:none; }
+  .dash-panel.active{ display:block; }
+  .panel-card{ background:rgba(15,23,42,.5); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:22px; }
+  .panel-title{ font-size:1.05rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+
+  /* ============ FLOATING-LABEL INPUTS ============ */
+  .inputBox{ position:relative; width:100%; }
+  .inputBox input, .inputBox select, .inputBox textarea{
+    width:100%; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+    outline:none; padding:23px 14px 9px; border-radius:12px; color:#fff; font-weight:500; font-size:.92rem; transition:.3s;
+    font-family:'Vazirmatn',sans-serif; appearance:none;
+  }
+  .inputBox textarea{ padding-top:20px; resize:vertical; min-height:90px; }
+  .inputBox input:focus, .inputBox select:focus, .inputBox textarea:focus{
+    border-color: rgba(34,211,238,.5); background:rgba(255,255,255,.06); box-shadow:0 0 0 3px rgba(34,211,238,.12);
+  }
+  .inputBox label{ position:absolute; right:14px; top:16px; color:#94a3b8; transition:.3s; pointer-events:none; font-size:.82rem; }
+  .inputBox input:focus ~ label, .inputBox input:valid ~ label,
+  .inputBox select ~ label, .inputBox textarea:focus ~ label, .inputBox textarea:valid ~ label{
+    transform:translateY(-8px) scale(.82); color:#22d3ee; right:12px;
+  }
+  .inputBox select{ color:#fff; cursor:none; }
+  .inputBox .select-chevron{ position:absolute; left:14px; top:18px; color:#64748b; pointer-events:none; font-size:.75rem; }
+
+  /* ============ BUTTONS ============ */
+  .btn-submit{
+    position:relative; display:flex; align-items:center; justify-content:center; gap:8px;
+    background:linear-gradient(135deg,#06b6d4 0%,#3b82f6 100%); color:#fff; font-weight:700; padding:14px 22px; border-radius:14px;
+    font-size:.92rem; border:none; overflow:hidden; box-shadow: 0 6px 24px -6px rgba(6,182,212,.5);
+    transition: transform .25s var(--ease-spring), box-shadow .3s ease, filter .25s; cursor:none;
+  }
+  .btn-submit::after{ content:''; position:absolute; top:0; right:-100%; width:60%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent); transition:right .6s ease; pointer-events:none; }
+  .btn-submit:hover{ transform:translateY(-2px) scale(1.01); box-shadow:0 0 28px rgba(34,211,238,.5); filter:brightness(1.07); }
+  .btn-submit:hover::after{ right:130%; }
+  .btn-submit:active{ transform:translateY(0) scale(.97); }
+  .btn-submit:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+  .btn-submit span{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; }
+
+  .btn-soft{
+    display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 18px; border-radius:12px;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); color:#cbd5e1; font-weight:600; font-size:.85rem;
+    transition:.25s; cursor:none;
+  }
+  .btn-soft:hover{ border-color:rgba(34,211,238,.4); color:#22d3ee; background:rgba(34,211,238,.06); }
+  .btn-soft.active{ background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#fff; border-color:transparent; }
+
+  /* ============ BADGES ============ */
+  .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:50px; font-size:.72rem; font-weight:700; white-space:nowrap; }
+  .badge-amber{ background:rgba(245,158,11,.12); color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
+  .badge-cyan{ background:rgba(6,182,212,.12); color:#22d3ee; border:1px solid rgba(6,182,212,.3); }
+  .badge-blue{ background:rgba(59,130,246,.12); color:#60a5fa; border:1px solid rgba(59,130,246,.3); }
+  .badge-green{ background:rgba(34,197,94,.12); color:#4ade80; border:1px solid rgba(34,197,94,.3); }
+  .badge-red{ background:rgba(239,68,68,.12); color:#f87171; border:1px solid rgba(239,68,68,.3); }
+  .badge-gray{ background:rgba(148,163,184,.1); color:#94a3b8; border:1px solid rgba(148,163,184,.25); }
+
+  /* ============ LIST ROWS ============ */
+  .row-card{
+    display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 16px; border-radius:14px;
+    background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.05); transition:.25s;
+  }
+  .row-card:hover{ border-color:rgba(34,211,238,.25); background:rgba(255,255,255,.04); }
+  .empty-state{ display:flex; flex-direction:column; align-items:center; gap:10px; padding:40px 10px; color:#64748b; text-align:center; }
+  .empty-state i{ font-size:1.8rem; color:#334155; }
+
+  /* ============ TICKET THREAD ============ */
+  .msg-bubble{ max-width:80%; padding:11px 15px; border-radius:14px; font-size:.85rem; line-height:1.7; }
+  .msg-user{ background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#fff; margin-right:auto; border-bottom-left-radius:4px; }
+  .msg-admin{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); color:#e2e8f0; margin-left:auto; border-bottom-right-radius:4px; }
+
+  /* ============ QUICK AMOUNT CHIPS ============ */
+  .chip{ padding:8px 16px; border-radius:50px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); color:#cbd5e1; font-size:.78rem; font-weight:700; cursor:none; transition:.2s; }
+  .chip:hover, .chip.active{ border-color:rgba(34,211,238,.45); color:#22d3ee; background:rgba(34,211,238,.08); }
+
+  /* ============ MOBILE BOTTOM NAV ============ */
+  .dash-bottomnav{
+    position:fixed; bottom:14px; left:14px; right:14px; z-index:60; display:flex; align-items:center; justify-content:space-between;
+    background:rgba(15,23,42,.85); backdrop-filter:blur(18px); border:1px solid rgba(255,255,255,.08);
+    border-radius:22px; padding:8px 10px; box-shadow:0 20px 50px -15px rgba(0,0,0,.6);
+  }
+  .bottomnav-btn{
+    display:flex; flex-direction:column; align-items:center; gap:3px; color:#64748b; font-size:.62rem; font-weight:700;
+    padding:8px 10px; border-radius:14px; transition:.2s; flex:1; cursor:none;
+  }
+  .bottomnav-btn i{ font-size:1.05rem; }
+  .bottomnav-btn.active{ color:#22d3ee; }
+  .bottomnav-main{
+    width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#fff; font-size:1.3rem; margin-top:-26px;
+    box-shadow:0 10px 30px -6px rgba(6,182,212,.7); flex-shrink:0;
+  }
+  .bottomnav-main span{ display:none; }
+
+  /* ============ SERVICE LIST (price tab) ============ */
+  .svc-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 16px; border-radius:14px; background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.04); }
+  .svc-row + .svc-row{ margin-top:8px; }
+
+  /* ============ SKELETON ============ */
+  .skel{ background:linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 37%, rgba(255,255,255,.04) 63%); background-size:400% 100%; animation:skelShine 1.4s ease infinite; border-radius:10px; }
+  @keyframes skelShine{ 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
+</style>
+</head>
+<body class="font-sans">
+
+<div id="cursorGlow"></div>
+<div id="tgCursor"><i class="fa-brands fa-telegram"></i></div>
+<div class="aurora"><span></span><span></span><span></span></div>
+<div class="grid-overlay"></div>
+<canvas id="netCanvas" aria-hidden="true"></canvas>
+
+<!-- ============ AUTH GATE ============ -->
+<div id="authGate">
+  <i class="fa-solid fa-circle-notch fa-spin text-cyan-400 text-3xl"></i>
+  <p class="text-slate-500 text-sm">در حال بررسی ورود...</p>
+</div>
+
+<div id="appRoot" style="display:none; position:relative; z-index:5;">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="dash-topbar glass">
+    <a href="index.html" class="flex items-center gap-3">
+      <img id="navLogoImg" decoding="async" src="" alt="" class="w-10 h-10 rounded-xl hidden object-contain" />
+      <div id="navLogoFallback" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <i class="fa-solid fa-cloud-arrow-up text-white text-lg"></i>
+      </div>
+      <span dir="ltr" id="navSiteName" class="hidden sm:inline text-lg font-mono font-bold text-gradient-flow">UploadGram</span>
+    </a>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a href="admin.html" id="adminLink" class="btn-soft magnetic ripple-host !py-2 !px-4 text-xs hidden">
+        <i class="fa-solid fa-shield-halved"></i> <span class="hidden sm:inline">پنل مدیریت</span>
+      </a>
+      <div class="badge-balance"><i class="fa-solid fa-coins"></i> <span id="topBalance">۰</span> <span class="hidden sm:inline">تومان</span></div>
+      <button type="button" id="notifBtn" class="icon-btn" aria-label="اعلان‌ها">
+        <i class="fa-regular fa-bell"></i><span id="notifDot" class="notif-dot hidden"></span>
+      </button>
+      <div class="user-chip">
+        <div class="avatar" id="avatarInitial">?</div>
+        <span id="topUserName" class="hidden md:inline text-sm font-semibold text-slate-200 max-w-[120px] truncate"></span>
+        <button type="button" id="logoutBtn" class="icon-btn" title="خروج" aria-label="خروج">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ DESKTOP SEGMENTED NAV ============ -->
+  <nav class="dash-segnav hidden lg:flex" id="segNav">
+    <button type="button" class="segnav-btn active" data-tab="overview"><i class="fa-solid fa-gauge-high"></i> نمای کلی</button>
+    <button type="button" class="segnav-btn" data-tab="order"><i class="fa-solid fa-cart-plus"></i> سفارش جدید</button>
+    <button type="button" class="segnav-btn" data-tab="orders"><i class="fa-solid fa-list-check"></i> سفارش‌های من</button>
+    <button type="button" class="segnav-btn" data-tab="wallet"><i class="fa-solid fa-wallet"></i> کیف پول</button>
+    <button type="button" class="segnav-btn" data-tab="tickets"><i class="fa-solid fa-headset"></i> تیکت‌ها</button>
+    <button type="button" class="segnav-btn" data-tab="services"><i class="fa-solid fa-tags"></i> لیست قیمت‌ها</button>
+  </nav>
+
+  <main class="dash-main">
+
+    <!-- ============ STAT CARDS ============ -->
+    <section class="stat-grid reveal">
+      <div class="stat-card"><i class="fa-solid fa-wallet"></i><div><span id="statBalance">۰</span><label>موجودی (تومان)</label></div></div>
+      <div class="stat-card"><i class="fa-solid fa-bolt"></i><div><span id="statActiveOrders">۰</span><label>سفارش فعال</label></div></div>
+      <div class="stat-card"><i class="fa-solid fa-circle-check"></i><div><span id="statTotalOrders">۰</span><label>کل سفارش‌ها</label></div></div>
+      <div class="stat-card"><i class="fa-solid fa-headset"></i><div><span id="statOpenTickets">۰</span><label>تیکت باز</label></div></div>
+    </section>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section id="panel-overview" class="dash-panel active reveal">
+      <div class="panel-card mb-5">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="panel-title mb-0"><i class="fa-solid fa-sparkles text-cyan-400"></i> خوش آمدید<span id="welcomeUserName"></span></h2>
+          <button type="button" class="btn-submit magnetic ripple-host !py-2.5 !px-5 text-xs" data-goto="order">
+            <span><i class="fa-solid fa-cart-plus"></i> ثبت سفارش جدید</span>
+          </button>
+        </div>
+        <p class="text-slate-400 text-sm leading-relaxed">از این پنل می‌توانید برای تلگرام، اینستاگرام، یوتیوب، ساندکلاد و اسپاتیفای سفارش ثبت کنید، کیف پول خود را با درگاه زرین‌پال شارژ کنید و با پشتیبانی تیکت بزنید.</p>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title"><i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> آخرین سفارش‌ها</h3>
+        <div id="overviewOrdersList" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ NEW ORDER ============ -->
+    <section id="panel-order" class="dash-panel reveal">
+      <div class="panel-card">
+        <h2 class="panel-title"><i class="fa-solid fa-cart-plus text-cyan-400"></i> ثبت سفارش جدید</h2>
+        <form id="orderForm" class="flex flex-col gap-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="inputBox">
+              <select id="orderPlatform" required>
+                <option value="" disabled selected></option>
+                <option value="telegram">تلگرام</option>
+                <option value="instagram">اینستاگرام</option>
+                <option value="youtube">یوتیوب</option>
+                <option value="soundcloud">ساندکلاد</option>
+                <option value="spotify">اسپاتیفای</option>
+              </select>
+              <label>پلتفرم</label>
+              <i class="fa-solid fa-chevron-down select-chevron"></i>
+            </div>
+            <div class="inputBox">
+              <select id="orderService" required disabled>
+                <option value="" disabled selected>ابتدا پلتفرم را انتخاب کنید</option>
+              </select>
+              <label>سرویس / محصول</label>
+              <i class="fa-solid fa-chevron-down select-chevron"></i>
+            </div>
+          </div>
+
+          <div class="inputBox">
+            <input type="url" id="orderLink" required placeholder=" " />
+            <label>لینک پیج / کانال / پست</label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="inputBox">
+              <input type="number" id="orderQuantity" required placeholder=" " min="1" />
+              <label id="orderQuantityLabel">مقدار</label>
+            </div>
+            <div class="inputBox">
+              <input type="text" id="orderDiscount" placeholder=" " disabled />
+              <label>کد تخفیف (به‌زودی)</label>
+            </div>
+          </div>
+
+          <div id="serviceMeta" class="hidden text-xs text-slate-400 flex flex-wrap gap-x-5 gap-y-1.5 -mt-1"></div>
+
+          <div class="glass rounded-2xl border border-slate-800 p-5 flex items-center justify-between">
+            <span class="text-slate-400 text-sm">قیمت نهایی</span>
+            <span id="orderTotalPrice" class="text-xl font-black text-cyan-400">۰ تومان</span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button type="button" class="btn-soft flex-1 magnetic ripple-host" id="payWalletBtn" data-pay="wallet">
+              <i class="fa-solid fa-wallet"></i> پرداخت از کیف پول
+            </button>
+            <button type="button" class="btn-soft flex-1 magnetic ripple-host active" id="payZarinpalBtn" data-pay="zarinpal">
+              <i class="fa-solid fa-shield-halved"></i> پرداخت با زرین‌پال
+            </button>
+          </div>
+
+          <button type="submit" id="orderSubmitBtn" class="btn-submit magnetic ripple-host">
+            <span><i class="fa-solid fa-check"></i> ثبت و پرداخت سفارش</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ MY ORDERS ============ -->
+    <section id="panel-orders" class="dash-panel reveal">
+      <div class="panel-card">
+        <h2 class="panel-title"><i class="fa-solid fa-list-check text-cyan-400"></i> سفارش‌های من</h2>
+        <div id="ordersList" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ WALLET ============ -->
+    <section id="panel-wallet" class="dash-panel reveal">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="panel-card lg:col-span-1">
+          <h2 class="panel-title"><i class="fa-solid fa-wallet text-cyan-400"></i> شارژ کیف پول</h2>
+          <form id="topupForm" class="flex flex-col gap-4">
+            <div class="inputBox">
+              <input type="number" id="topupAmount" required placeholder=" " min="10000" step="1000" />
+              <label>مبلغ (تومان)</label>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="chip" data-amount="50000">۵۰,۰۰۰</button>
+              <button type="button" class="chip" data-amount="100000">۱۰۰,۰۰۰</button>
+              <button type="button" class="chip" data-amount="300000">۳۰۰,۰۰۰</button>
+              <button type="button" class="chip" data-amount="500000">۵۰۰,۰۰۰</button>
+              <button type="button" class="chip" data-amount="1000000">۱,۰۰۰,۰۰۰</button>
+            </div>
+            <button type="submit" id="topupSubmitBtn" class="btn-submit magnetic ripple-host">
+              <span><i class="fa-solid fa-shield-halved"></i> پرداخت با زرین‌پال</span>
+            </button>
+          </form>
+        </div>
+        <div class="panel-card lg:col-span-2">
+          <h2 class="panel-title"><i class="fa-solid fa-receipt text-cyan-400"></i> تاریخچه تراکنش‌ها</h2>
+          <div id="walletList" class="flex flex-col gap-2.5"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TICKETS ============ -->
+    <section id="panel-tickets" class="dash-panel reveal">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="panel-card lg:col-span-1">
+          <h2 class="panel-title"><i class="fa-solid fa-circle-plus text-cyan-400"></i> تیکت جدید</h2>
+          <form id="newTicketForm" class="flex flex-col gap-4 mb-6">
+            <div class="inputBox">
+              <input type="text" id="ticketSubject" required placeholder=" " />
+              <label>موضوع</label>
+            </div>
+            <div class="inputBox">
+              <select id="ticketDepartment" required>
+                <option value="" disabled selected></option>
+                <option value="financial">🧾 پشتیبانی مالی و تراکنش‌ها</option>
+                <option value="technical">⚙️ پشتیبانی فنی و سفارش‌ها</option>
+                <option value="presale">🛍️ مشاوره پیش از خرید</option>
+                <option value="general">📋 سایر موضوعات</option>
+              </select>
+              <label>دپارتمان</label>
+              <i class="fa-solid fa-chevron-down select-chevron"></i>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 mb-2">اولویت تیکت</label>
+              <div class="flex flex-wrap gap-2" id="ticketPriorityPicker">
+                <button type="button" class="chip" data-priority="low"><i class="fa-solid fa-circle-arrow-down"></i> کم</button>
+                <button type="button" class="chip active" data-priority="medium"><i class="fa-solid fa-circle-minus"></i> متوسط</button>
+                <button type="button" class="chip" data-priority="urgent"><i class="fa-solid fa-circle-exclamation"></i> فوری</button>
+              </div>
+            </div>
+            <div class="inputBox">
+              <textarea id="ticketMessage" required placeholder=" "></textarea>
+              <label>پیام</label>
+            </div>
+            <button type="submit" class="btn-submit magnetic ripple-host">
+              <span><i class="fa-solid fa-paper-plane"></i> ارسال تیکت</span>
+            </button>
+          </form>
+          <h3 class="text-xs font-bold text-slate-500 mb-3">تیکت‌های من</h3>
+          <div id="ticketsList" class="flex flex-col gap-2"></div>
+        </div>
+        <div class="panel-card lg:col-span-2">
+          <div id="ticketThreadEmpty" class="empty-state">
+            <i class="fa-solid fa-comments"></i>
+            <p class="text-sm">برای مشاهده گفتگو، یک تیکت را از لیست انتخاب کنید.</p>
+          </div>
+          <div id="ticketThreadView" class="hidden">
+            <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+              <h3 id="ticketThreadSubject" class="font-bold text-white"></h3>
+              <span id="ticketThreadStatus" class="flex items-center gap-1.5 flex-wrap"></span>
+            </div>
+            <div id="ticketThreadMessages" class="flex flex-col gap-3 mb-5 max-h-[420px] overflow-y-auto pe-1"></div>
+            <form id="ticketReplyForm" class="flex gap-2">
+              <input type="text" id="ticketReplyInput" required placeholder="پاسخ خود را بنویسید..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-cyan-500/50" />
+              <button type="submit" class="btn-submit magnetic ripple-host !w-auto !px-5"><span><i class="fa-solid fa-paper-plane"></i></span></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SERVICES PRICE LIST ============ -->
+    <section id="panel-services" class="dash-panel reveal">
+      <div class="panel-card">
+        <h2 class="panel-title"><i class="fa-solid fa-tags text-cyan-400"></i> لیست قیمت‌ها</h2>
+        <div class="flex flex-wrap gap-2 mb-5" id="servicesPlatformFilter">
+          <button type="button" class="chip active" data-platform="">همه</button>
+          <button type="button" class="chip" data-platform="telegram">تلگرام</button>
+          <button type="button" class="chip" data-platform="instagram">اینستاگرام</button>
+          <button type="button" class="chip" data-platform="youtube">یوتیوب</button>
+          <button type="button" class="chip" data-platform="soundcloud">ساندکلاد</button>
+          <button type="button" class="chip" data-platform="spotify">اسپاتیفای</button>
+        </div>
+        <div id="servicesPriceList" class="flex flex-col gap-2"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ MOBILE BOTTOM NAV ============ -->
+<nav class="dash-bottomnav lg:hidden" id="bottomNav" style="display:none;">
+  <button type="button" class="bottomnav-btn" data-tab="tickets"><i class="fa-solid fa-headset"></i><span>تیکت</span></button>
+  <button type="button" class="bottomnav-btn" data-tab="orders"><i class="fa-solid fa-list-check"></i><span>سفارش‌ها</span></button>
+  <button type="button" class="bottomnav-btn bottomnav-main" data-tab="order"><i class="fa-solid fa-plus"></i></button>
+  <button type="button" class="bottomnav-btn" data-tab="wallet"><i class="fa-solid fa-wallet"></i><span>شارژ</span></button>
+  <button type="button" class="bottomnav-btn" data-tab="services"><i class="fa-solid fa-tags"></i><span>قیمت‌ها</span></button>
+</nav>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0aRNvnyeg7ww_Ku3LeNQTvNiGzVYCFrQ",
+    authDomain: "signin-3a5db.firebaseapp.com",
+    projectId: "signin-3a5db",
+    storageBucket: "signin-3a5db.firebasestorage.app",
+    messagingSenderId: "551837890465",
+    appId: "1:551837890465:web:f455ceccc9575b7cc67de0",
+    measurementId: "G-N9TGXC1ZQZ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // ============ BRANDING (from site settings) ============
+  fetch('api/site_settings.php').then(r => r.json()).then(({ ok, settings }) => {
+    if (!ok || !settings) return;
+    if (settings.site_name) document.getElementById('navSiteName').textContent = settings.site_name;
+    if (settings.logo_url) {
+      document.getElementById('navLogoImg').src = settings.logo_url;
+      document.getElementById('navLogoImg').classList.remove('hidden');
+      document.getElementById('navLogoFallback').classList.add('hidden');
+    }
+  }).catch(() => {});
+
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function toFa(num){ return Number(num || 0).toLocaleString('fa-IR'); }
+
+  function showToast(message, ok = true){
+    const toast = document.createElement('div');
+    const color = ok ? '6,182,212' : '239,68,68';
+    const textColor = ok ? '#22d3ee' : '#f87171';
+    toast.style.cssText = `position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);max-width:90vw;text-align:center;display:inline-flex;align-items:center;gap:8px;`;
+    toast.innerHTML = `<i class="fa-solid ${ok ? 'fa-circle-check' : 'fa-circle-xmark'}"></i><span>${escapeHtml(message)}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4500);
+  }
+
+  let idToken = null;
+  let currentUser = null;
+  let catalog = [];
+  let selectedService = null;
+  let activeTicketId = null;
+
+  async function api(path, options = {}){
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+    if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+    const res = await fetch(`api/${path}`, Object.assign({}, options, { headers }));
+    const data = await res.json().catch(() => null);
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  // ============ TAB SWITCHING ============
+  const PANELS = ['overview', 'order', 'orders', 'wallet', 'tickets', 'services'];
+  function switchTab(tab){
+    if (!PANELS.includes(tab)) tab = 'overview';
+    PANELS.forEach(p => document.getElementById('panel-' + p).classList.toggle('active', p === tab));
+    document.querySelectorAll('.segnav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.bottomnav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (tab === 'orders') loadOrders();
+    if (tab === 'wallet') loadWallet();
+    if (tab === 'tickets') loadTickets();
+    if (tab === 'services') renderServicesList();
+  }
+  document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+  document.querySelectorAll('[data-goto]').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.goto)));
+
+  // ============ AUTH GATE ============
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUser = user;
+    idToken = await user.getIdToken();
+
+    document.getElementById('authGate').style.display = 'none';
+    document.getElementById('appRoot').style.display = 'block';
+    document.getElementById('bottomNav').style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    }));
+
+    const name = user.displayName || (user.email ? user.email.split('@')[0] : 'کاربر');
+    document.getElementById('topUserName').textContent = name;
+    document.getElementById('welcomeUserName').textContent = ' ' + name + ' 👋';
+    document.getElementById('avatarInitial').textContent = name.trim().charAt(0).toUpperCase();
+
+    await Promise.all([loadMe(), loadCatalog(), loadOrders()]);
+    handleIncomingParams();
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.href = 'index.html';
+  });
+
+  // ============ /api/me.php ============
+  async function loadMe(){
+    const { ok, data } = await api('me.php');
+    if (!ok || !data || !data.ok) return;
+    document.getElementById('topBalance').textContent = toFa(data.user.balance);
+    document.getElementById('statBalance').textContent = toFa(data.user.balance);
+    document.getElementById('statActiveOrders').textContent = toFa(data.stats.active_orders);
+    document.getElementById('statTotalOrders').textContent = toFa(data.stats.orders_count);
+    document.getElementById('statOpenTickets').textContent = toFa(data.stats.open_tickets);
+    if (data.user.role === 'admin') document.getElementById('adminLink').classList.remove('hidden');
+  }
+
+  // ============ CATALOG ============
+  async function loadCatalog(){
+    try {
+      const res = await fetch('api/services.php', { cache: 'no-store' });
+      const data = await res.json();
+      catalog = (data && data.ok && Array.isArray(data.services)) ? data.services : [];
+    } catch (e) {
+      catalog = [];
+    }
+    renderServicesList();
+  }
+
+  const platformLabels = { telegram: 'تلگرام', instagram: 'اینستاگرام', youtube: 'یوتیوب', soundcloud: 'ساندکلاد', spotify: 'اسپاتیفای', other: 'سایر' };
+
+  const orderPlatformSelect = document.getElementById('orderPlatform');
+  const orderServiceSelect = document.getElementById('orderService');
+  const orderQuantityInput = document.getElementById('orderQuantity');
+  const orderLinkInput = document.getElementById('orderLink');
+  const orderTotalPriceEl = document.getElementById('orderTotalPrice');
+  const serviceMetaEl = document.getElementById('serviceMeta');
+
+  orderPlatformSelect.addEventListener('change', () => {
+    const platform = orderPlatformSelect.value;
+    const services = catalog.filter(s => s.platform === platform && s.rate !== null);
+    orderServiceSelect.innerHTML = services.length
+      ? '<option value="" disabled selected>یک سرویس انتخاب کنید</option>' + services.map(s => `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}${s.category ? ' — ' + escapeHtml(s.category) : ''}</option>`).join('')
+      : '<option value="" disabled selected>سرویسی برای این پلتفرم موجود نیست</option>';
+    orderServiceSelect.disabled = services.length === 0;
+    selectedService = null;
+    updateOrderSummary();
+  });
+
+  orderServiceSelect.addEventListener('change', () => {
+    selectedService = catalog.find(s => s.id === orderServiceSelect.value) || null;
+    if (selectedService) {
+      orderQuantityInput.min = selectedService.min || 1;
+      if (selectedService.max) orderQuantityInput.max = selectedService.max;
+      orderQuantityInput.value = selectedService.min || '';
+      const parts = [];
+      if (selectedService.min && selectedService.max) parts.push(`<span><i class="fa-solid fa-gauge"></i> ظرفیت: ${toFa(selectedService.min)} الی ${toFa(selectedService.max)}</span>`);
+      if (selectedService.rate !== null) parts.push(`<span><i class="fa-solid fa-tag"></i> نرخ هر ۱۰۰۰ عدد: ${toFa(Math.round(selectedService.rate))} تومان</span>`);
+      serviceMetaEl.innerHTML = parts.join('');
+      serviceMetaEl.classList.remove('hidden');
+    } else {
+      serviceMetaEl.classList.add('hidden');
+    }
+    updateOrderSummary();
+  });
+
+  orderQuantityInput.addEventListener('input', updateOrderSummary);
+
+  function updateOrderSummary(){
+    if (!selectedService || selectedService.rate === null) {
+      orderTotalPriceEl.textContent = '۰ تومان';
+      return;
+    }
+    const qty = parseInt(orderQuantityInput.value, 10) || 0;
+    const total = Math.round((selectedService.rate / 1000) * qty);
+    orderTotalPriceEl.textContent = toFa(total) + ' تومان';
+  }
+
+  let payMethod = 'zarinpal';
+  document.getElementById('payWalletBtn').addEventListener('click', () => {
+    payMethod = 'wallet';
+    document.getElementById('payWalletBtn').classList.add('active');
+    document.getElementById('payZarinpalBtn').classList.remove('active');
+  });
+  document.getElementById('payZarinpalBtn').addEventListener('click', () => {
+    payMethod = 'zarinpal';
+    document.getElementById('payZarinpalBtn').classList.add('active');
+    document.getElementById('payWalletBtn').classList.remove('active');
+  });
+
+  document.getElementById('orderForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedService) { showToast('لطفاً یک سرویس انتخاب کنید', false); return; }
+    const link = orderLinkInput.value.trim();
+    const quantity = parseInt(orderQuantityInput.value, 10) || 0;
+    if (!link) { showToast('لینک را وارد کنید', false); return; }
+    if (quantity <= 0) { showToast('مقدار نامعتبر است', false); return; }
+
+    const btn = document.getElementById('orderSubmitBtn');
+    btn.disabled = true;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<span><i class="fa-solid fa-circle-notch fa-spin"></i> در حال ثبت...</span>';
+
+    try {
+      const { ok, data } = await api('orders.php', {
+        method: 'POST',
+        body: JSON.stringify({ service_id: selectedService.id, link, quantity, pay_method: payMethod }),
+      });
+      if (!ok || !data || !data.ok) {
+        const errMap = {
+          insufficient_balance: 'موجودی کیف پول کافی نیست',
+          quantity_below_min: 'مقدار کمتر از حد مجاز است',
+          quantity_above_max: 'مقدار بیشتر از حد مجاز است',
+          invalid_link: 'لینک نامعتبر است',
+          gateway_unavailable: 'درگاه پرداخت در حال حاضر در دسترس نیست',
+        };
+        showToast(errMap[data?.error] || 'خطا در ثبت سفارش', false);
+        return;
+      }
+      if (data.pay_method === 'zarinpal' && data.pay_url) {
+        window.location.href = data.pay_url;
+        return;
+      }
+      showToast('سفارش با موفقیت ثبت شد', true);
+      document.getElementById('orderForm').reset();
+      orderServiceSelect.innerHTML = '<option value="" disabled selected>ابتدا پلتفرم را انتخاب کنید</option>';
+      orderServiceSelect.disabled = true;
+      selectedService = null;
+      serviceMetaEl.classList.add('hidden');
+      updateOrderSummary();
+      await loadMe();
+      switchTab('orders');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }
+  });
+
+  // ============ ORDERS LIST ============
+  const orderStatusMap = {
+    awaiting_payment: ['در انتظار پرداخت', 'badge-amber'],
+    paid: ['پرداخت‌شده', 'badge-cyan'],
+    processing: ['در حال پردازش', 'badge-blue'],
+    completed: ['تکمیل‌شده', 'badge-green'],
+    failed: ['ناموفق', 'badge-red'],
+    cancelled: ['لغو‌شده', 'badge-gray'],
+    refunded: ['بازگشت وجه', 'badge-gray'],
+  };
+
+  function renderOrderRow(o){
+    const [label, cls] = orderStatusMap[o.status] || [o.status, 'badge-gray'];
+    return `
+      <div class="row-card">
+        <div class="flex items-center gap-3 min-w-0">
+          <i class="fa-solid fa-cube text-cyan-400/70"></i>
+          <div class="min-w-0">
+            <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(o.service_name)}</p>
+            <p class="text-xs text-slate-500">${toFa(o.quantity)} عدد &middot; ${toFa(Math.round(o.total_price))} تومان</p>
+          </div>
+        </div>
+        <span class="badge ${cls}">${label}</span>
+      </div>`;
+  }
+
+  async function loadOrders(){
+    const listEl = document.getElementById('ordersList');
+    listEl.innerHTML = '<div class="skel h-14"></div><div class="skel h-14"></div>';
+    const { ok, data } = await api('orders.php');
+    if (!ok || !data || !data.ok || !data.orders.length) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-box-open"></i><p class="text-sm">هنوز سفارشی ثبت نکرده‌اید.</p></div>';
+      document.getElementById('overviewOrdersList').innerHTML = listEl.innerHTML;
+      return;
+    }
+    listEl.innerHTML = data.orders.map(renderOrderRow).join('');
+    document.getElementById('overviewOrdersList').innerHTML = data.orders.slice(0, 4).map(renderOrderRow).join('');
+  }
+
+  // ============ WALLET ============
+  const walletTypeMap = { topup: ['شارژ کیف پول', 'fa-arrow-down text-green-400'], order: ['پرداخت سفارش', 'fa-arrow-up text-red-400'] };
+  const walletStatusMap = { pending: ['در انتظار', 'badge-amber'], success: ['موفق', 'badge-green'], failed: ['ناموفق', 'badge-red'] };
+
+  async function loadWallet(){
+    const listEl = document.getElementById('walletList');
+    listEl.innerHTML = '<div class="skel h-14"></div><div class="skel h-14"></div>';
+    const { ok, data } = await api('wallet.php');
+    if (!ok || !data || !data.ok) return;
+    document.getElementById('topBalance').textContent = toFa(data.balance);
+    document.getElementById('statBalance').textContent = toFa(data.balance);
+    if (!data.transactions.length) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-receipt"></i><p class="text-sm">هنوز تراکنشی ثبت نشده.</p></div>';
+      return;
+    }
+    listEl.innerHTML = data.transactions.map(tx => {
+      const [typeLabel, typeIcon] = walletTypeMap[tx.type] || [tx.type, 'fa-circle'];
+      const [statusLabel, statusCls] = walletStatusMap[tx.status] || [tx.status, 'badge-gray'];
+      const amount = Number(tx.amount);
+      return `
+        <div class="row-card">
+          <div class="flex items-center gap-3 min-w-0">
+            <i class="fa-solid ${typeIcon}"></i>
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(tx.note || typeLabel)}</p>
+              <p class="text-xs ${amount < 0 ? 'text-red-400' : 'text-green-400'}">${amount < 0 ? '-' : '+'}${toFa(Math.abs(amount))} تومان</p>
+            </div>
+          </div>
+          <span class="badge ${statusCls}">${statusLabel}</span>
+        </div>`;
+    }).join('');
+  }
+
+  document.querySelectorAll('#topupForm .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.getElementById('topupAmount').value = chip.dataset.amount;
+      document.querySelectorAll('#topupForm .chip').forEach(c => c.classList.toggle('active', c === chip));
+    });
+  });
+
+  document.getElementById('topupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const amount = parseInt(document.getElementById('topupAmount').value, 10) || 0;
+    if (amount < 10000) { showToast('حداقل مبلغ شارژ ۱۰,۰۰۰ تومان است', false); return; }
+    const btn = document.getElementById('topupSubmitBtn');
+    btn.disabled = true;
+    try {
+      const { ok, data } = await api('wallet.php', { method: 'POST', body: JSON.stringify({ amount }) });
+      if (!ok || !data || !data.ok || !data.pay_url) {
+        showToast('درگاه پرداخت در حال حاضر در دسترس نیست', false);
+        return;
+      }
+      window.location.href = data.pay_url;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ============ TICKETS ============
+  const ticketStatusMap = { open: ['باز', 'badge-cyan'], closed: ['بسته', 'badge-gray'] };
+  const ticketPriorityMap = { urgent: ['<i class="fa-solid fa-circle-exclamation"></i> فوری', 'badge-red'], medium: ['<i class="fa-solid fa-circle-minus"></i> متوسط', 'badge-amber'], low: ['<i class="fa-solid fa-circle-arrow-down"></i> کم', 'badge-green'] };
+  const ticketDepartmentMap = { financial: ['مالی', 'badge-blue'], technical: ['فنی', 'badge-cyan'], presale: ['پیش‌فروش', 'badge-amber'], general: ['عمومی', 'badge-gray'] };
+  let selectedTicketPriority = 'medium';
+
+  document.querySelectorAll('#ticketPriorityPicker .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      selectedTicketPriority = chip.dataset.priority;
+      document.querySelectorAll('#ticketPriorityPicker .chip').forEach(c => c.classList.toggle('active', c === chip));
+    });
+  });
+
+  async function loadTickets(){
+    const listEl = document.getElementById('ticketsList');
+    listEl.innerHTML = '<div class="skel h-12"></div>';
+    const { ok, data } = await api('tickets.php');
+    if (!ok || !data || !data.ok || !data.tickets.length) {
+      listEl.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">تیکتی ثبت نشده.</p>';
+      return;
+    }
+    listEl.innerHTML = data.tickets.map(t => {
+      const [label, cls] = ticketStatusMap[t.status] || [t.status, 'badge-gray'];
+      const [pLabel, pCls] = ticketPriorityMap[t.priority] || [t.priority, 'badge-gray'];
+      return `
+        <button type="button" class="row-card w-full text-right ticket-item" data-id="${t.id}">
+          <div class="min-w-0"><p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(t.subject)}</p></div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="badge ${pCls}">${pLabel}</span>
+            <span class="badge ${cls}">${label}</span>
+          </div>
+        </button>`;
+    }).join('');
+    listEl.querySelectorAll('.ticket-item').forEach(btn => btn.addEventListener('click', () => openTicket(parseInt(btn.dataset.id, 10))));
+  }
+
+  async function openTicket(id){
+    activeTicketId = id;
+    const { ok, data } = await api('tickets.php?id=' + id);
+    if (!ok || !data || !data.ok) return;
+    document.getElementById('ticketThreadEmpty').classList.add('hidden');
+    document.getElementById('ticketThreadView').classList.remove('hidden');
+    document.getElementById('ticketThreadSubject').textContent = data.ticket.subject;
+    const [label, cls] = ticketStatusMap[data.ticket.status] || [data.ticket.status, 'badge-gray'];
+    const [pLabel, pCls] = ticketPriorityMap[data.ticket.priority] || [data.ticket.priority, 'badge-gray'];
+    const [dLabel, dCls] = ticketDepartmentMap[data.ticket.department] || [data.ticket.department, 'badge-gray'];
+    document.getElementById('ticketThreadStatus').innerHTML = `<span class="badge ${dCls}">${dLabel}</span> <span class="badge ${pCls}">${pLabel}</span> <span class="badge ${cls}">${label}</span>`;
+    document.getElementById('ticketThreadMessages').innerHTML = data.messages.map(m => `
+      <div class="msg-bubble ${m.sender === 'user' ? 'msg-user' : 'msg-admin'}">${escapeHtml(m.message)}</div>
+    `).join('');
+  }
+
+  document.getElementById('newTicketForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const subject = document.getElementById('ticketSubject').value.trim();
+    const department = document.getElementById('ticketDepartment').value;
+    const message = document.getElementById('ticketMessage').value.trim();
+    if (!subject || !department || !message) return;
+    const { ok, data } = await api('tickets.php', { method: 'POST', body: JSON.stringify({ subject, department, priority: selectedTicketPriority, message }) });
+    if (!ok || !data || !data.ok) { showToast('خطا در ارسال تیکت', false); return; }
+    showToast('تیکت با موفقیت ثبت شد', true);
+    document.getElementById('newTicketForm').reset();
+    selectedTicketPriority = 'medium';
+    document.querySelectorAll('#ticketPriorityPicker .chip').forEach(c => c.classList.toggle('active', c.dataset.priority === 'medium'));
+    await loadTickets();
+    await loadMe();
+    openTicket(data.ticket_id);
+  });
+
+  document.getElementById('ticketReplyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeTicketId) return;
+    const input = document.getElementById('ticketReplyInput');
+    const message = input.value.trim();
+    if (!message) return;
+    const { ok, data } = await api('tickets.php', { method: 'POST', body: JSON.stringify({ ticket_id: activeTicketId, message }) });
+    if (!ok || !data || !data.ok) { showToast('خطا در ارسال پاسخ', false); return; }
+    input.value = '';
+    openTicket(activeTicketId);
+  });
+
+  // ============ SERVICES PRICE LIST ============
+  let servicesFilter = '';
+  document.querySelectorAll('#servicesPlatformFilter .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      servicesFilter = chip.dataset.platform;
+      document.querySelectorAll('#servicesPlatformFilter .chip').forEach(c => c.classList.toggle('active', c === chip));
+      renderServicesList();
+    });
+  });
+
+  function renderServicesList(){
+    const listEl = document.getElementById('servicesPriceList');
+    const items = catalog.filter(s => !servicesFilter || s.platform === servicesFilter);
+    if (!items.length) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-box-open"></i><p class="text-sm">لیست قیمت در حال حاضر در دسترس نیست.</p></div>';
+      return;
+    }
+    listEl.innerHTML = items.map(s => `
+      <div class="svc-row">
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-200 truncate">${escapeHtml(s.name)}</p>
+          <p class="text-xs text-slate-500">${escapeHtml(platformLabels[s.platform] || s.platform)}${s.category ? ' — ' + escapeHtml(s.category) : ''}</p>
+        </div>
+        <span class="text-cyan-400 font-bold text-sm whitespace-nowrap">${s.rate !== null ? toFa(Math.round(s.rate)) + ' تومان' : 'تماس بگیرید'}</span>
+      </div>
+    `).join('');
+  }
+
+  // ============ INCOMING URL PARAMS (from order-modal redirects + ZarinPal callback) ============
+  function handleIncomingParams(){
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    if (payment === 'success') {
+      showToast('پرداخت با موفقیت انجام شد', true);
+      loadMe(); loadOrders(); loadWallet();
+    } else if (payment === 'failed') {
+      showToast('پرداخت ناموفق بود یا لغو شد', false);
+    } else if (payment === 'unknown' || payment === 'error') {
+      showToast('وضعیت پرداخت نامشخص است — با پشتیبانی تماس بگیرید', false);
+    }
+
+    const serviceId = params.get('service');
+    if (serviceId) {
+      const svc = catalog.find(s => s.id === serviceId);
+      if (svc) {
+        switchTab('order');
+        orderPlatformSelect.value = svc.platform;
+        orderPlatformSelect.dispatchEvent(new Event('change'));
+        setTimeout(() => {
+          orderServiceSelect.value = svc.id;
+          orderServiceSelect.dispatchEvent(new Event('change'));
+        }, 0);
+      } else if (params.get('plan')) {
+        switchTab('order');
+      }
+    }
+
+    if (payment || serviceId) {
+      window.history.replaceState({}, '', 'dashboard.html');
+    }
+  }
+</script>
+
+<script>
+// ============ NETWORK / STARFIELD BACKGROUND ============
+(function () {
+  const canvas = document.getElementById('netCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const animate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  let w, h, particles, raf;
+
+  function resize() {
+    w = canvas.width = innerWidth * dpr;
+    h = canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    const count = innerWidth < 640 ? 20 : innerWidth < 1024 ? 36 : 54;
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.2 * dpr, vy: (Math.random() - 0.5) * 0.2 * dpr,
+    }));
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, w, h);
+    const maxDist = 120 * dpr;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      if (animate) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+      }
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = `rgba(34,211,238,${0.1 * (1 - dist / maxDist)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+        }
+      }
+      ctx.fillStyle = 'rgba(34,211,238,0.55)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.4 * dpr, 0, Math.PI * 2); ctx.fill();
+    }
+    if (animate) raf = requestAnimationFrame(render);
+  }
+
+  resize(); render();
+  window.addEventListener('resize', resize);
+  if (animate) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else render();
+    });
+  }
+})();
+
+// ============ CURSOR GLOW + TELEGRAM CURSOR ============
+const glow = document.getElementById('cursorGlow');
+const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+window.addEventListener('mousemove', (e) => {
+  glow.classList.add('active');
+  glow.style.left = e.clientX + 'px';
+  glow.style.top = e.clientY + 'px';
+});
+window.addEventListener('mouseleave', () => glow.classList.remove('active'));
+
+if (finePointer) {
+  const tgCursor = document.getElementById('tgCursor');
+  let tgX = window.innerWidth / 2, tgY = window.innerHeight / 2;
+  let tgAngle = 45, tgScale = 1, tgShown = false;
+
+  function paintTg(){
+    tgCursor.style.transform = `translate3d(${tgX}px, ${tgY}px, 0) translate(-50%,-50%) rotate(${tgAngle}deg) scale(${tgScale})`;
+  }
+  window.addEventListener('mousemove', (e) => {
+    const dx = e.clientX - tgX, dy = e.clientY - tgY;
+    tgX = e.clientX; tgY = e.clientY;
+    if (!tgShown) { tgShown = true; tgCursor.classList.add('active'); }
+    if (Math.hypot(dx, dy) > 1) tgAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 45;
+    paintTg();
+  });
+  window.addEventListener('mousedown', () => { tgScale = .78; paintTg(); });
+  window.addEventListener('mouseup', () => { tgScale = 1; paintTg(); });
+  document.addEventListener('mouseleave', () => { tgShown = false; tgCursor.classList.remove('active'); });
+}
+
+// ============ MAGNETIC + RIPPLE ============
+document.addEventListener('mousemove', (e) => {
+  document.querySelectorAll('.magnetic').forEach(btn => {
+    const r = btn.getBoundingClientRect();
+    if (e.clientX < r.left - 40 || e.clientX > r.right + 40 || e.clientY < r.top - 40 || e.clientY > r.bottom + 40) return;
+  });
+});
+document.body.addEventListener('mousemove', (e) => {
+  const el = e.target.closest && e.target.closest('.magnetic');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const x = e.clientX - r.left - r.width / 2;
+  const y = e.clientY - r.top - r.height / 2;
+  el.style.transform = `translate(${x * 0.12}px, ${y * 0.25}px)`;
+});
+document.body.addEventListener('mouseleave', () => {
+  document.querySelectorAll('.magnetic').forEach(btn => btn.style.transform = '');
+}, true);
+document.body.addEventListener('click', function (e) {
+  const el = e.target.closest && e.target.closest('.ripple-host');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const size = Math.max(r.width, r.height);
+  const dot = document.createElement('span');
+  dot.className = 'ripple-dot';
+  dot.style.width = dot.style.height = size + 'px';
+  dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+  dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+  el.appendChild(dot);
+  dot.addEventListener('animationend', () => dot.remove());
+});
+</script>
+</body>
+</html>

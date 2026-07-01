@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitleTag">صفحه | آپلود گرام</title>
+<meta name="description" content="آپلود گرام — رشد واقعی شبکه‌های اجتماعی.">
+<meta name="robots" content="index, follow">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
+<meta name="theme-color" content="#020617">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['Vazirmatn', 'sans-serif'], mono: ['Space Grotesk', 'sans-serif'] } } } }
+</script>
+
+<style>
+  :root{ --cyan:#06b6d4; --blue:#3b82f6; --ease-spring: cubic-bezier(0.22,1,0.36,1); }
+  *{ scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.4) transparent; }
+  html{ scroll-behavior:smooth; }
+  body{ background:#020617; color:#f1f5f9; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+
+  .aurora{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .aurora span{ position:absolute; border-radius:50%; filter:blur(90px); animation: auroraDrift 22s ease-in-out infinite; opacity:.3; }
+  .aurora span:nth-child(1){ width:520px;height:520px; background:#0891b2; top:-10%; right:-8%; }
+  .aurora span:nth-child(2){ width:420px;height:420px; background:#4338ca; bottom:-15%; left:-10%; animation-delay:-7s; animation-duration:26s; }
+  @keyframes auroraDrift{ 0%,100%{ transform:translate(0,0) scale(1); } 33%{ transform:translate(40px,-30px) scale(1.12); } 66%{ transform:translate(-30px,25px) scale(0.94); } }
+
+  .grid-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  .glass{ background:rgba(15,23,42,0.55); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.06); }
+  .text-gradient{ background:linear-gradient(135deg,#ffffff 25%,#22d3ee 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  ::selection{ background:rgba(6,182,212,.35); color:#fff; }
+  a:focus-visible, button:focus-visible{ outline:2px solid #22d3ee; outline-offset:3px; border-radius:6px; }
+
+  .nav-link{ position:relative; }
+  .nav-link::after{ content:''; position:absolute; right:0; bottom:-4px; width:0; height:1.5px; background:linear-gradient(90deg,#22d3ee,#3b82f6); transition:width .35s var(--ease-spring); }
+  .nav-link:hover::after{ width:100%; }
+
+  .btn-nav{
+    position:relative; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#fff; font-weight:700; border-radius:12px;
+    transition: transform .2s var(--ease-spring), box-shadow .25s ease; box-shadow:0 4px 14px -4px rgba(6,182,212,.4); border:none;
+  }
+  .btn-nav:hover{ transform:translateY(-2px); box-shadow:0 8px 22px -4px rgba(6,182,212,.5); }
+  .btn-nav-ghost{
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap; padding:8px 18px; border-radius:10px;
+    background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.1); color:#94a3b8; font-weight:600;
+    transition: border-color .3s, color .3s, background .3s, transform .2s var(--ease-spring);
+  }
+  .btn-nav-ghost:hover{ border-color:rgba(34,211,238,.45); color:#22d3ee; background:rgba(34,211,238,.05); transform:translateY(-1px); }
+
+  .mobile-nav-link{ display:flex; align-items:center; padding:13px 14px; border-radius:10px; border-right:3px solid transparent; color:#cbd5e1; font-weight:500; font-size:.95rem; transition:background .25s ease,color .25s ease,border-color .25s ease; }
+  .mobile-nav-link:hover{ background:rgba(34,211,238,.06); color:#22d3ee; }
+
+  .footer-glow{ background: radial-gradient(60% 100% at 50% 0%, rgba(6,182,212,.08), transparent 70%); }
+
+  #pageBody{ line-height:2; color:#cbd5e1; }
+  #pageBody h1, #pageBody h2, #pageBody h3{ color:#fff; font-weight:800; margin:1.4em 0 .6em; }
+  #pageBody p{ margin:1em 0; }
+  #pageBody a{ color:#22d3ee; text-decoration:underline; text-decoration-color:rgba(34,211,238,.35); }
+  #pageBody ul, #pageBody ol{ padding-right:1.4em; margin:1em 0; }
+  #pageBody img{ max-width:100%; border-radius:14px; }
+
+  @media (prefers-reduced-motion: reduce){ *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; } }
+</style>
+</head>
+<body class="font-sans">
+
+<div class="aurora"><span></span><span></span></div>
+<div class="grid-overlay"></div>
+
+<!-- ============ NAV ============ -->
+<header class="fixed top-0 left-0 right-0 z-50 px-4 lg:px-8 py-4">
+  <nav id="mainNav" class="max-w-7xl mx-auto glass rounded-2xl px-6 py-4 flex items-center justify-between border border-slate-800/60">
+    <a href="index.html" id="navLogoLink" class="flex items-center gap-3">
+      <img id="navLogoImg" src="" alt="" class="w-10 h-10 rounded-xl hidden object-contain" />
+      <div id="navLogoFallback" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <i class="fa-solid fa-cloud-arrow-up text-white text-lg"></i>
+      </div>
+      <span dir="ltr" id="navSiteName" class="text-xl font-mono font-bold tracking-tight bg-gradient-to-l from-white to-cyan-400 bg-clip-text text-transparent">UploadGram</span>
+    </a>
+
+    <div class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
+      <a href="index.html#how" class="nav-link hover:text-cyan-400 transition-colors">نحوه کار</a>
+      <a href="products.html" class="nav-link hover:text-cyan-400 transition-colors">محصولات</a>
+      <a href="about.html" class="nav-link hover:text-cyan-400 transition-colors">درباره ما</a>
+      <a href="index.html#faq" class="nav-link hover:text-cyan-400 transition-colors">سوالات متداول</a>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="hidden lg:flex items-center gap-3">
+        <a href="login.html" class="btn-nav-ghost text-sm"><i class="fa-solid fa-right-to-bracket text-xs"></i> ورود</a>
+        <a href="register.html" class="btn-nav text-sm px-5 py-2.5"><span class="relative z-10 flex items-center gap-2"><i class="fa-solid fa-user-plus text-xs"></i> ثبت‌نام رایگان</span></a>
+      </div>
+      <button type="button" id="navToggle" class="lg:hidden w-11 h-11 rounded-xl bg-white/5 border border-slate-700/60 flex items-center justify-center text-slate-200 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors" aria-expanded="false" aria-controls="mobileMenuPanel" aria-label="باز کردن منو">
+        <i class="fa-solid fa-bars text-lg" id="navToggleIcon"></i>
+      </button>
+    </div>
+  </nav>
+
+  <div id="mobileMenuPanel" class="lg:hidden max-w-7xl mx-auto mt-3 overflow-hidden opacity-0 transition-all duration-300 ease-out" style="max-height:0px;" aria-hidden="true">
+    <div class="glass rounded-2xl border border-slate-800/60 p-4 flex flex-col gap-1">
+      <a href="index.html#how" class="mobile-nav-link">نحوه کار</a>
+      <a href="products.html" class="mobile-nav-link">محصولات</a>
+      <a href="about.html" class="mobile-nav-link">درباره ما</a>
+      <a href="index.html#faq" class="mobile-nav-link">سوالات متداول</a>
+      <div class="flex items-center gap-3 mt-2 pt-3 border-t border-slate-800/60">
+        <a href="login.html" class="btn-nav-ghost text-sm flex-1 justify-center">ورود</a>
+        <a href="register.html" class="btn-nav text-sm px-5 py-2.5 flex-1 justify-center"><span class="relative z-10 flex items-center justify-center gap-2">ثبت‌نام رایگان</span></a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ PAGE CONTENT ============ -->
+<main class="relative z-10 pt-40 pb-20 px-4 max-w-3xl mx-auto min-h-[60vh]">
+  <nav aria-label="مسیر صفحه" class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+    <a href="index.html" class="hover:text-cyan-400 transition-colors">خانه</a>
+    <i class="fa-solid fa-chevron-left text-[10px]"></i>
+    <span id="pageBreadcrumb" class="text-slate-300">صفحه</span>
+  </nav>
+
+  <div id="pageLoading" class="flex flex-col items-center gap-3 py-20 text-slate-500">
+    <i class="fa-solid fa-circle-notch fa-spin text-2xl text-cyan-400"></i>
+    <p class="text-sm">در حال بارگذاری...</p>
+  </div>
+
+  <div id="pageNotFound" class="hidden flex-col items-center gap-3 py-20 text-center text-slate-500">
+    <i class="fa-solid fa-file-circle-question text-3xl text-slate-600 mb-2"></i>
+    <p class="text-sm">این صفحه یافت نشد یا منتشر نشده است.</p>
+    <a href="index.html" class="btn-nav-ghost text-sm mt-3 inline-flex">بازگشت به خانه</a>
+  </div>
+
+  <article id="pageContent" class="hidden">
+    <h1 id="pageH1" class="text-3xl sm:text-4xl font-black text-gradient mb-8"></h1>
+    <div id="pageBody"></div>
+  </article>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer-glow border-t border-slate-900 bg-[#010413] py-12 px-4 relative z-10 text-xs sm:text-sm text-slate-500">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400"><i class="fa-solid fa-cloud"></i></div>
+      <span id="footerText" class="font-bold text-slate-400">آپلود گرام؛ پلتفرم پیشرفته مدیریت آمار تلگرام</span>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-6 text-slate-400">
+      <a href="products.html" class="hover:text-cyan-400 transition-colors">محصولات</a>
+      <a href="about.html" class="hover:text-cyan-400 transition-colors">درباره ما</a>
+    </div>
+    <p class="text-center md:text-left">© <span class="copyright-year">۲۰۲۶</span> آپلود گرام. تمامی حقوق محفوظ است.</p>
+  </div>
+</footer>
+<script>document.querySelectorAll('.copyright-year').forEach(function(el){ el.textContent = new Date().getFullYear().toLocaleString('fa-IR'); });</script>
+
+<script>
+  // ============ MOBILE NAV MENU ============
+  const navToggle = document.getElementById('navToggle');
+  const mobileMenuPanel = document.getElementById('mobileMenuPanel');
+  const navToggleIcon = document.getElementById('navToggleIcon');
+  function openMobileMenu(){
+    mobileMenuPanel.style.maxHeight = mobileMenuPanel.scrollHeight + 'px';
+    mobileMenuPanel.classList.remove('opacity-0');
+    mobileMenuPanel.setAttribute('aria-hidden', 'false');
+    navToggle.setAttribute('aria-expanded', 'true');
+    navToggleIcon.className = 'fa-solid fa-xmark text-lg';
+  }
+  function closeMobileMenu(){
+    mobileMenuPanel.style.maxHeight = '0px';
+    mobileMenuPanel.classList.add('opacity-0');
+    mobileMenuPanel.setAttribute('aria-hidden', 'true');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggleIcon.className = 'fa-solid fa-bars text-lg';
+  }
+  navToggle.addEventListener('click', () => {
+    navToggle.getAttribute('aria-expanded') === 'true' ? closeMobileMenu() : openMobileMenu();
+  });
+  mobileMenuPanel.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMobileMenu));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobileMenu(); });
+  window.addEventListener('resize', () => { if (window.innerWidth >= 1024) closeMobileMenu(); });
+
+  // ============ BRANDING (from site settings) ============
+  fetch('api/site_settings.php').then(r => r.json()).then(({ ok, settings }) => {
+    if (!ok || !settings) return;
+    if (settings.site_name) document.getElementById('navSiteName').textContent = settings.site_name;
+    if (settings.logo_url) {
+      document.getElementById('navLogoImg').src = settings.logo_url;
+      document.getElementById('navLogoImg').classList.remove('hidden');
+      document.getElementById('navLogoFallback').classList.add('hidden');
+    }
+    if (settings.footer_text) document.getElementById('footerText').textContent = settings.footer_text;
+  }).catch(() => {});
+
+  // ============ PAGE CONTENT ============
+  const slug = new URLSearchParams(location.search).get('slug') || '';
+  const loadingEl = document.getElementById('pageLoading');
+  const notFoundEl = document.getElementById('pageNotFound');
+  const contentEl = document.getElementById('pageContent');
+
+  function showNotFound(){
+    loadingEl.classList.add('hidden');
+    notFoundEl.classList.remove('hidden');
+    notFoundEl.classList.add('flex');
+  }
+
+  if (!slug) {
+    showNotFound();
+  } else {
+    fetch('api/page.php?slug=' + encodeURIComponent(slug)).then(r => r.json()).then(({ ok, page }) => {
+      loadingEl.classList.add('hidden');
+      if (!ok || !page) { showNotFound(); return; }
+      document.title = page.title + ' | آپلود گرام';
+      document.getElementById('pageTitleTag').textContent = page.title + ' | آپلود گرام';
+      document.getElementById('pageBreadcrumb').textContent = page.title;
+      document.getElementById('pageH1').textContent = page.title;
+      document.getElementById('pageBody').innerHTML = page.body || '';
+      contentEl.classList.remove('hidden');
+    }).catch(showNotFound);
+  }
+</script>
+</body>
+</html>

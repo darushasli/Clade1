@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پنل مدیریت | UploadGram</title>
+<meta name="description" content="پنل مدیریت آپلود گرام — مدیریت کاربران، سفارش‌ها، محصولات، تیکت‌ها و امور مالی.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icon-180.png">
+<meta name="theme-color" content="#020617">
+<link rel="preconnect" href="https://cdn.tailwindcss.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script>
+  tailwind.config = {
+    theme: { extend: { fontFamily: { sans: ['Vazirmatn', 'sans-serif'], mono: ['Space Grotesk', 'sans-serif'] } } }
+  }
+</script>
+
+<style>
+  :root{
+    --cyan:#06b6d4; --blue:#3b82f6; --indigo:#6366f1; --amber:#f59e0b;
+    --ease-spring: cubic-bezier(0.22,1,0.36,1);
+    --ease-pop: cubic-bezier(0.34,1.56,0.64,1);
+    --color-primary: var(--cyan);
+    --color-primary-light: #22d3ee;
+    --color-accent: var(--indigo);
+    --color-gold: var(--amber);
+    --color-bg: #020617;
+    --color-bg-card: rgba(15,23,42,0.55);
+    --color-border: rgba(255,255,255,0.06);
+    --color-border-active: rgba(34,211,238,0.4);
+    --color-text: #f1f5f9;
+    --color-text-muted: #94a3b8;
+    --radius-card: 24px;
+    --radius-btn: 12px;
+    --shadow-cyan: 0 20px 40px rgba(6,182,212,0.15);
+    --shadow-accent: 0 20px 40px rgba(99,102,241,0.15);
+    --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  *{ scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.4) transparent; }
+  html{ scroll-behavior:smooth; }
+  body{ background:#020617; color:#f1f5f9; min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+
+  #cursorGlow{
+    position:fixed; width:380px; height:380px; border-radius:50%;
+    background:radial-gradient(circle, rgba(6,182,212,0.08), transparent 70%);
+    pointer-events:none; z-index:1; transform:translate(-50%,-50%);
+    transition: opacity .4s ease; opacity:0;
+  }
+  @media (hover:hover) and (pointer:fine){ #cursorGlow.active{ opacity:1; } }
+  @media (hover:hover) and (pointer:fine){ *{ cursor:none !important; } }
+  #tgCursor{
+    position:fixed; top:0; left:0; z-index:10000; pointer-events:none; display:none;
+    transform:translate3d(0,0,0) translate(-50%,-50%) rotate(45deg);
+    opacity:0; transition: opacity .35s ease, transform .12s linear;
+    filter: drop-shadow(0 4px 14px rgba(34,211,238,.55));
+  }
+  @media (hover:hover) and (pointer:fine){ #tgCursor{ display:block; } }
+  #tgCursor.active{ opacity:1; }
+  #tgCursor i{ font-size:30px; background:linear-gradient(135deg,#2AABEE,#229ED9); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+  .aurora{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .aurora span{ position:absolute; border-radius:50%; filter:blur(90px); animation: auroraDrift 22s ease-in-out infinite; opacity:.3; }
+  .aurora span:nth-child(1){ width:520px;height:520px; background:#0891b2; top:-10%; right:-8%; }
+  .aurora span:nth-child(2){ width:420px;height:420px; background:#4338ca; bottom:-15%; left:-10%; animation-delay:-7s; animation-duration:26s; }
+  .aurora span:nth-child(3){ width:340px;height:340px; background:#1d4ed8; top:40%; left:50%; animation-delay:-14s; animation-duration:30s; }
+  @keyframes auroraDrift{ 0%,100%{ transform:translate(0,0) scale(1); } 33%{ transform:translate(40px,-30px) scale(1.12); } 66%{ transform:translate(-30px,25px) scale(0.94); } }
+
+  .grid-overlay{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 90%);
+  }
+  #netCanvas{ position:fixed; inset:0; z-index:0; pointer-events:none; mix-blend-mode:screen; }
+
+  .glass{ background:rgba(15,23,42,0.55); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.06); }
+  .text-gradient-flow{
+    background:linear-gradient(90deg,#22d3ee,#3b82f6,#818cf8,#22d3ee); background-size:300% auto;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    animation: gradFlow 6s linear infinite;
+  }
+  @keyframes gradFlow{ to{ background-position:300% center; } }
+  ::selection{ background:rgba(6,182,212,.35); color:#fff; }
+  a:focus-visible, button:focus-visible{ outline:2px solid #22d3ee; outline-offset:3px; border-radius:6px; }
+
+  .reveal{ opacity:0; transform:translateY(24px) scale(.98); transition: opacity .7s var(--ease-spring), transform .7s var(--ease-spring); }
+  .reveal.in{ opacity:1; transform:translateY(0) scale(1); }
+
+  .magnetic{ position:relative; will-change:transform; transition:transform .25s var(--ease-spring); }
+  .ripple-host{ position:relative; overflow:hidden; }
+  .ripple-dot{ position:absolute !important; border-radius:50%; background:rgba(255,255,255,.5); transform:scale(0); pointer-events:none; animation: rippleAnim .65s ease-out forwards; }
+  @keyframes rippleAnim{ to{ transform:scale(3.4); opacity:0; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+  }
+
+  /* ============ AUTH GATE ============ */
+  #authGate{ position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center; background:#020617; flex-direction:column; gap:14px; }
+
+  /* ============ TOP BAR ============ */
+  .dash-topbar{
+    position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; margin:14px; border-radius:18px;
+  }
+  @media (min-width:1024px){ .dash-topbar{ margin:18px 24px 0; } }
+  .icon-btn{
+    width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); color:#94a3b8;
+    transition:.25s; position:relative; cursor:none;
+  }
+  .icon-btn:hover{ color:#22d3ee; border-color:rgba(34,211,238,.4); background:rgba(34,211,238,.06); }
+  .user-chip{ display:flex; align-items:center; gap:10px; }
+  .avatar{
+    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#06b6d4,#3b82f6); font-weight:800; color:#fff; font-size:.95rem; flex-shrink:0;
+  }
+
+  /* ============ SEGMENTED NAV ============ */
+  .dash-segnav{
+    gap:8px; padding:8px; margin:0 24px 18px; border-radius:16px; background:rgba(15,23,42,.4);
+    border:1px solid rgba(255,255,255,.05); overflow-x:auto;
+  }
+  .segnav-btn{
+    position:relative; padding:10px 20px; border-radius:12px; font-weight:700; font-size:.85rem; color:#94a3b8;
+    transition:color .3s,background .3s; cursor:none; border:none; white-space:nowrap; display:flex; align-items:center; gap:8px;
+  }
+  .segnav-btn.active{ color:#fff; background:linear-gradient(135deg,#06b6d4,#3b82f6); box-shadow:0 6px 18px -6px rgba(6,182,212,.5); }
+
+  .dash-main{ position:relative; z-index:10; max-width:1280px; margin:0 auto; padding:0 18px 48px; }
+  @media (min-width:1024px){ .dash-main{ padding:0 24px 48px; } }
+
+  /* ============ STAT CARDS ============ */
+  .stat-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:24px; }
+  @media (min-width:768px){ .stat-grid{ grid-template-columns:repeat(4,1fr); } }
+  .stat-card{
+    display:flex; align-items:center; gap:14px; padding:18px; border-radius:18px;
+    background:rgba(15,23,42,.55); border:1px solid rgba(255,255,255,.06);
+    transition:.3s var(--ease-spring);
+  }
+  .stat-card:hover{ transform:translateY(-3px); border-color:rgba(34,211,238,.3); }
+  .stat-card i{
+    width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+    background:rgba(6,182,212,.12); color:#22d3ee; font-size:1.1rem; flex-shrink:0;
+  }
+  .stat-card span{ display:block; font-size:1.3rem; font-weight:800; font-family:'Space Grotesk',sans-serif; }
+  .stat-card label{ display:block; font-size:.72rem; color:#64748b; margin-top:2px; }
+
+  /* ============ PANELS ============ */
+  .dash-panel{ display:none; }
+  .dash-panel.active{ display:block; }
+  .panel-card{ background:rgba(15,23,42,.5); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:22px; }
+  .panel-title{ font-size:1.05rem; font-weight:800; color:#fff; display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+
+  /* ============ FLOATING-LABEL INPUTS ============ */
+  .inputBox{ position:relative; width:100%; }
+  .inputBox input, .inputBox select, .inputBox textarea{
+    width:100%; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09);
+    outline:none; padding:23px 14px 9px; border-radius:12px; color:#fff; font-weight:500; font-size:.92rem; transition:.3s;
+    font-family:'Vazirmatn',sans-serif; appearance:none;
+  }
+  .inputBox textarea{ padding-top:20px; resize:vertical; min-height:90px; }
+  .inputBox input:focus, .inputBox select:focus, .inputBox textarea:focus{
+    border-color: rgba(34,211,238,.5); background:rgba(255,255,255,.06); box-shadow:0 0 0 3px rgba(34,211,238,.12);
+  }
+  .inputBox label{ position:absolute; right:14px; top:16px; color:#94a3b8; transition:.3s; pointer-events:none; font-size:.82rem; }
+  .inputBox input:focus ~ label, .inputBox input:valid ~ label,
+  .inputBox select ~ label, .inputBox textarea:focus ~ label, .inputBox textarea:valid ~ label{
+    transform:translateY(-8px) scale(.82); color:#22d3ee; right:12px;
+  }
+  .inputBox select{ color:#fff; cursor:none; }
+  .inputBox .select-chevron{ position:absolute; left:14px; top:18px; color:#64748b; pointer-events:none; font-size:.75rem; }
+
+  /* ============ BUTTONS ============ */
+  .btn-submit{
+    position:relative; display:flex; align-items:center; justify-content:center; gap:8px;
+    background:linear-gradient(135deg,#06b6d4 0%,#3b82f6 100%); color:#fff; font-weight:700; padding:14px 22px; border-radius:14px;
+    font-size:.92rem; border:none; overflow:hidden; box-shadow: 0 6px 24px -6px rgba(6,182,212,.5);
+    transition: transform .25s var(--ease-spring), box-shadow .3s ease, filter .25s; cursor:none;
+  }
+  .btn-submit::after{ content:''; position:absolute; top:0; right:-100%; width:60%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent); transition:right .6s ease; pointer-events:none; }
+  .btn-submit:hover{ transform:translateY(-2px) scale(1.01); box-shadow:0 0 28px rgba(34,211,238,.5); filter:brightness(1.07); }
+  .btn-submit:hover::after{ right:130%; }
+  .btn-submit:active{ transform:translateY(0) scale(.97); }
+  .btn-submit:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+  .btn-submit span{ position:relative; z-index:1; display:flex; align-items:center; gap:8px; }
+
+  .btn-soft{
+    display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 18px; border-radius:12px;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); color:#cbd5e1; font-weight:600; font-size:.85rem;
+    transition:.25s; cursor:none;
+  }
+  .btn-soft:hover{ border-color:rgba(34,211,238,.4); color:#22d3ee; background:rgba(34,211,238,.06); }
+  .btn-soft.active{ background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#fff; border-color:transparent; }
+
+  /* ============ BADGES ============ */
+  .badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:50px; font-size:.72rem; font-weight:700; white-space:nowrap; }
+  .badge-amber{ background:rgba(245,158,11,.12); color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
+  .badge-cyan{ background:rgba(6,182,212,.12); color:#22d3ee; border:1px solid rgba(6,182,212,.3); }
+  .badge-blue{ background:rgba(59,130,246,.12); color:#60a5fa; border:1px solid rgba(59,130,246,.3); }
+  .badge-green{ background:rgba(34,197,94,.12); color:#4ade80; border:1px solid rgba(34,197,94,.3); }
+  .badge-red{ background:rgba(239,68,68,.12); color:#f87171; border:1px solid rgba(239,68,68,.3); }
+  .badge-gray{ background:rgba(148,163,184,.1); color:#94a3b8; border:1px solid rgba(148,163,184,.25); }
+
+  /* ============ LIST ROWS ============ */
+  .row-card{
+    display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 16px; border-radius:14px;
+    background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.05); transition:.25s;
+  }
+  .row-card:hover{ border-color:rgba(34,211,238,.25); background:rgba(255,255,255,.04); }
+  .empty-state{ display:flex; flex-direction:column; align-items:center; gap:10px; padding:40px 10px; color:#64748b; text-align:center; }
+  .empty-state i{ font-size:1.8rem; color:#334155; }
+
+  /* ============ TICKET THREAD ============ */
+  .msg-bubble{ max-width:80%; padding:11px 15px; border-radius:14px; font-size:.85rem; line-height:1.7; }
+  .msg-user{ background:linear-gradient(135deg,#06b6d4,#3b82f6); color:#fff; margin-right:auto; border-bottom-left-radius:4px; }
+  .msg-admin{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); color:#e2e8f0; margin-left:auto; border-bottom-right-radius:4px; }
+
+  /* ============ CHIPS ============ */
+  .chip{ padding:8px 16px; border-radius:50px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); color:#cbd5e1; font-size:.78rem; font-weight:700; cursor:none; transition:.2s; }
+  .chip:hover, .chip.active{ border-color:rgba(34,211,238,.45); color:#22d3ee; background:rgba(34,211,238,.08); }
+
+  /* ============ SKELETON ============ */
+  .skel{ background:linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 37%, rgba(255,255,255,.04) 63%); background-size:400% 100%; animation:skelShine 1.4s ease infinite; border-radius:10px; }
+  @keyframes skelShine{ 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
+
+  /* ============ MODAL ============ */
+  .modal-overlay{ position:fixed; inset:0; z-index:200; background:rgba(2,6,23,.75); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:.25s; }
+  .modal-overlay.show{ opacity:1; pointer-events:auto; }
+  .modal-box{ position:relative; width:100%; max-width:560px; max-height:88vh; overflow-y:auto; border-radius:20px; padding:24px; background:rgba(15,23,42,.92); border:1px solid rgba(255,255,255,.08); transform:translateY(16px) scale(.97); transition:.25s var(--ease-spring); }
+  .modal-overlay.show .modal-box{ transform:translateY(0) scale(1); }
+</style>
+</head>
+<body class="font-sans">
+
+<div id="cursorGlow"></div>
+<div id="tgCursor"><i class="fa-brands fa-telegram"></i></div>
+<div class="aurora"><span></span><span></span><span></span></div>
+<div class="grid-overlay"></div>
+<canvas id="netCanvas" aria-hidden="true"></canvas>
+
+<!-- ============ AUTH GATE ============ -->
+<div id="authGate">
+  <i class="fa-solid fa-circle-notch fa-spin text-cyan-400 text-3xl"></i>
+  <p class="text-slate-500 text-sm">در حال بررسی دسترسی مدیریت...</p>
+</div>
+
+<div id="appRoot" style="display:none; position:relative; z-index:5;">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="dash-topbar glass">
+    <a href="index.html" class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <i class="fa-solid fa-shield-halved text-white text-lg"></i>
+      </div>
+      <span dir="ltr" class="hidden sm:inline text-lg font-mono font-bold text-gradient-flow">UploadGram <span class="text-slate-500 text-xs">Admin</span></span>
+    </a>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a href="dashboard.html" class="btn-soft magnetic ripple-host !py-2 !px-4 text-xs hidden sm:flex">
+        <i class="fa-solid fa-arrow-right-from-bracket fa-flip-horizontal"></i> پنل کاربری
+      </a>
+      <div class="user-chip">
+        <div class="avatar" id="avatarInitial">?</div>
+        <span id="topUserName" class="hidden md:inline text-sm font-semibold text-slate-200 max-w-[120px] truncate"></span>
+        <button type="button" id="logoutBtn" class="icon-btn" title="خروج" aria-label="خروج">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ SEGMENTED NAV ============ -->
+  <nav class="dash-segnav flex" id="segNav">
+    <button type="button" class="segnav-btn active" data-tab="overview"><i class="fa-solid fa-gauge-high"></i> نمای کلی</button>
+    <button type="button" class="segnav-btn" data-tab="users"><i class="fa-solid fa-users"></i> کاربران</button>
+    <button type="button" class="segnav-btn" data-tab="orders"><i class="fa-solid fa-list-check"></i> سفارش‌ها</button>
+    <button type="button" class="segnav-btn" data-tab="products"><i class="fa-solid fa-cube"></i> محصولات</button>
+    <button type="button" class="segnav-btn" data-tab="tickets"><i class="fa-solid fa-headset"></i> تیکت‌ها</button>
+    <button type="button" class="segnav-btn" data-tab="financial"><i class="fa-solid fa-coins"></i> مالی</button>
+    <button type="button" class="segnav-btn" data-tab="pages"><i class="fa-solid fa-file-lines"></i> صفحات</button>
+    <button type="button" class="segnav-btn" data-tab="content"><i class="fa-solid fa-pen-to-square"></i> محتوا و متون</button>
+    <button type="button" class="segnav-btn" data-tab="settings"><i class="fa-solid fa-sliders"></i> تنظیمات سایت</button>
+  </nav>
+
+  <main class="dash-main">
+
+    <!-- ============ STAT CARDS ============ -->
+    <section class="stat-grid reveal">
+      <div class="stat-card"><i class="fa-solid fa-users"></i><div><span id="statTotalUsers">۰</span><label>کل کاربران</label></div></div>
+      <div class="stat-card"><i class="fa-solid fa-sack-dollar"></i><div><span id="statTotalRevenue">۰</span><label>درآمد کل (تومان)</label></div></div>
+      <div class="stat-card"><i class="fa-solid fa-headset"></i><div><span id="statOpenTickets">۰</span><label>تیکت باز</label></div></div>
+      <div class="stat-card"><i class="fa-solid fa-triangle-exclamation"></i><div><span id="statNeedsAction">۰</span><label>نیازمند بررسی</label></div></div>
+    </section>
+
+    <!-- ============ OVERVIEW ============ -->
+    <section id="panel-overview" class="dash-panel active reveal">
+      <div class="panel-card mb-5">
+        <h2 class="panel-title"><i class="fa-solid fa-sparkles text-cyan-400"></i> خوش آمدید<span id="welcomeUserName"></span></h2>
+        <p class="text-slate-400 text-sm leading-relaxed">از این پنل می‌توانید کاربران، سفارش‌ها، محصولات، تیکت‌های پشتیبانی و وضعیت مالی کل سیستم را مدیریت کنید.</p>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+        <div class="panel-card">
+          <h3 class="panel-title"><i class="fa-solid fa-chart-pie text-cyan-400"></i> وضعیت سفارش‌ها</h3>
+          <div id="overviewOrderStatusGrid" class="flex flex-col gap-2.5"></div>
+        </div>
+        <div class="panel-card">
+          <h3 class="panel-title"><i class="fa-solid fa-triangle-exclamation text-amber-400"></i> نیازمند بررسی</h3>
+          <div id="overviewAlerts" class="flex flex-col gap-2.5"></div>
+        </div>
+      </div>
+      <div class="panel-card">
+        <h3 class="panel-title"><i class="fa-solid fa-receipt text-cyan-400"></i> آخرین تراکنش‌ها</h3>
+        <div id="overviewTransactions" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ USERS ============ -->
+    <section id="panel-users" class="dash-panel reveal">
+      <div class="panel-card">
+        <div class="flex items-center justify-between mb-5 gap-4 flex-wrap">
+          <h2 class="panel-title mb-0"><i class="fa-solid fa-users text-cyan-400"></i> مدیریت کاربران</h2>
+          <div class="inputBox max-w-xs">
+            <input type="text" id="userSearchInput" placeholder=" " />
+            <label>جستجو (ایمیل، نام، یوزرنیم)</label>
+          </div>
+        </div>
+        <div id="usersList" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ ORDERS ============ -->
+    <section id="panel-orders" class="dash-panel reveal">
+      <div class="panel-card">
+        <div class="flex items-center justify-between mb-4 gap-4 flex-wrap">
+          <h2 class="panel-title mb-0"><i class="fa-solid fa-list-check text-cyan-400"></i> مدیریت سفارش‌ها</h2>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" id="syncAllStatusBtn" class="btn-soft magnetic ripple-host !py-2.5 !px-4 text-xs">
+              <i class="fa-solid fa-arrows-rotate"></i> بروزرسانی وضعیت‌ها
+            </button>
+            <div class="inputBox max-w-xs">
+              <input type="text" id="orderUidSearch" placeholder=" " />
+              <label>جستجو بر اساس شناسه کاربر</label>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-5" id="orderStatusFilter">
+          <button type="button" class="chip active" data-status="">همه</button>
+          <button type="button" class="chip" data-status="awaiting_payment">در انتظار پرداخت</button>
+          <button type="button" class="chip" data-status="paid">پرداخت‌شده</button>
+          <button type="button" class="chip" data-status="processing">در حال پردازش</button>
+          <button type="button" class="chip" data-status="completed">تکمیل‌شده</button>
+          <button type="button" class="chip" data-status="failed">ناموفق</button>
+          <button type="button" class="chip" data-status="refunded">بازگشت وجه</button>
+          <button type="button" class="chip" id="orderNeedsActionChip"><i class="fa-solid fa-triangle-exclamation"></i> نیازمند بررسی</button>
+        </div>
+        <div id="ordersAdminList" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ PRODUCTS ============ -->
+    <section id="panel-products" class="dash-panel reveal">
+      <div class="panel-card">
+        <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+          <h2 class="panel-title mb-0"><i class="fa-solid fa-cube text-cyan-400"></i> مدیریت محصولات</h2>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="badge badge-cyan" title="موجودی حساب در سرویس‌دهنده">
+              <i class="fa-solid fa-wallet"></i> <span id="upstreamBalanceText">—</span>
+            </span>
+            <button type="button" id="refreshBalanceBtn" class="icon-btn magnetic" title="بروزرسانی موجودی" aria-label="بروزرسانی موجودی">
+              <i class="fa-solid fa-rotate"></i>
+            </button>
+            <button type="button" id="syncServicesBtn" class="btn-soft magnetic ripple-host !py-2.5 !px-4 text-xs">
+              <i class="fa-solid fa-cloud-arrow-down"></i> همگام‌سازی از API
+            </button>
+            <button type="button" id="newProductBtn" class="btn-submit magnetic ripple-host !py-2.5 !px-5 text-xs">
+              <span><i class="fa-solid fa-plus"></i> محصول جدید</span>
+            </button>
+          </div>
+        </div>
+        <div id="productsList" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ TICKETS ============ -->
+    <section id="panel-tickets" class="dash-panel reveal">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="panel-card lg:col-span-1">
+          <h2 class="panel-title"><i class="fa-solid fa-headset text-cyan-400"></i> تیکت‌ها</h2>
+          <div class="flex flex-wrap gap-2 mb-2" id="ticketStatusFilter">
+            <button type="button" class="chip active" data-status="">همه وضعیت‌ها</button>
+            <button type="button" class="chip" data-status="open">باز</button>
+            <button type="button" class="chip" data-status="closed">بسته</button>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-2" id="ticketPriorityFilter">
+            <button type="button" class="chip active" data-priority="">همه اولویت‌ها</button>
+            <button type="button" class="chip" data-priority="urgent"><i class="fa-solid fa-circle-exclamation"></i> فوری</button>
+            <button type="button" class="chip" data-priority="medium"><i class="fa-solid fa-circle-minus"></i> متوسط</button>
+            <button type="button" class="chip" data-priority="low"><i class="fa-solid fa-circle-arrow-down"></i> کم</button>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-4" id="ticketDepartmentFilter">
+            <button type="button" class="chip active" data-department="">همه دپارتمان‌ها</button>
+            <button type="button" class="chip" data-department="financial"><i class="fa-solid fa-file-invoice-dollar"></i> مالی</button>
+            <button type="button" class="chip" data-department="technical"><i class="fa-solid fa-screwdriver-wrench"></i> فنی</button>
+            <button type="button" class="chip" data-department="presale"><i class="fa-solid fa-bag-shopping"></i> پیش‌فروش</button>
+            <button type="button" class="chip" data-department="general"><i class="fa-solid fa-list-check"></i> عمومی</button>
+          </div>
+          <div id="adminTicketsList" class="flex flex-col gap-2"></div>
+        </div>
+        <div class="panel-card lg:col-span-2">
+          <div id="adminTicketThreadEmpty" class="empty-state">
+            <i class="fa-solid fa-comments"></i>
+            <p class="text-sm">برای مشاهده گفتگو، یک تیکت را از لیست انتخاب کنید.</p>
+          </div>
+          <div id="adminTicketThreadView" class="hidden">
+            <div class="flex items-center justify-between mb-1 gap-3 flex-wrap">
+              <h3 id="adminTicketThreadSubject" class="font-bold text-white"></h3>
+              <span id="adminTicketThreadStatus" class="flex items-center gap-1.5 flex-wrap"></span>
+            </div>
+            <p id="adminTicketThreadWho" class="text-xs text-slate-500 mb-3"></p>
+            <div class="flex items-center gap-2 mb-4 flex-wrap">
+              <select id="adminTicketPrioritySelect" class="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50">
+                <option value="urgent">🔴 فوری</option>
+                <option value="medium">🟡 متوسط</option>
+                <option value="low">🟢 کم</option>
+              </select>
+              <select id="adminTicketDepartmentSelect" class="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50">
+                <option value="financial">🧾 مالی و تراکنش‌ها</option>
+                <option value="technical">⚙️ فنی و سفارش‌ها</option>
+                <option value="presale">🛍️ پیش از خرید</option>
+                <option value="general">📋 عمومی</option>
+              </select>
+            </div>
+            <div id="adminTicketThreadMessages" class="flex flex-col gap-3 mb-5 max-h-[420px] overflow-y-auto pe-1"></div>
+            <form id="adminTicketReplyForm" class="flex gap-2 mb-3">
+              <input type="text" id="adminTicketReplyInput" required placeholder="پاسخ خود را بنویسید..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-cyan-500/50" />
+              <button type="submit" class="btn-submit magnetic ripple-host !w-auto !px-5"><span><i class="fa-solid fa-paper-plane"></i></span></button>
+            </form>
+            <button type="button" id="adminTicketToggleBtn" class="btn-soft magnetic ripple-host w-full"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FINANCIAL ============ -->
+    <section id="panel-financial" class="dash-panel reveal">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-5">
+        <div class="stat-card"><i class="fa-solid fa-sack-dollar"></i><div><span id="financialRevenue">۰</span><label>درآمد کل از سفارش‌ها (تومان)</label></div></div>
+        <div class="stat-card"><i class="fa-solid fa-arrow-down"></i><div><span id="financialTopups">۰</span><label>کل شارژ کیف پول (تومان)</label></div></div>
+        <div class="stat-card"><i class="fa-solid fa-wallet"></i><div><span id="financialWalletBalance">۰</span><label>موجودی کل کیف پول کاربران</label></div></div>
+      </div>
+      <div class="panel-card">
+        <h2 class="panel-title"><i class="fa-solid fa-receipt text-cyan-400"></i> آخرین تراکنش‌ها</h2>
+        <div id="financialTransactions" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ PAGES ============ -->
+    <section id="panel-pages" class="dash-panel reveal">
+      <div class="panel-card">
+        <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+          <h2 class="panel-title mb-0"><i class="fa-solid fa-file-lines text-cyan-400"></i> صفحات سایت</h2>
+          <button type="button" id="newPageBtn" class="btn-submit magnetic ripple-host !py-2.5 !px-5 text-xs">
+            <span><i class="fa-solid fa-plus"></i> صفحه جدید</span>
+          </button>
+        </div>
+        <div id="pagesList" class="flex flex-col gap-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ============ SITE SETTINGS ============ -->
+    <section id="panel-content" class="dash-panel reveal">
+      <div class="panel-card">
+        <h2 class="panel-title"><i class="fa-solid fa-pen-to-square text-cyan-400"></i> محتوا و متون سایت</h2>
+        <p class="text-xs text-slate-500 mb-5">تمام متن‌های صفحه اصلی، درباره ما و محصولات از همین‌جا قابل ویرایش است؛ تغییرات بلافاصله بعد از ذخیره روی سایت اعمال می‌شود.</p>
+        <form id="contentSettingsForm" class="flex flex-col gap-5">
+          <div id="contentFieldsContainer"></div>
+          <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> ذخیره تغییرات محتوا</span></button>
+        </form>
+      </div>
+    </section>
+
+    <section id="panel-settings" class="dash-panel reveal">
+      <div class="panel-card">
+        <h2 class="panel-title"><i class="fa-solid fa-sliders text-cyan-400"></i> تنظیمات و ظاهر سایت</h2>
+        <form id="siteSettingsForm" class="flex flex-col gap-5">
+          <div>
+            <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-image"></i> لوگو</p>
+            <div class="flex items-center gap-4 flex-wrap">
+              <img id="logoPreview" src="" alt="" loading="lazy" decoding="async" class="w-16 h-16 rounded-xl object-contain bg-white/5 border border-white/10 hidden" />
+              <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon" class="hidden" />
+              <button type="button" id="logoUploadBtn" class="btn-soft magnetic ripple-host !py-2.5 !px-4 text-xs"><i class="fa-solid fa-upload"></i> بارگذاری لوگوی جدید</button>
+              <input type="hidden" id="sLogoUrl" />
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="inputBox"><input type="text" id="sSiteName" placeholder=" " /><label>نام سایت</label></div>
+            <div class="inputBox"><input type="text" id="sTagline" placeholder=" " /><label>شعار سایت</label></div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5">
+            <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-house"></i> صفحه اصلی</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="inputBox"><input type="text" id="sHeroTitle" placeholder=" " /><label>عنوان هدر اصلی</label></div>
+              <div class="inputBox"><input type="text" id="sHeroSubtitle" placeholder=" " /><label>زیرعنوان هدر اصلی</label></div>
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5">
+            <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-address-book"></i> اطلاعات تماس</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="inputBox"><input type="text" id="sContactEmail" placeholder=" " /><label>ایمیل</label></div>
+              <div class="inputBox"><input type="text" id="sContactPhone" placeholder=" " /><label>تلفن</label></div>
+              <div class="inputBox"><input type="text" id="sContactTelegram" placeholder=" " /><label>آیدی تلگرام</label></div>
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5">
+            <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-share-nodes"></i> شبکه‌های اجتماعی</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="inputBox"><input type="text" id="sSocialInstagram" placeholder=" " /><label>اینستاگرام (لینک)</label></div>
+              <div class="inputBox"><input type="text" id="sSocialYoutube" placeholder=" " /><label>یوتیوب (لینک)</label></div>
+              <div class="inputBox"><input type="text" id="sSocialTwitter" placeholder=" " /><label>توییتر/X (لینک)</label></div>
+            </div>
+          </div>
+
+          <div class="border-t border-white/10 pt-5">
+            <div class="inputBox"><textarea id="sFooterText" placeholder=" "></textarea><label>متن فوتر</label></div>
+          </div>
+
+          <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> ذخیره تنظیمات</span></button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-box glass">
+    <button type="button" id="modalCloseBtn" class="icon-btn" style="position:absolute; top:14px; left:14px; width:34px; height:34px;" aria-label="بستن">
+      <i class="fa-solid fa-xmark text-sm"></i>
+    </button>
+    <div id="modalBox"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0aRNvnyeg7ww_Ku3LeNQTvNiGzVYCFrQ",
+    authDomain: "signin-3a5db.firebaseapp.com",
+    projectId: "signin-3a5db",
+    storageBucket: "signin-3a5db.firebasestorage.app",
+    messagingSenderId: "551837890465",
+    appId: "1:551837890465:web:f455ceccc9575b7cc67de0",
+    measurementId: "G-N9TGXC1ZQZ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function toFa(num){ return Number(num || 0).toLocaleString('fa-IR'); }
+
+  function showToast(message, ok = true){
+    const toast = document.createElement('div');
+    const color = ok ? '6,182,212' : '239,68,68';
+    const textColor = ok ? '#22d3ee' : '#f87171';
+    toast.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(${color},.15);border:1px solid rgba(${color},.4);color:${textColor};padding:10px 22px;border-radius:50px;font-size:.85rem;z-index:9999;backdrop-filter:blur(10px);max-width:90vw;text-align:center;display:inline-flex;align-items:center;gap:8px;`;
+    toast.innerHTML = `<i class="fa-solid ${ok ? 'fa-circle-check' : 'fa-circle-xmark'}"></i><span>${escapeHtml(message)}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4500);
+  }
+
+  let idToken = null;
+  let currentUser = null;
+
+  async function api(path, options = {}){
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+    if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+    const res = await fetch(`api/${path}`, Object.assign({}, options, { headers }));
+    const data = await res.json().catch(() => null);
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  const platformLabels = { telegram: 'تلگرام', instagram: 'اینستاگرام', youtube: 'یوتیوب', soundcloud: 'ساندکلاد', spotify: 'اسپاتیفای', other: 'سایر' };
+  const orderStatusMap = {
+    awaiting_payment: ['در انتظار پرداخت', 'badge-amber'],
+    paid: ['پرداخت‌شده', 'badge-cyan'],
+    processing: ['در حال پردازش', 'badge-blue'],
+    completed: ['تکمیل‌شده', 'badge-green'],
+    failed: ['ناموفق', 'badge-red'],
+    cancelled: ['لغو‌شده', 'badge-gray'],
+    refunded: ['بازگشت وجه', 'badge-gray'],
+  };
+  const upstreamStatusMap = {
+    pending: ['در انتظار ارسال', 'badge-blue'],
+    manual_required: ['نیاز به اتصال دستی', 'badge-amber'],
+    upstream_error: ['خطای سرویس‌دهنده', 'badge-red'],
+  };
+  const ticketStatusMap = { open: ['باز', 'badge-cyan'], closed: ['بسته', 'badge-gray'] };
+  const walletTypeMap = {
+    topup: ['شارژ کیف پول', 'fa-arrow-down text-green-400'],
+    order: ['پرداخت سفارش', 'fa-arrow-up text-red-400'],
+    refund: ['بازگشت وجه', 'fa-arrow-down text-green-400'],
+    admin_adjust: ['تنظیم توسط مدیر', 'fa-sliders text-blue-400'],
+  };
+  const walletStatusMap = { pending: ['در انتظار', 'badge-amber'], success: ['موفق', 'badge-green'], failed: ['ناموفق', 'badge-red'] };
+
+  // ============ MODAL ============
+  function openModal(html){
+    document.getElementById('modalBox').innerHTML = html;
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+  function closeModal(){
+    document.getElementById('modalOverlay').classList.remove('show');
+  }
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modalOverlay') closeModal();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  // ============ TAB SWITCHING ============
+  const PANELS = ['overview', 'users', 'orders', 'products', 'tickets', 'financial', 'pages', 'content', 'settings'];
+  function switchTab(tab){
+    if (!PANELS.includes(tab)) tab = 'overview';
+    PANELS.forEach(p => document.getElementById('panel-' + p).classList.toggle('active', p === tab));
+    document.querySelectorAll('.segnav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (tab === 'overview') loadStats();
+    if (tab === 'users') loadUsers(document.getElementById('userSearchInput').value.trim());
+    if (tab === 'orders') loadOrders();
+    if (tab === 'products') { loadProducts(); loadUpstreamBalance(); }
+    if (tab === 'tickets') loadTickets();
+    if (tab === 'financial') loadStats();
+    if (tab === 'pages') loadPages();
+    if (tab === 'content') loadContentSettings();
+    if (tab === 'settings') loadSiteSettings();
+  }
+  document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+  // ============ AUTH GATE ============
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    currentUser = user;
+    idToken = await user.getIdToken();
+
+    const { ok, data } = await api('me.php');
+    if (!ok || !data || !data.ok || data.user.role !== 'admin') {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    document.getElementById('authGate').style.display = 'none';
+    document.getElementById('appRoot').style.display = 'block';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    }));
+
+    const name = data.user.display_name || (data.user.email ? data.user.email.split('@')[0] : 'مدیر');
+    document.getElementById('topUserName').textContent = name;
+    document.getElementById('welcomeUserName').textContent = ' ' + name + ' 👋';
+    document.getElementById('avatarInitial').textContent = name.trim().charAt(0).toUpperCase();
+
+    await Promise.all([loadStats(), loadUsers(), loadOrders(), loadProducts(), loadUpstreamBalance(), loadSiteSettings()]);
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.href = 'index.html';
+  });
+
+  // ============ TRANSACTIONS (shared by overview + financial) ============
+  function renderTransactions(containerId, txs){
+    const el = document.getElementById(containerId);
+    if (!txs || !txs.length) {
+      el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-receipt"></i><p class="text-sm">تراکنشی ثبت نشده.</p></div>';
+      return;
+    }
+    el.innerHTML = txs.map(tx => {
+      const [typeLabel, typeIcon] = walletTypeMap[tx.type] || [tx.type, 'fa-circle'];
+      const [statusLabel, statusCls] = walletStatusMap[tx.status] || [tx.status, 'badge-gray'];
+      const amount = Number(tx.amount);
+      const who = escapeHtml(tx.display_name || tx.email || tx.uid || '');
+      return `
+        <div class="row-card">
+          <div class="flex items-center gap-3 min-w-0">
+            <i class="fa-solid ${typeIcon}"></i>
+            <div class="min-w-0">
+              <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(tx.note || typeLabel)}</p>
+              <p class="text-xs text-slate-500 truncate">${who} &middot; <span class="${amount < 0 ? 'text-red-400' : 'text-green-400'}">${amount < 0 ? '-' : '+'}${toFa(Math.abs(amount))} تومان</span></p>
+            </div>
+          </div>
+          <span class="badge ${statusCls}">${statusLabel}</span>
+        </div>`;
+    }).join('');
+  }
+
+  // ============ STATS / OVERVIEW / FINANCIAL ============
+  async function loadStats(){
+    const { ok, data } = await api('admin/stats.php');
+    if (!ok || !data || !data.ok) return;
+    const s = data.stats;
+
+    document.getElementById('statTotalUsers').textContent = toFa(s.total_users);
+    document.getElementById('statTotalRevenue').textContent = toFa(s.total_revenue);
+    document.getElementById('statOpenTickets').textContent = toFa(s.open_tickets);
+    document.getElementById('statNeedsAction').textContent = toFa((s.manual_required || 0) + (s.upstream_errors || 0));
+
+    const statusGrid = document.getElementById('overviewOrderStatusGrid');
+    const entries = Object.entries(s.orders_by_status || {});
+    statusGrid.innerHTML = entries.length ? entries.map(([k, v]) => {
+      const [label, cls] = orderStatusMap[k] || [k, 'badge-gray'];
+      return `<div class="row-card"><span class="text-sm text-slate-300">${label}</span><span class="badge ${cls}">${toFa(v)}</span></div>`;
+    }).join('') : '<div class="empty-state"><i class="fa-solid fa-box-open"></i><p class="text-sm">سفارشی ثبت نشده.</p></div>';
+
+    const alerts = [];
+    if (s.manual_required > 0) alerts.push({ label: 'سفارش نیازمند اتصال دستی API', count: s.manual_required, icon: 'fa-plug-circle-exclamation', tab: 'orders' });
+    if (s.upstream_errors > 0) alerts.push({ label: 'خطای ارسال به سرویس‌دهنده', count: s.upstream_errors, icon: 'fa-triangle-exclamation', tab: 'orders' });
+    if (s.suspended_users > 0) alerts.push({ label: 'کاربر مسدودشده', count: s.suspended_users, icon: 'fa-user-lock', tab: 'users' });
+    const alertsEl = document.getElementById('overviewAlerts');
+    alertsEl.innerHTML = alerts.length ? alerts.map(a => `
+      <button type="button" class="row-card w-full text-right alert-goto" data-tab="${a.tab}">
+        <div class="flex items-center gap-3"><i class="fa-solid ${a.icon} text-amber-400"></i><span class="text-sm text-slate-300">${a.label}</span></div>
+        <span class="badge badge-amber">${toFa(a.count)}</span>
+      </button>`).join('') : '<div class="empty-state"><i class="fa-solid fa-circle-check"></i><p class="text-sm">موردی نیاز به بررسی ندارد.</p></div>';
+    alertsEl.querySelectorAll('.alert-goto').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+    renderTransactions('overviewTransactions', data.recent_transactions);
+    renderTransactions('financialTransactions', data.recent_transactions);
+    document.getElementById('financialRevenue').textContent = toFa(s.total_revenue);
+    document.getElementById('financialTopups').textContent = toFa(s.total_topups);
+    document.getElementById('financialWalletBalance').textContent = toFa(s.total_wallet_balance);
+  }
+
+  // ============ USERS ============
+  function renderUserRow(u){
+    const name = u.display_name || u.username || (u.email ? u.email.split('@')[0] : 'کاربر');
+    const initial = name.trim().charAt(0).toUpperCase();
+    const isAdmin = u.role === 'admin';
+    const isSuspended = !!Number(u.is_suspended);
+    return `
+      <div class="row-card flex-wrap sm:flex-nowrap">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="avatar !w-10 !h-10 !text-sm">${escapeHtml(initial)}</div>
+          <div class="min-w-0">
+            <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(name)} ${isAdmin ? '<span class="badge badge-blue">ادمین</span>' : ''} ${isSuspended ? '<span class="badge badge-red">مسدود</span>' : ''}</p>
+            <p class="text-xs text-slate-500 truncate">${escapeHtml(u.email || '—')}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="badge badge-cyan"><i class="fa-solid fa-coins"></i> ${toFa(u.balance)}</span>
+          <button type="button" class="btn-soft !py-2 !px-3 user-balance-btn" data-uid="${escapeHtml(u.uid)}" data-name="${escapeHtml(name)}" title="تنظیم موجودی"><i class="fa-solid fa-wallet"></i></button>
+          <button type="button" class="btn-soft !py-2 !px-3 user-role-btn" data-uid="${escapeHtml(u.uid)}" data-role="${escapeHtml(u.role)}" title="${isAdmin ? 'حذف ادمین' : 'ارتقا به ادمین'}"><i class="fa-solid fa-user-gear"></i></button>
+          <button type="button" class="btn-soft !py-2 !px-3 user-suspend-btn" data-uid="${escapeHtml(u.uid)}" data-suspended="${isSuspended ? '1' : '0'}" title="${isSuspended ? 'رفع مسدودیت' : 'مسدود کردن'}"><i class="fa-solid ${isSuspended ? 'fa-lock-open' : 'fa-ban'}"></i></button>
+        </div>
+      </div>`;
+  }
+
+  async function loadUsers(q = ''){
+    const listEl = document.getElementById('usersList');
+    listEl.innerHTML = '<div class="skel h-16"></div><div class="skel h-16"></div>';
+    const { ok, data } = await api('admin/users.php' + (q ? '?q=' + encodeURIComponent(q) : ''));
+    if (!ok || !data || !data.ok || !data.users.length) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-users-slash"></i><p class="text-sm">کاربری یافت نشد.</p></div>';
+      return;
+    }
+    listEl.innerHTML = data.users.map(renderUserRow).join('');
+  }
+
+  let userSearchTimer = null;
+  document.getElementById('userSearchInput').addEventListener('input', () => {
+    clearTimeout(userSearchTimer);
+    userSearchTimer = setTimeout(() => loadUsers(document.getElementById('userSearchInput').value.trim()), 350);
+  });
+
+  function openBalanceModal(uid, name){
+    openModal(`
+      <h3 class="panel-title"><i class="fa-solid fa-wallet text-cyan-400"></i> تنظیم موجودی ${escapeHtml(name)}</h3>
+      <form id="balanceForm" class="flex flex-col gap-4">
+        <div class="flex gap-2">
+          <button type="button" class="chip active flex-1" data-dir="credit">افزایش موجودی</button>
+          <button type="button" class="chip flex-1" data-dir="debit">کاهش موجودی</button>
+        </div>
+        <div class="inputBox">
+          <input type="number" id="balanceAmount" required min="1" placeholder=" " />
+          <label>مقدار (تومان)</label>
+        </div>
+        <div class="inputBox">
+          <input type="text" id="balanceNote" placeholder=" " />
+          <label>یادداشت (اختیاری)</label>
+        </div>
+        <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> اعمال تغییر</span></button>
+      </form>
+    `);
+    let dir = 'credit';
+    document.querySelectorAll('#modalBox .chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        dir = chip.dataset.dir;
+        document.querySelectorAll('#modalBox .chip').forEach(c => c.classList.toggle('active', c === chip));
+      });
+    });
+    document.getElementById('balanceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const amount = parseInt(document.getElementById('balanceAmount').value, 10) || 0;
+      if (amount <= 0) return;
+      const note = document.getElementById('balanceNote').value.trim();
+      const delta = dir === 'credit' ? amount : -amount;
+      const { ok, data } = await api('admin/users.php', { method: 'POST', body: JSON.stringify({ action: 'adjust_balance', uid, delta, note }) });
+      if (!ok || !data || !data.ok) {
+        showToast(data?.error === 'insufficient_balance' ? 'موجودی کاربر کافی نیست' : 'خطا در اعمال تغییر', false);
+        return;
+      }
+      showToast('موجودی بروزرسانی شد', true);
+      closeModal();
+      loadUsers(document.getElementById('userSearchInput').value.trim());
+      loadStats();
+    });
+  }
+
+  document.getElementById('usersList').addEventListener('click', async (e) => {
+    const balanceBtn = e.target.closest('.user-balance-btn');
+    const roleBtn = e.target.closest('.user-role-btn');
+    const suspendBtn = e.target.closest('.user-suspend-btn');
+
+    if (balanceBtn) {
+      openBalanceModal(balanceBtn.dataset.uid, balanceBtn.dataset.name);
+      return;
+    }
+    if (roleBtn) {
+      const uid = roleBtn.dataset.uid;
+      const newRole = roleBtn.dataset.role === 'admin' ? 'user' : 'admin';
+      if (!confirm(newRole === 'admin' ? 'این کاربر ادمین شود؟' : 'نقش ادمین این کاربر حذف شود؟')) return;
+      const { ok, data } = await api('admin/users.php', { method: 'POST', body: JSON.stringify({ action: 'set_role', uid, role: newRole }) });
+      if (!ok || !data || !data.ok) {
+        showToast(data?.error === 'cannot_demote_self' ? 'نمی‌توانید نقش ادمین خودتان را حذف کنید' : 'خطا در تغییر نقش', false);
+        return;
+      }
+      showToast('نقش کاربر تغییر کرد', true);
+      loadUsers(document.getElementById('userSearchInput').value.trim());
+      return;
+    }
+    if (suspendBtn) {
+      const uid = suspendBtn.dataset.uid;
+      const newSuspended = suspendBtn.dataset.suspended === '1' ? 0 : 1;
+      if (!confirm(newSuspended ? 'این کاربر مسدود شود؟' : 'مسدودیت این کاربر رفع شود؟')) return;
+      const { ok, data } = await api('admin/users.php', { method: 'POST', body: JSON.stringify({ action: 'set_suspended', uid, is_suspended: newSuspended }) });
+      if (!ok || !data || !data.ok) {
+        showToast(data?.error === 'cannot_suspend_self' ? 'نمی‌توانید خودتان را مسدود کنید' : 'خطا در تغییر وضعیت', false);
+        return;
+      }
+      showToast('وضعیت کاربر بروزرسانی شد', true);
+      loadUsers(document.getElementById('userSearchInput').value.trim());
+    }
+  });
+
+  // ============ ORDERS ============
+  let ordersStatusFilter = '';
+  let ordersNeedsActionOnly = false;
+  let ordersRaw = [];
+
+  function renderAdminOrderRow(o){
+    const [label, cls] = orderStatusMap[o.status] || [o.status, 'badge-gray'];
+    const upstreamBadge = o.upstream_status ? (upstreamStatusMap[o.upstream_status] || [o.upstream_status, 'badge-gray']) : null;
+    const who = escapeHtml(o.display_name || o.email || o.uid || '—');
+    const canComplete = !['completed', 'refunded', 'cancelled'].includes(o.status);
+    const canRetry = o.upstream_status === 'upstream_error' || o.upstream_status === 'manual_required';
+    const canRefund = !['completed', 'refunded'].includes(o.status);
+    const canSyncStatus = !!o.upstream_order_id;
+    return `
+      <div class="row-card flex-wrap sm:flex-nowrap">
+        <div class="flex items-center gap-3 min-w-0">
+          <i class="fa-solid fa-cube text-cyan-400/70"></i>
+          <div class="min-w-0">
+            <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(o.service_name)}</p>
+            <p class="text-xs text-slate-500 truncate">${who} &middot; ${toFa(o.quantity)} عدد &middot; ${toFa(Math.round(o.total_price))} تومان</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="badge ${cls}">${label}</span>
+          ${upstreamBadge ? `<span class="badge ${upstreamBadge[1]}">${upstreamBadge[0]}</span>` : ''}
+          ${canSyncStatus ? `<button type="button" class="btn-soft !py-2 !px-3 order-sync-btn" data-id="${o.id}" title="بروزرسانی وضعیت از سرویس‌دهنده"><i class="fa-solid fa-arrows-rotate"></i></button>` : ''}
+          ${canComplete ? `<button type="button" class="btn-soft !py-2 !px-3 order-complete-btn" data-id="${o.id}" title="تکمیل سفارش"><i class="fa-solid fa-check"></i></button>` : ''}
+          ${canRetry ? `<button type="button" class="btn-soft !py-2 !px-3 order-retry-btn" data-id="${o.id}" title="تلاش مجدد ارسال"><i class="fa-solid fa-rotate-right"></i></button>` : ''}
+          ${canRefund ? `<button type="button" class="btn-soft !py-2 !px-3 order-refund-btn" data-id="${o.id}" title="بازگشت وجه"><i class="fa-solid fa-rotate-left"></i></button>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function renderOrdersList(){
+    const listEl = document.getElementById('ordersAdminList');
+    let items = ordersRaw;
+    if (ordersNeedsActionOnly) items = items.filter(o => o.upstream_status === 'upstream_error' || o.upstream_status === 'manual_required');
+    if (!items.length) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-box-open"></i><p class="text-sm">سفارشی یافت نشد.</p></div>';
+      return;
+    }
+    listEl.innerHTML = items.map(renderAdminOrderRow).join('');
+  }
+
+  async function loadOrders(){
+    const listEl = document.getElementById('ordersAdminList');
+    listEl.innerHTML = '<div class="skel h-16"></div><div class="skel h-16"></div>';
+    const uid = document.getElementById('orderUidSearch').value.trim();
+    let path = 'admin/orders.php';
+    const qs = [];
+    if (ordersStatusFilter) qs.push('status=' + encodeURIComponent(ordersStatusFilter));
+    if (uid) qs.push('uid=' + encodeURIComponent(uid));
+    if (qs.length) path += '?' + qs.join('&');
+    const { ok, data } = await api(path);
+    if (!ok || !data || !data.ok) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p class="text-sm">خطا در دریافت سفارش‌ها.</p></div>';
+      return;
+    }
+    ordersRaw = data.orders;
+    renderOrdersList();
+  }
+
+  document.querySelectorAll('#orderStatusFilter .chip:not(#orderNeedsActionChip)').forEach(chip => {
+    chip.addEventListener('click', () => {
+      ordersStatusFilter = chip.dataset.status;
+      document.querySelectorAll('#orderStatusFilter .chip:not(#orderNeedsActionChip)').forEach(c => c.classList.toggle('active', c === chip));
+      loadOrders();
+    });
+  });
+  document.getElementById('orderNeedsActionChip').addEventListener('click', () => {
+    ordersNeedsActionOnly = !ordersNeedsActionOnly;
+    document.getElementById('orderNeedsActionChip').classList.toggle('active', ordersNeedsActionOnly);
+    renderOrdersList();
+  });
+  let orderUidTimer = null;
+  document.getElementById('orderUidSearch').addEventListener('input', () => {
+    clearTimeout(orderUidTimer);
+    orderUidTimer = setTimeout(loadOrders, 350);
+  });
+
+  document.getElementById('syncAllStatusBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('syncAllStatusBtn');
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال بروزرسانی...';
+    try {
+      const { ok, data } = await api('admin/orders.php', { method: 'POST', body: JSON.stringify({ action: 'sync_status_bulk' }) });
+      if (!ok || !data || !data.ok) { showToast('خطا در بروزرسانی وضعیت‌ها', false); return; }
+      showToast(`${toFa(data.updated)} سفارش از ${toFa(data.checked)} مورد بررسی‌شده بروزرسانی شد`, true);
+      loadOrders();
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  });
+
+  document.getElementById('ordersAdminList').addEventListener('click', async (e) => {
+    const completeBtn = e.target.closest('.order-complete-btn');
+    const retryBtn = e.target.closest('.order-retry-btn');
+    const refundBtn = e.target.closest('.order-refund-btn');
+    const syncBtn = e.target.closest('.order-sync-btn');
+
+    if (syncBtn) {
+      const id = parseInt(syncBtn.dataset.id, 10);
+      syncBtn.disabled = true;
+      try {
+        const { ok, data } = await api('admin/orders.php', { method: 'POST', body: JSON.stringify({ id, action: 'sync_status' }) });
+        if (!ok || !data || !data.ok) { showToast('خطا در بروزرسانی وضعیت', false); return; }
+        showToast('وضعیت سفارش بروزرسانی شد', true);
+        loadOrders();
+      } finally {
+        syncBtn.disabled = false;
+      }
+      return;
+    }
+    if (completeBtn) {
+      const id = parseInt(completeBtn.dataset.id, 10);
+      if (!confirm('این سفارش به عنوان تکمیل‌شده علامت بخورد؟')) return;
+      const { ok, data } = await api('admin/orders.php', { method: 'POST', body: JSON.stringify({ id, action: 'mark_completed' }) });
+      if (!ok || !data || !data.ok) { showToast('خطا در تکمیل سفارش', false); return; }
+      showToast('سفارش تکمیل شد', true);
+      loadOrders(); loadStats();
+      return;
+    }
+    if (retryBtn) {
+      const id = parseInt(retryBtn.dataset.id, 10);
+      retryBtn.disabled = true;
+      try {
+        const { ok, data } = await api('admin/orders.php', { method: 'POST', body: JSON.stringify({ id, action: 'retry_upstream' }) });
+        if (!ok || !data || !data.ok) { showToast('خطا در تلاش مجدد', false); return; }
+        showToast(data.upstream_status === 'manual_required' ? 'نیاز به اتصال دستی API دارد' : 'سفارش مجدداً ارسال شد', true);
+        loadOrders(); loadStats();
+      } finally {
+        retryBtn.disabled = false;
+      }
+      return;
+    }
+    if (refundBtn) {
+      const id = parseInt(refundBtn.dataset.id, 10);
+      if (!confirm('وجه این سفارش به کیف پول کاربر بازگردد؟')) return;
+      const { ok, data } = await api('admin/orders.php', { method: 'POST', body: JSON.stringify({ id, action: 'cancel_refund' }) });
+      if (!ok || !data || !data.ok) {
+        showToast(data?.error === 'cannot_refund_this_status' ? 'این سفارش قابل بازگشت وجه نیست' : 'خطا در بازگشت وجه', false);
+        return;
+      }
+      showToast('وجه با موفقیت بازگردانده شد', true);
+      loadOrders(); loadStats();
+    }
+  });
+
+  // ============ PRODUCTS ============
+  let productsRaw = [];
+
+  function renderProductRow(p){
+    let sourceBadge;
+    if (p.source === 'upstream') {
+      sourceBadge = p.upstream_service_id ? ['badge-cyan', 'کلید مشترک API'] : ['badge-red', 'بدون شناسه سرویس'];
+    } else {
+      sourceBadge = (p.api_url && p.api_key) ? ['badge-green', 'API اختصاصی متصل'] : ['badge-amber', 'نیاز به اتصال دستی'];
+    }
+    return `
+      <div class="row-card flex-wrap sm:flex-nowrap">
+        <div class="flex items-center gap-3 min-w-0">
+          <i class="fa-solid fa-cube text-cyan-400/70"></i>
+          <div class="min-w-0">
+            <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(p.name)} ${Number(p.is_active) ? '' : '<span class="badge badge-gray">غیرفعال</span>'}</p>
+            <p class="text-xs text-slate-500 truncate">${escapeHtml(platformLabels[p.platform] || p.platform)}${p.category ? ' — ' + escapeHtml(p.category) : ''} &middot; ${p.base_rate !== null ? toFa(Math.round(p.base_rate)) + ' تومان/۱۰۰۰' : 'بدون نرخ'}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="badge ${sourceBadge[0]}">${sourceBadge[1]}</span>
+          <button type="button" class="btn-soft !py-2 !px-3 product-edit-btn" data-id="${p.id}" title="ویرایش"><i class="fa-solid fa-pen"></i></button>
+          <button type="button" class="btn-soft !py-2 !px-3 product-delete-btn" data-id="${p.id}" title="حذف"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`;
+  }
+
+  async function loadProducts(){
+    const listEl = document.getElementById('productsList');
+    listEl.innerHTML = '<div class="skel h-16"></div><div class="skel h-16"></div>';
+    const { ok, data } = await api('admin/products.php');
+    if (!ok || !data || !data.ok || !data.products.length) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-box-open"></i><p class="text-sm">محصولی ثبت نشده.</p></div>';
+      return;
+    }
+    productsRaw = data.products;
+    listEl.innerHTML = productsRaw.map(renderProductRow).join('');
+  }
+
+  async function loadUpstreamBalance(){
+    const textEl = document.getElementById('upstreamBalanceText');
+    textEl.textContent = '...';
+    const { ok, data } = await api('admin/balance.php');
+    if (!ok || !data || !data.ok || data.balance === null) {
+      textEl.textContent = 'نامشخص';
+      return;
+    }
+    textEl.textContent = toFa(Math.round(data.balance)) + (data.currency ? ' ' + data.currency : '');
+  }
+  document.getElementById('refreshBalanceBtn').addEventListener('click', loadUpstreamBalance);
+
+  document.getElementById('syncServicesBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('syncServicesBtn');
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال همگام‌سازی...';
+    try {
+      const { ok, data } = await api('admin/sync_services.php', { method: 'POST' });
+      if (!ok || !data || !data.ok) { showToast('خطا در همگام‌سازی با API', false); return; }
+      showToast(`${toFa(data.added)} محصول جدید اضافه شد (${toFa(data.skipped)} مورد قبلاً موجود بود)`, true);
+      loadProducts();
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  });
+
+  function openProductModal(p){
+    const isEdit = !!p;
+    openModal(`
+      <h3 class="panel-title"><i class="fa-solid fa-cube text-cyan-400"></i> ${isEdit ? 'ویرایش محصول' : 'محصول جدید'}</h3>
+      <form id="productForm" class="flex flex-col gap-4">
+        <div class="inputBox">
+          <input type="text" id="pName" required placeholder=" " value="${escapeHtml(p?.name || '')}" />
+          <label>نام محصول</label>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="inputBox">
+            <select id="pPlatform">
+              <option value="telegram" ${p?.platform === 'telegram' ? 'selected' : ''}>تلگرام</option>
+              <option value="instagram" ${p?.platform === 'instagram' ? 'selected' : ''}>اینستاگرام</option>
+              <option value="youtube" ${p?.platform === 'youtube' ? 'selected' : ''}>یوتیوب</option>
+              <option value="soundcloud" ${p?.platform === 'soundcloud' ? 'selected' : ''}>ساندکلاد</option>
+              <option value="spotify" ${p?.platform === 'spotify' ? 'selected' : ''}>اسپاتیفای</option>
+              <option value="other" ${(!p || p?.platform === 'other') ? 'selected' : ''}>سایر</option>
+            </select>
+            <label>پلتفرم</label>
+            <i class="fa-solid fa-chevron-down select-chevron"></i>
+          </div>
+          <div class="inputBox">
+            <input type="text" id="pCategory" placeholder=" " value="${escapeHtml(p?.category || '')}" />
+            <label>دسته‌بندی</label>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="inputBox">
+            <input type="number" id="pBaseRate" step="0.01" placeholder=" " value="${p?.base_rate ?? ''}" />
+            <label>نرخ (هر ۱۰۰۰)</label>
+          </div>
+          <div class="inputBox">
+            <input type="number" id="pMinQty" placeholder=" " value="${p?.min_qty ?? ''}" />
+            <label>حداقل</label>
+          </div>
+          <div class="inputBox">
+            <input type="number" id="pMaxQty" placeholder=" " value="${p?.max_qty ?? ''}" />
+            <label>حداکثر</label>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 items-center">
+          <div class="inputBox">
+            <input type="number" id="pSortOrder" placeholder=" " value="${p?.sort_order ?? 0}" />
+            <label>ترتیب نمایش</label>
+          </div>
+          <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+            <input type="checkbox" id="pIsActive" ${(!p || Number(p.is_active)) ? 'checked' : ''} class="w-4 h-4" /> فعال در لیست عمومی
+          </label>
+        </div>
+        <div class="border-t border-white/10 pt-4 mt-1">
+          <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-server"></i> منبع تأمین سفارش</p>
+          <div class="flex gap-2 mb-3">
+            <button type="button" class="chip flex-1 source-chip" data-source="upstream">کلید مشترک (فالووران)</button>
+            <button type="button" class="chip flex-1 source-chip" data-source="local">API اختصاصی</button>
+          </div>
+          <p id="sourceHint" class="text-xs text-slate-500 mb-4 leading-relaxed"></p>
+
+          <div id="sourceLocalFields" class="flex flex-col gap-4 mb-4">
+            <div class="inputBox">
+              <input type="text" id="pApiUrl" placeholder=" " value="${escapeHtml(p?.api_url || '')}" />
+              <label>آدرس API</label>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="inputBox">
+                <input type="text" id="pApiKey" placeholder=" " value="${escapeHtml(p?.api_key || '')}" />
+                <label>کلید API</label>
+              </div>
+              <div class="inputBox">
+                <input type="text" id="pApiAction" placeholder=" " value="${escapeHtml(p?.api_action || 'add')}" />
+                <label>اکشن (مثلاً add)</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="inputBox">
+            <input type="text" id="pUpstreamServiceId" placeholder=" " value="${escapeHtml(p?.upstream_service_id || '')}" />
+            <label id="pUpstreamServiceIdLabel">شناسه سرویس</label>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> ${isEdit ? 'ذخیره تغییرات' : 'ایجاد محصول'}</span></button>
+      </form>
+    `);
+
+    function applySource(source){
+      document.querySelectorAll('#modalBox .source-chip').forEach(c => c.classList.toggle('active', c.dataset.source === source));
+      document.getElementById('sourceLocalFields').classList.toggle('hidden', source !== 'local');
+      document.getElementById('pApiUrl').required = source === 'local';
+      document.getElementById('pApiKey').required = source === 'local';
+      document.getElementById('pUpstreamServiceId').required = source === 'upstream';
+      document.getElementById('sourceHint').textContent = source === 'upstream'
+        ? 'سفارش این محصول با کلید API مشترک (تنظیم‌شده در سرور برای فالووران) ارسال می‌شود — فقط شناسه سرویس لازم است.'
+        : 'سفارش این محصول با آدرس و کلید API اختصاصی زیر ارسال می‌شود — می‌تواند هر سرویس‌دهنده‌ای غیر از فالووران باشد.';
+      document.getElementById('pUpstreamServiceIdLabel').textContent = source === 'upstream'
+        ? 'شناسه سرویس در فالووران (Service ID)'
+        : 'شناسه سرویس (در صورت نیاز این API)';
+    }
+    document.querySelectorAll('#modalBox .source-chip').forEach(chip => {
+      chip.addEventListener('click', () => applySource(chip.dataset.source));
+    });
+    applySource(p?.source === 'local' ? 'local' : 'upstream');
+
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const source = document.querySelector('#modalBox .source-chip.active').dataset.source;
+      const payload = {
+        name: document.getElementById('pName').value.trim(),
+        category: document.getElementById('pCategory').value.trim(),
+        platform: document.getElementById('pPlatform').value,
+        source,
+        base_rate: document.getElementById('pBaseRate').value,
+        min_qty: document.getElementById('pMinQty').value,
+        max_qty: document.getElementById('pMaxQty').value,
+        sort_order: document.getElementById('pSortOrder').value || 0,
+        is_active: document.getElementById('pIsActive').checked ? 1 : 0,
+        api_url: source === 'local' ? document.getElementById('pApiUrl').value.trim() : '',
+        api_key: source === 'local' ? document.getElementById('pApiKey').value.trim() : '',
+        api_action: source === 'local' ? document.getElementById('pApiAction').value.trim() : '',
+        upstream_service_id: document.getElementById('pUpstreamServiceId').value.trim(),
+      };
+      if (!payload.name) { showToast('نام محصول الزامی است', false); return; }
+      if (source === 'upstream' && !payload.upstream_service_id) { showToast('شناسه سرویس برای کلید مشترک الزامی است', false); return; }
+      if (source === 'local' && (!payload.api_url || !payload.api_key)) { showToast('آدرس و کلید API اختصاصی الزامی است', false); return; }
+      if (isEdit) payload.id = p.id;
+      const { ok, data } = await api('admin/products.php', { method: isEdit ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+      if (!ok || !data || !data.ok) { showToast('خطا در ذخیره محصول', false); return; }
+      showToast(isEdit ? 'محصول بروزرسانی شد' : 'محصول ایجاد شد', true);
+      closeModal();
+      loadProducts(); loadStats();
+    });
+  }
+
+  document.getElementById('newProductBtn').addEventListener('click', () => openProductModal(null));
+
+  document.getElementById('productsList').addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.product-edit-btn');
+    const delBtn = e.target.closest('.product-delete-btn');
+
+    if (editBtn) {
+      const product = productsRaw.find(p => p.id === parseInt(editBtn.dataset.id, 10));
+      openProductModal(product || null);
+      return;
+    }
+    if (delBtn) {
+      const id = parseInt(delBtn.dataset.id, 10);
+      if (!confirm('این محصول حذف شود؟ این عمل قابل بازگشت نیست.')) return;
+      const { ok, data } = await api('admin/products.php', { method: 'DELETE', body: JSON.stringify({ id }) });
+      if (!ok || !data || !data.ok) { showToast('خطا در حذف محصول', false); return; }
+      showToast('محصول حذف شد', true);
+      loadProducts(); loadStats();
+    }
+  });
+
+  // ============ TICKETS ============
+  let ticketsStatusFilter = '';
+  let ticketsPriorityFilter = '';
+  let ticketsDepartmentFilter = '';
+  let activeTicketId = null;
+  const ticketPriorityMap = { urgent: ['<i class="fa-solid fa-circle-exclamation"></i> فوری', 'badge-red'], medium: ['<i class="fa-solid fa-circle-minus"></i> متوسط', 'badge-amber'], low: ['<i class="fa-solid fa-circle-arrow-down"></i> کم', 'badge-green'] };
+  const ticketDepartmentMap = { financial: ['<i class="fa-solid fa-file-invoice-dollar"></i> مالی', 'badge-blue'], technical: ['<i class="fa-solid fa-screwdriver-wrench"></i> فنی', 'badge-cyan'], presale: ['<i class="fa-solid fa-bag-shopping"></i> پیش‌فروش', 'badge-amber'], general: ['<i class="fa-solid fa-list-check"></i> عمومی', 'badge-gray'] };
+
+  document.querySelectorAll('#ticketStatusFilter .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      ticketsStatusFilter = chip.dataset.status;
+      document.querySelectorAll('#ticketStatusFilter .chip').forEach(c => c.classList.toggle('active', c === chip));
+      loadTickets();
+    });
+  });
+  document.querySelectorAll('#ticketPriorityFilter .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      ticketsPriorityFilter = chip.dataset.priority;
+      document.querySelectorAll('#ticketPriorityFilter .chip').forEach(c => c.classList.toggle('active', c === chip));
+      loadTickets();
+    });
+  });
+  document.querySelectorAll('#ticketDepartmentFilter .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      ticketsDepartmentFilter = chip.dataset.department;
+      document.querySelectorAll('#ticketDepartmentFilter .chip').forEach(c => c.classList.toggle('active', c === chip));
+      loadTickets();
+    });
+  });
+
+  async function loadTickets(){
+    const listEl = document.getElementById('adminTicketsList');
+    listEl.innerHTML = '<div class="skel h-14"></div><div class="skel h-14"></div>';
+    const qs = new URLSearchParams();
+    if (ticketsStatusFilter) qs.set('status', ticketsStatusFilter);
+    if (ticketsPriorityFilter) qs.set('priority', ticketsPriorityFilter);
+    if (ticketsDepartmentFilter) qs.set('department', ticketsDepartmentFilter);
+    const path = 'admin/tickets.php' + (qs.toString() ? '?' + qs.toString() : '');
+    const { ok, data } = await api(path);
+    if (!ok || !data || !data.ok || !data.tickets.length) {
+      listEl.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">تیکتی یافت نشد.</p>';
+      return;
+    }
+    listEl.innerHTML = data.tickets.map(t => {
+      const [label, cls] = ticketStatusMap[t.status] || [t.status, 'badge-gray'];
+      const [pLabel, pCls] = ticketPriorityMap[t.priority] || [t.priority, 'badge-gray'];
+      const [dLabel, dCls] = ticketDepartmentMap[t.department] || [t.department, 'badge-gray'];
+      const who = escapeHtml(t.display_name || t.email || t.uid);
+      return `
+        <button type="button" class="row-card w-full text-right admin-ticket-item" data-id="${t.id}">
+          <div class="min-w-0">
+            <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(t.subject)}</p>
+            <p class="text-xs text-slate-500 truncate">${who}</p>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+            <span class="badge ${dCls}">${dLabel}</span>
+            <span class="badge ${pCls}">${pLabel}</span>
+            <span class="badge ${cls}">${label}</span>
+          </div>
+        </button>`;
+    }).join('');
+    listEl.querySelectorAll('.admin-ticket-item').forEach(btn => btn.addEventListener('click', () => openAdminTicket(parseInt(btn.dataset.id, 10))));
+  }
+
+  async function openAdminTicket(id){
+    activeTicketId = id;
+    const { ok, data } = await api('admin/tickets.php?id=' + id);
+    if (!ok || !data || !data.ok) return;
+    document.getElementById('adminTicketThreadEmpty').classList.add('hidden');
+    document.getElementById('adminTicketThreadView').classList.remove('hidden');
+    document.getElementById('adminTicketThreadSubject').textContent = data.ticket.subject;
+    document.getElementById('adminTicketThreadWho').textContent = data.ticket.display_name || data.ticket.email || data.ticket.uid;
+    const [label, cls] = ticketStatusMap[data.ticket.status] || [data.ticket.status, 'badge-gray'];
+    document.getElementById('adminTicketThreadStatus').innerHTML = `<span class="badge ${cls}">${label}</span>`;
+    document.getElementById('adminTicketToggleBtn').textContent = data.ticket.status === 'open' ? 'بستن تیکت' : 'بازکردن تیکت';
+    document.getElementById('adminTicketPrioritySelect').value = data.ticket.priority || 'medium';
+    document.getElementById('adminTicketDepartmentSelect').value = data.ticket.department || 'general';
+    document.getElementById('adminTicketThreadMessages').innerHTML = data.messages.map(m => `
+      <div class="msg-bubble ${m.sender === 'admin' ? 'msg-user' : 'msg-admin'}">${escapeHtml(m.message)}</div>
+    `).join('');
+  }
+
+  document.getElementById('adminTicketPrioritySelect').addEventListener('change', async (e) => {
+    if (!activeTicketId) return;
+    await api('admin/tickets.php', { method: 'POST', body: JSON.stringify({ ticket_id: activeTicketId, priority: e.target.value }) });
+    loadTickets();
+  });
+
+  document.getElementById('adminTicketDepartmentSelect').addEventListener('change', async (e) => {
+    if (!activeTicketId) return;
+    await api('admin/tickets.php', { method: 'POST', body: JSON.stringify({ ticket_id: activeTicketId, department: e.target.value }) });
+    loadTickets();
+  });
+
+  document.getElementById('adminTicketReplyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeTicketId) return;
+    const input = document.getElementById('adminTicketReplyInput');
+    const message = input.value.trim();
+    if (!message) return;
+    const { ok, data } = await api('admin/tickets.php', { method: 'POST', body: JSON.stringify({ ticket_id: activeTicketId, message }) });
+    if (!ok || !data || !data.ok) { showToast('خطا در ارسال پاسخ', false); return; }
+    input.value = '';
+    openAdminTicket(activeTicketId);
+    loadTickets();
+  });
+
+  document.getElementById('adminTicketToggleBtn').addEventListener('click', async () => {
+    if (!activeTicketId) return;
+    const newStatus = document.getElementById('adminTicketToggleBtn').textContent.includes('بستن') ? 'closed' : 'open';
+    const { ok, data } = await api('admin/tickets.php', { method: 'POST', body: JSON.stringify({ ticket_id: activeTicketId, status: newStatus }) });
+    if (!ok || !data || !data.ok) { showToast('خطا در تغییر وضعیت', false); return; }
+    openAdminTicket(activeTicketId);
+    loadTickets();
+    loadStats();
+  });
+
+  // ============ CONTENT & COPY ============
+  const CONTENT_FIELD_GROUPS = [
+    {
+      title: 'صفحه اصلی — هدر', icon: 'fa-house',
+      fields: [
+        { key: 'idx_brand_tagline', label: 'شعار زیر لوگو', type: 'text' },
+        { key: 'idx_hero_badge', label: 'بج بالای هدر', type: 'text' },
+        { key: 'idx_hero_title', label: 'عنوان اصلی هدر', type: 'text' },
+        { key: 'idx_hero_title_em', label: 'عنوان اصلی هدر (بخش رنگی)', type: 'text' },
+        { key: 'idx_hero_subtitle', label: 'زیرعنوان هدر', type: 'textarea' },
+        { key: 'idx_cta_primary', label: 'دکمه CTA اصلی', type: 'text' },
+        { key: 'idx_cta_secondary', label: 'دکمه CTA ثانویه', type: 'text' },
+        { key: 'idx_stat1_label', label: 'برچسب آمار ۱', type: 'text' },
+        { key: 'idx_stat2_label', label: 'برچسب آمار ۲', type: 'text' },
+        { key: 'idx_stat3_label', label: 'برچسب آمار ۳', type: 'text' },
+      ],
+    },
+    {
+      title: 'صفحه اصلی — نوار اعتماد', icon: 'fa-shield-halved',
+      fields: [
+        { key: 'idx_trust_1', label: 'آیتم اعتماد ۱', type: 'text' },
+        { key: 'idx_trust_2', label: 'آیتم اعتماد ۲', type: 'text' },
+        { key: 'idx_trust_3', label: 'آیتم اعتماد ۳', type: 'text' },
+        { key: 'idx_trust_4', label: 'آیتم اعتماد ۴', type: 'text' },
+        { key: 'idx_trust_5', label: 'آیتم اعتماد ۵', type: 'text' },
+        { key: 'idx_trust_6', label: 'آیتم اعتماد ۶', type: 'text' },
+      ],
+    },
+    {
+      title: 'صفحه اصلی — نحوه کار سیستم', icon: 'fa-diagram-project',
+      fields: [
+        { key: 'idx_how_title', label: 'عنوان بخش', type: 'text' },
+        { key: 'idx_how_subtitle', label: 'زیرعنوان بخش', type: 'textarea' },
+        { key: 'idx_step1_title', label: 'عنوان مرحله ۱', type: 'text' },
+        { key: 'idx_step1_desc', label: 'توضیح مرحله ۱', type: 'textarea' },
+        { key: 'idx_step2_title', label: 'عنوان مرحله ۲', type: 'text' },
+        { key: 'idx_step2_desc', label: 'توضیح مرحله ۲', type: 'textarea' },
+        { key: 'idx_step3_title', label: 'عنوان مرحله ۳', type: 'text' },
+        { key: 'idx_step3_desc', label: 'توضیح مرحله ۳', type: 'textarea' },
+      ],
+    },
+    {
+      title: 'صفحه اصلی — ویژگی‌ها', icon: 'fa-layer-group',
+      fields: [
+        { key: 'idx_bento_title', label: 'عنوان بخش', type: 'text' },
+        { key: 'idx_bento_subtitle', label: 'زیرعنوان بخش', type: 'textarea' },
+        { key: 'idx_feature1_title', label: 'عنوان ویژگی ۱', type: 'text' },
+        { key: 'idx_feature1_desc', label: 'توضیح ویژگی ۱', type: 'textarea' },
+        { key: 'idx_feature2_title', label: 'عنوان ویژگی ۲', type: 'text' },
+        { key: 'idx_feature2_desc', label: 'توضیح ویژگی ۲', type: 'textarea' },
+        { key: 'idx_feature3_title', label: 'عنوان ویژگی ۳', type: 'text' },
+        { key: 'idx_feature3_desc', label: 'توضیح ویژگی ۳', type: 'textarea' },
+        { key: 'idx_feature4_title', label: 'عنوان ویژگی ۴', type: 'text' },
+        { key: 'idx_feature4_desc', label: 'توضیح ویژگی ۴', type: 'textarea' },
+      ],
+    },
+    {
+      title: 'صفحه اصلی — محصولات و سوالات متداول', icon: 'fa-circle-question',
+      fields: [
+        { key: 'idx_products_badge', label: 'بج بخش محصولات', type: 'text' },
+        { key: 'idx_products_title', label: 'عنوان بخش محصولات', type: 'text' },
+        { key: 'idx_faq_title', label: 'عنوان بخش سوالات متداول', type: 'text' },
+        { key: 'idx_faq_subtitle', label: 'زیرعنوان سوالات متداول', type: 'text' },
+        { key: 'idx_faq1_q', label: 'سوال ۱', type: 'text' },
+        { key: 'idx_faq1_a', label: 'پاسخ ۱', type: 'textarea' },
+        { key: 'idx_faq2_q', label: 'سوال ۲', type: 'text' },
+        { key: 'idx_faq2_a', label: 'پاسخ ۲', type: 'textarea' },
+        { key: 'idx_faq3_q', label: 'سوال ۳', type: 'text' },
+        { key: 'idx_faq3_a', label: 'پاسخ ۳', type: 'textarea' },
+      ],
+    },
+    {
+      title: 'درباره ما', icon: 'fa-users',
+      fields: [
+        { key: 'about_hero_title', label: 'عنوان هدر', type: 'text' },
+        { key: 'about_hero_desc', label: 'توضیح هدر', type: 'textarea' },
+        { key: 'about_mission_title', label: 'عنوان ماموریت', type: 'text' },
+        { key: 'about_mission_p1', label: 'متن ماموریت — پاراگراف ۱', type: 'textarea' },
+        { key: 'about_mission_p2', label: 'متن ماموریت — پاراگراف ۲', type: 'textarea' },
+        { key: 'about_process_title', label: 'عنوان فرایند کار', type: 'text' },
+        { key: 'about_process_subtitle', label: 'زیرعنوان فرایند کار', type: 'text' },
+        { key: 'about_step1_title', label: 'عنوان قدم ۱', type: 'text' },
+        { key: 'about_step1_desc', label: 'توضیح قدم ۱', type: 'textarea' },
+        { key: 'about_step2_title', label: 'عنوان قدم ۲', type: 'text' },
+        { key: 'about_step2_desc', label: 'توضیح قدم ۲', type: 'textarea' },
+        { key: 'about_step3_title', label: 'عنوان قدم ۳', type: 'text' },
+        { key: 'about_step3_desc', label: 'توضیح قدم ۳', type: 'textarea' },
+        { key: 'about_step4_title', label: 'عنوان قدم ۴', type: 'text' },
+        { key: 'about_step4_desc', label: 'توضیح قدم ۴', type: 'textarea' },
+        { key: 'about_values_title', label: 'عنوان بخش ارزش‌ها', type: 'text' },
+        { key: 'about_cta_title', label: 'عنوان بنر CTA', type: 'text' },
+        { key: 'about_cta_subtitle', label: 'زیرعنوان بنر CTA', type: 'text' },
+      ],
+    },
+    {
+      title: 'محصولات', icon: 'fa-cube',
+      fields: [
+        { key: 'prd_hero_title', label: 'عنوان هدر', type: 'text' },
+        { key: 'prd_hero_subtitle', label: 'زیرعنوان هدر', type: 'textarea' },
+        { key: 'prd_why_title', label: 'عنوان «چرا ما؟»', type: 'text' },
+        { key: 'prd_cta_title', label: 'عنوان بنر CTA', type: 'text' },
+        { key: 'prd_cta_subtitle', label: 'زیرعنوان بنر CTA', type: 'text' },
+      ],
+    },
+  ];
+
+  const CONTENT_TOGGLE_FIELDS = [
+    { key: 'show_section_ecosystem', label: 'نمایش بخش اکوسیستم پلتفرم‌ها (صفحه اصلی)' },
+    { key: 'show_section_faq', label: 'نمایش بخش سوالات متداول (صفحه اصلی)' },
+    { key: 'show_section_trust_marquee', label: 'نمایش نوار اعتماد متحرک (صفحه اصلی)' },
+  ];
+
+  function renderContentFields(){
+    const container = document.getElementById('contentFieldsContainer');
+    let html = CONTENT_FIELD_GROUPS.map(group => `
+      <div class="border-t border-white/10 pt-5 first:border-t-0 first:pt-0">
+        <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid ${group.icon}"></i> ${escapeHtml(group.title)}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          ${group.fields.map(f => `
+            <div class="inputBox${f.type === 'textarea' ? ' sm:col-span-2' : ''}">
+              ${f.type === 'textarea' ? `<textarea id="cf_${f.key}" placeholder=" "></textarea>` : `<input type="text" id="cf_${f.key}" placeholder=" " />`}
+              <label>${escapeHtml(f.label)}</label>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+    html += `
+      <div class="border-t border-white/10 pt-5">
+        <p class="text-xs font-bold text-slate-500 mb-3"><i class="fa-solid fa-eye"></i> نمایش بخش‌ها</p>
+        <div class="flex flex-col gap-3">
+          ${CONTENT_TOGGLE_FIELDS.map(f => `
+            <label class="flex items-center gap-2 text-sm text-slate-300">
+              <input type="checkbox" id="cf_${f.key}" class="w-4 h-4" /> ${escapeHtml(f.label)}
+            </label>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    container.innerHTML = html;
+  }
+  renderContentFields();
+
+  async function loadContentSettings(){
+    const { ok, data } = await api('admin/site_settings.php');
+    if (!ok || !data || !data.ok) return;
+    const s = data.settings;
+    CONTENT_FIELD_GROUPS.forEach(group => group.fields.forEach((f) => {
+      const el = document.getElementById('cf_' + f.key);
+      if (el) el.value = s[f.key] || '';
+    }));
+    CONTENT_TOGGLE_FIELDS.forEach((f) => {
+      const el = document.getElementById('cf_' + f.key);
+      if (el) el.checked = s[f.key] !== '0';
+    });
+  }
+
+  document.getElementById('contentSettingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {};
+    CONTENT_FIELD_GROUPS.forEach(group => group.fields.forEach((f) => {
+      const el = document.getElementById('cf_' + f.key);
+      if (el) payload[f.key] = el.value.trim();
+    }));
+    CONTENT_TOGGLE_FIELDS.forEach((f) => {
+      const el = document.getElementById('cf_' + f.key);
+      if (el) payload[f.key] = el.checked ? '1' : '0';
+    });
+    const { ok, data } = await api('admin/site_settings.php', { method: 'PUT', body: JSON.stringify(payload) });
+    if (!ok || !data || !data.ok) { showToast('خطا در ذخیره محتوا', false); return; }
+    showToast('محتوای سایت ذخیره شد', true);
+  });
+
+  // ============ SITE SETTINGS ============
+  async function loadSiteSettings(){
+    const { ok, data } = await api('admin/site_settings.php');
+    if (!ok || !data || !data.ok) return;
+    const s = data.settings;
+    document.getElementById('sSiteName').value = s.site_name || '';
+    document.getElementById('sTagline').value = s.tagline || '';
+    document.getElementById('sHeroTitle').value = s.hero_title || '';
+    document.getElementById('sHeroSubtitle').value = s.hero_subtitle || '';
+    document.getElementById('sContactEmail').value = s.contact_email || '';
+    document.getElementById('sContactPhone').value = s.contact_phone || '';
+    document.getElementById('sContactTelegram').value = s.contact_telegram || '';
+    document.getElementById('sSocialInstagram').value = s.social_instagram || '';
+    document.getElementById('sSocialYoutube').value = s.social_youtube || '';
+    document.getElementById('sSocialTwitter').value = s.social_twitter || '';
+    document.getElementById('sFooterText').value = s.footer_text || '';
+    document.getElementById('sLogoUrl').value = s.logo_url || '';
+    const preview = document.getElementById('logoPreview');
+    if (s.logo_url) { preview.src = s.logo_url; preview.classList.remove('hidden'); }
+    else { preview.classList.add('hidden'); }
+  }
+
+  document.getElementById('logoUploadBtn').addEventListener('click', () => document.getElementById('logoFileInput').click());
+  document.getElementById('logoFileInput').addEventListener('change', async () => {
+    const file = document.getElementById('logoFileInput').files[0];
+    if (!file) return;
+    const btn = document.getElementById('logoUploadBtn');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> در حال بارگذاری...';
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const headers = idToken ? { Authorization: `Bearer ${idToken}` } : {};
+      const res = await fetch('api/admin/upload.php', { method: 'POST', headers, body: formData });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || !data.ok) { showToast('خطا در بارگذاری تصویر', false); return; }
+      document.getElementById('sLogoUrl').value = data.url;
+      const preview = document.getElementById('logoPreview');
+      preview.src = data.url;
+      preview.classList.remove('hidden');
+      showToast('لوگو بارگذاری شد — برای ذخیره، روی «ذخیره تنظیمات» بزنید', true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+      document.getElementById('logoFileInput').value = '';
+    }
+  });
+
+  document.getElementById('siteSettingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      site_name: document.getElementById('sSiteName').value.trim(),
+      tagline: document.getElementById('sTagline').value.trim(),
+      logo_url: document.getElementById('sLogoUrl').value.trim(),
+      hero_title: document.getElementById('sHeroTitle').value.trim(),
+      hero_subtitle: document.getElementById('sHeroSubtitle').value.trim(),
+      contact_email: document.getElementById('sContactEmail').value.trim(),
+      contact_phone: document.getElementById('sContactPhone').value.trim(),
+      contact_telegram: document.getElementById('sContactTelegram').value.trim(),
+      social_instagram: document.getElementById('sSocialInstagram').value.trim(),
+      social_youtube: document.getElementById('sSocialYoutube').value.trim(),
+      social_twitter: document.getElementById('sSocialTwitter').value.trim(),
+      footer_text: document.getElementById('sFooterText').value.trim(),
+    };
+    const { ok, data } = await api('admin/site_settings.php', { method: 'PUT', body: JSON.stringify(payload) });
+    if (!ok || !data || !data.ok) { showToast('خطا در ذخیره تنظیمات', false); return; }
+    showToast('تنظیمات سایت ذخیره شد', true);
+  });
+
+  // ============ PAGES ============
+  let pagesRaw = [];
+
+  async function loadPages(){
+    const listEl = document.getElementById('pagesList');
+    listEl.innerHTML = '<div class="skel h-16"></div><div class="skel h-16"></div>';
+    const { ok, data } = await api('admin/pages.php');
+    if (!ok || !data || !data.ok || !data.pages.length) {
+      listEl.innerHTML = '<div class="empty-state"><i class="fa-solid fa-file-circle-xmark"></i><p class="text-sm">صفحه‌ای ثبت نشده.</p></div>';
+      return;
+    }
+    pagesRaw = data.pages;
+    listEl.innerHTML = pagesRaw.map(pg => `
+      <div class="row-card flex-wrap sm:flex-nowrap">
+        <div class="flex items-center gap-3 min-w-0">
+          <i class="fa-solid fa-file-lines text-cyan-400/70"></i>
+          <div class="min-w-0">
+            <p class="font-semibold text-sm text-slate-200 truncate">${escapeHtml(pg.title)}</p>
+            <p class="text-xs text-slate-500 truncate" dir="ltr">page.html?slug=${escapeHtml(pg.slug)}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="badge ${Number(pg.is_published) ? 'badge-green' : 'badge-gray'}">${Number(pg.is_published) ? 'منتشرشده' : 'پیش‌نویس'}</span>
+          <button type="button" class="btn-soft !py-2 !px-3 page-edit-btn" data-id="${pg.id}" title="ویرایش"><i class="fa-solid fa-pen"></i></button>
+          <button type="button" class="btn-soft !py-2 !px-3 page-delete-btn" data-id="${pg.id}" title="حذف"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>`).join('');
+  }
+
+  function openPageModal(page){
+    const isEdit = !!page;
+    openModal(`
+      <h3 class="panel-title"><i class="fa-solid fa-file-lines text-cyan-400"></i> ${isEdit ? 'ویرایش صفحه' : 'صفحه جدید'}</h3>
+      <form id="pageForm" class="flex flex-col gap-4">
+        <div class="inputBox">
+          <input type="text" id="pgTitle" required placeholder=" " value="${escapeHtml(page?.title || '')}" />
+          <label>عنوان صفحه</label>
+        </div>
+        <div class="inputBox">
+          <input type="text" id="pgSlug" placeholder=" " dir="ltr" value="${escapeHtml(page?.slug || '')}" />
+          <label>نشانی (slug) — خالی بگذارید تا خودکار ساخته شود</label>
+        </div>
+        <div class="inputBox">
+          <textarea id="pgBody" placeholder=" " style="min-height:220px;" dir="ltr">${escapeHtml(page?.body || '')}</textarea>
+          <label>محتوای صفحه (HTML)</label>
+        </div>
+        <label class="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+          <input type="checkbox" id="pgIsPublished" ${(!page || Number(page.is_published)) ? 'checked' : ''} class="w-4 h-4" /> منتشرشده (در سایت نمایش داده شود)
+        </label>
+        <button type="submit" class="btn-submit magnetic ripple-host"><span><i class="fa-solid fa-check"></i> ${isEdit ? 'ذخیره تغییرات' : 'ایجاد صفحه'}</span></button>
+      </form>
+    `);
+
+    document.getElementById('pageForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById('pgTitle').value.trim(),
+        slug: document.getElementById('pgSlug').value.trim(),
+        body: document.getElementById('pgBody').value,
+        is_published: document.getElementById('pgIsPublished').checked ? 1 : 0,
+      };
+      if (!payload.title) { showToast('عنوان صفحه الزامی است', false); return; }
+      if (isEdit) payload.id = page.id;
+      const { ok, data } = await api('admin/pages.php', { method: isEdit ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+      if (!ok || !data || !data.ok) {
+        showToast(data?.error === 'slug_taken' ? 'این نشانی قبلاً استفاده شده' : 'خطا در ذخیره صفحه', false);
+        return;
+      }
+      showToast(isEdit ? 'صفحه بروزرسانی شد' : 'صفحه ایجاد شد', true);
+      closeModal();
+      loadPages();
+    });
+  }
+
+  document.getElementById('newPageBtn').addEventListener('click', () => openPageModal(null));
+
+  document.getElementById('pagesList').addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.page-edit-btn');
+    const delBtn = e.target.closest('.page-delete-btn');
+
+    if (editBtn) {
+      const { ok, data } = await api('admin/pages.php?id=' + editBtn.dataset.id);
+      if (!ok || !data || !data.ok) { showToast('خطا در دریافت صفحه', false); return; }
+      openPageModal(data.page);
+      return;
+    }
+    if (delBtn) {
+      const id = parseInt(delBtn.dataset.id, 10);
+      if (!confirm('این صفحه حذف شود؟ این عمل قابل بازگشت نیست.')) return;
+      const { ok, data } = await api('admin/pages.php', { method: 'DELETE', body: JSON.stringify({ id }) });
+      if (!ok || !data || !data.ok) { showToast('خطا در حذف صفحه', false); return; }
+      showToast('صفحه حذف شد', true);
+      loadPages();
+    }
+  });
+</script>
+
+<script>
+// ============ NETWORK / STARFIELD BACKGROUND ============
+(function () {
+  const canvas = document.getElementById('netCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const animate = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  let w, h, particles, raf;
+
+  function resize() {
+    w = canvas.width = innerWidth * dpr;
+    h = canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    const count = innerWidth < 640 ? 20 : innerWidth < 1024 ? 36 : 54;
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.2 * dpr, vy: (Math.random() - 0.5) * 0.2 * dpr,
+    }));
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, w, h);
+    const maxDist = 120 * dpr;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      if (animate) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+      }
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < maxDist) {
+          ctx.strokeStyle = `rgba(34,211,238,${0.1 * (1 - dist / maxDist)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+        }
+      }
+      ctx.fillStyle = 'rgba(34,211,238,0.55)';
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.4 * dpr, 0, Math.PI * 2); ctx.fill();
+    }
+    if (animate) raf = requestAnimationFrame(render);
+  }
+
+  resize(); render();
+  window.addEventListener('resize', resize);
+  if (animate) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else render();
+    });
+  }
+})();
+
+// ============ CURSOR GLOW + TELEGRAM CURSOR ============
+const glow = document.getElementById('cursorGlow');
+const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+window.addEventListener('mousemove', (e) => {
+  glow.classList.add('active');
+  glow.style.left = e.clientX + 'px';
+  glow.style.top = e.clientY + 'px';
+});
+window.addEventListener('mouseleave', () => glow.classList.remove('active'));
+
+if (finePointer) {
+  const tgCursor = document.getElementById('tgCursor');
+  let tgX = window.innerWidth / 2, tgY = window.innerHeight / 2;
+  let tgAngle = 45, tgScale = 1, tgShown = false;
+
+  function paintTg(){
+    tgCursor.style.transform = `translate3d(${tgX}px, ${tgY}px, 0) translate(-50%,-50%) rotate(${tgAngle}deg) scale(${tgScale})`;
+  }
+  window.addEventListener('mousemove', (e) => {
+    const dx = e.clientX - tgX, dy = e.clientY - tgY;
+    tgX = e.clientX; tgY = e.clientY;
+    if (!tgShown) { tgShown = true; tgCursor.classList.add('active'); }
+    if (Math.hypot(dx, dy) > 1) tgAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 45;
+    paintTg();
+  });
+  window.addEventListener('mousedown', () => { tgScale = .78; paintTg(); });
+  window.addEventListener('mouseup', () => { tgScale = 1; paintTg(); });
+  document.addEventListener('mouseleave', () => { tgShown = false; tgCursor.classList.remove('active'); });
+}
+
+// ============ MAGNETIC + RIPPLE ============
+document.body.addEventListener('mousemove', (e) => {
+  const el = e.target.closest && e.target.closest('.magnetic');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const x = e.clientX - r.left - r.width / 2;
+  const y = e.clientY - r.top - r.height / 2;
+  el.style.transform = `translate(${x * 0.12}px, ${y * 0.25}px)`;
+});
+document.body.addEventListener('mouseleave', () => {
+  document.querySelectorAll('.magnetic').forEach(btn => btn.style.transform = '');
+}, true);
+document.body.addEventListener('click', function (e) {
+  const el = e.target.closest && e.target.closest('.ripple-host');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  const size = Math.max(r.width, r.height);
+  const dot = document.createElement('span');
+  dot.className = 'ripple-dot';
+  dot.style.width = dot.style.height = size + 'px';
+  dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+  dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+  el.appendChild(dot);
+  dot.addEventListener('animationend', () => dot.remove());
+});
+</script>
+</body>
+</html>
