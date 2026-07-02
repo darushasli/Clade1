@@ -221,6 +221,51 @@ function ug_asset( $path ) {
 }
 
 /**
+ * Primary nav walker — outputs flat <a class="nav-link"> items.
+ * Defined here (not in header.php) so it is always available before use.
+ */
+if ( ! class_exists( 'UG_Nav_Walker' ) ) {
+    class UG_Nav_Walker extends Walker_Nav_Menu {
+        public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
+            $classes   = empty( $data_object->classes ) ? [] : (array) $data_object->classes;
+            $is_active = in_array( 'current-menu-item', $classes, true ) || in_array( 'current-page-ancestor', $classes, true );
+            $output   .= '<a class="nav-link' . ( $is_active ? ' active' : '' ) . '" href="' . esc_url( $data_object->url ) . '">' . esc_html( $data_object->title ) . '</a>';
+        }
+        public function end_el( &$output, $data_object, $depth = 0, $args = null ) {}
+        public function start_lvl( &$output, $depth = 0, $args = null ) {}
+        public function end_lvl( &$output, $depth = 0, $args = null ) {}
+    }
+}
+
+/**
+ * Fallback nav when no menu is assigned to the "primary" location —
+ * prevents an empty navbar on a fresh install.
+ */
+function ug_primary_nav_fallback() {
+    $current = '';
+    if ( is_front_page() ) {
+        $current = 'home';
+    } elseif ( is_page() ) {
+        $current = get_post_field( 'post_name', get_queried_object_id() );
+    }
+
+    $links = [
+        [ 'label' => 'خانه',         'url' => home_url( '/' ),                'slug' => 'home' ],
+        [ 'label' => 'خرید ممبر',    'url' => home_url( '/member/' ),         'slug' => 'member' ],
+        [ 'label' => 'اکانت پرمیوم', 'url' => home_url( '/account/' ),        'slug' => 'account' ],
+        [ 'label' => 'شماره مجازی',  'url' => home_url( '/virtual-number/' ), 'slug' => 'virtual-number' ],
+        [ 'label' => 'استارز',       'url' => '#',                            'slug' => '' ],
+        [ 'label' => 'تخفیف‌ها',     'url' => '#',                            'slug' => '' ],
+        [ 'label' => 'تماس با ما',   'url' => home_url( '/contact/' ),        'slug' => 'contact' ],
+    ];
+
+    foreach ( $links as $l ) {
+        $active = ( $l['slug'] && $l['slug'] === $current ) ? ' active' : '';
+        echo '<a class="nav-link' . $active . '" href="' . esc_url( $l['url'] ) . '">' . esc_html( $l['label'] ) . '</a>';
+    }
+}
+
+/**
  * Get current Jalali (Persian) year — lightweight Gregorian→Jalali conversion.
  *
  * @return int

@@ -51,32 +51,18 @@
 <nav class="main-nav">
   <div class="nav-inner">
     <?php
-    wp_nav_menu( [
-        'theme_location' => 'primary',
-        'container'      => false,
-        'items_wrap'     => '%3$s',
-        'link_before'    => '',
-        'link_after'     => '',
-        'walker'         => new UG_Nav_Walker(),
-    ] );
+    if ( has_nav_menu( 'primary' ) ) {
+        wp_nav_menu( [
+            'theme_location' => 'primary',
+            'container'      => false,
+            'items_wrap'     => '%3$s',
+            'link_before'    => '',
+            'link_after'     => '',
+            'walker'         => new UG_Nav_Walker(),
+        ] );
+    } else {
+        ug_primary_nav_fallback();
+    }
     ?>
   </div>
 </nav>
-
-<?php
-/**
- * Simple nav walker — adds .nav-link class and .active on current page.
- */
-if ( ! class_exists( 'UG_Nav_Walker' ) ) {
-    class UG_Nav_Walker extends Walker_Nav_Menu {
-        public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
-            $classes  = empty( $data_object->classes ) ? [] : (array) $data_object->classes;
-            $is_active = in_array( 'current-menu-item', $classes, true ) || in_array( 'current-page-ancestor', $classes, true );
-            $output .= '<a class="nav-link' . ( $is_active ? ' active' : '' ) . '" href="' . esc_url( $data_object->url ) . '">' . esc_html( $data_object->title ) . '</a>';
-        }
-        public function end_el( &$output, $data_object, $depth = 0, $args = null ) {}
-        public function start_lvl( &$output, $depth = 0, $args = null ) {}
-        public function end_lvl( &$output, $depth = 0, $args = null ) {}
-    }
-}
-?>
