@@ -17,28 +17,35 @@
   --border:     rgba(255,255,255,0.07);
   --border2:    rgba(255,255,255,0.12);
 
-  --mint:       #16C79A;
-  --mint-dark:  #0fa880;
-  --mint-glow:  rgba(22,199,154,0.18);
-  --sky:        #0099dd;
-  --sky-dark:   #0077bb;
+  /* Primary brand — Indigo (var name kept as --mint to avoid churn) */
+  --mint:       #7C6CF5;
+  --mint-dark:  #6355E0;
+  --mint-light: #9E93F9;
+  --mint-glow:  rgba(124,108,245,0.16);
+  --sky:        #4C93F7;
+  --sky-dark:   #2f6fd6;
   --gold:       #F4B740;
   --red:        #ef4444;
   --purple:     #8b5cf6;
 
-  --text:       #e8eaf2;
-  --text-2:     #b0b8cc;
-  --text-muted: #7a849a;
+  /* Premium gradients (blue → indigo) */
+  --grad-primary:  linear-gradient(135deg, #5B8DEF 0%, #7C6CF5 100%);
+  --grad-primary2: linear-gradient(135deg, #4C93F7 0%, #8B7CF8 100%);
+
+  --text:       #e9ebf4;
+  --text-2:     #b4bcd0;
+  --text-muted: #7d879e;
   --text-dim:   #4a5470;
 
   --header-h:   66px;
   --nav-h:      48px;
-  --radius:     14px;
-  --radius-sm:  9px;
-  --radius-xs:  6px;
-  --shadow:     0 4px 24px rgba(0,0,0,0.45);
-  --shadow-sm:  0 2px 10px rgba(0,0,0,0.3);
-  --transition: 0.2s ease;
+  --radius:     16px;
+  --radius-sm:  10px;
+  --radius-xs:  7px;
+  --shadow:     0 10px 40px rgba(0,0,0,0.5);
+  --shadow-sm:  0 3px 14px rgba(0,0,0,0.32);
+  --shadow-glow: 0 10px 32px rgba(124,108,245,0.32);
+  --transition: 0.22s cubic-bezier(.4,0,.2,1);
 }
 
 /* ── Reset & Base ── */
@@ -188,7 +195,7 @@ header {
   font-size: 13px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, var(--mint-dark), var(--mint));
+  background: var(--grad-primary);
   border: none;
   transition: opacity var(--transition), transform var(--transition);
   display: inline-flex; align-items: center; gap: 6px;
@@ -266,7 +273,7 @@ header {
 ══════════════════════════════════════════ */
 .hero {
   position: relative;
-  background: linear-gradient(135deg, #050917 0%, #0a1a2e 45%, #071f1a 100%);
+  background: linear-gradient(135deg, #070a1a 0%, #0d1330 48%, #141244 100%);
   border-radius: var(--radius);
   overflow: hidden;
   margin: 20px 0;
@@ -279,7 +286,7 @@ header {
   content: '';
   position: absolute; inset: 0;
   background:
-    radial-gradient(600px 320px at 90% 10%, rgba(22,199,154,.18), transparent 60%),
+    radial-gradient(600px 320px at 90% 10%, rgba(124,108,245,.18), transparent 60%),
     radial-gradient(400px 300px at 5% 90%, rgba(0,153,221,.14), transparent 60%);
   pointer-events: none;
 }
@@ -297,7 +304,7 @@ header {
   font-weight: 700;
   color: var(--mint);
   background: var(--mint-glow);
-  border: 1px solid rgba(22,199,154,.25);
+  border: 1px solid rgba(124,108,245,.25);
   border-radius: 20px;
   padding: 4px 14px;
   margin-bottom: 18px;
@@ -330,7 +337,7 @@ header {
   font-size: 14px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, var(--mint-dark), var(--mint));
+  background: var(--grad-primary);
   transition: all var(--transition);
   display: inline-flex; align-items: center; gap: 6px;
 }
@@ -481,11 +488,11 @@ header {
   display: flex; align-items: center; gap: 4px;
   padding: 6px 12px;
   border-radius: var(--radius-xs);
-  border: 1px solid rgba(22,199,154,.2);
+  border: 1px solid rgba(124,108,245,.2);
   background: var(--mint-glow);
   transition: all var(--transition);
 }
-.section-see-all:hover { background: rgba(22,199,154,.28); }
+.section-see-all:hover { background: rgba(124,108,245,.28); }
 
 /* ══════════════════════════════════════════
    SERVICE CATEGORY CARDS (دسته‌بندی اصلی)
@@ -517,9 +524,9 @@ header {
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 20px;
-  background: rgba(22,199,154,.15);
+  background: rgba(124,108,245,.15);
   color: var(--mint);
-  border: 1px solid rgba(22,199,154,.2);
+  border: 1px solid rgba(124,108,245,.2);
 }
 .scat-icon {
   width: 52px; height: 52px;
@@ -626,7 +633,7 @@ header {
   font-size: 18px;
   flex-shrink: 0;
 }
-.why-icon.g { background: rgba(22,199,154,.15); }
+.why-icon.g { background: rgba(124,108,245,.15); }
 .why-icon.b { background: rgba(0,153,221,.15); }
 .why-icon.y { background: rgba(244,183,64,.15); }
 .why-icon.p { background: rgba(139,92,246,.15); }
@@ -718,7 +725,7 @@ header {
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 4px;
-  background: rgba(22,199,154,.18);
+  background: rgba(124,108,245,.18);
   color: var(--mint);
 }
 .acc-icon {
@@ -757,13 +764,13 @@ header {
   position: absolute; inset: 0;
   pointer-events: none;
 }
-.page-hero.member  { background: linear-gradient(135deg,#0c3d33 0%,#0f6e58 55%,#16C79A 130%); }
+.page-hero.member  { background: linear-gradient(135deg,#0e1236 0%,#26256f 55%,#5b4fe0 130%); }
 .page-hero.account { background: linear-gradient(135deg,#0f0a2e 0%,#1e1060 55%,#7c3aed 130%); }
 .page-hero.virtual { background: linear-gradient(135deg,#0c1e3d 0%,#0e3570 55%,#0099dd 130%); }
 
 .page-hero.member::before {
   background:
-    radial-gradient(540px 280px at 85% 0%, rgba(22,199,154,.25), transparent 60%),
+    radial-gradient(540px 280px at 85% 0%, rgba(124,108,245,.25), transparent 60%),
     radial-gradient(420px 260px at 8% 100%, rgba(244,183,64,.14), transparent 60%);
 }
 .page-hero.account::before {
@@ -915,14 +922,14 @@ header {
 .plan-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
 .plan-card.popular {
   border-color: var(--mint);
-  background: linear-gradient(180deg, rgba(22,199,154,.07) 0%, var(--card) 100%);
+  background: linear-gradient(180deg, rgba(124,108,245,.07) 0%, var(--card) 100%);
 }
 .popular-badge {
   position: absolute;
   top: -12px;
   right: 50%;
   transform: translateX(50%);
-  background: linear-gradient(90deg, var(--mint-dark), var(--mint));
+  background: var(--grad-primary);
   color: #fff;
   font-size: 11.5px;
   font-weight: 700;
@@ -984,7 +991,7 @@ header {
   margin-top: 4px;
 }
 .plan-btn-primary {
-  background: linear-gradient(135deg, var(--mint-dark), var(--mint));
+  background: var(--grad-primary);
   color: #fff;
   border: none;
 }
@@ -992,7 +999,7 @@ header {
 .plan-btn-default {
   background: transparent;
   color: var(--mint);
-  border: 1.5px solid rgba(22,199,154,.35);
+  border: 1.5px solid rgba(124,108,245,.35);
 }
 .plan-btn-default:hover { background: var(--mint-glow); border-color: var(--mint); }
 
@@ -1034,7 +1041,7 @@ header {
   font-family: inherit;
   background: var(--mint-glow);
   color: var(--mint);
-  border: 1px solid rgba(22,199,154,.25);
+  border: 1px solid rgba(124,108,245,.25);
   transition: all var(--transition);
 }
 .mtc-btn:hover { background: var(--mint); color: #fff; }
@@ -1110,7 +1117,7 @@ header {
   font-family: inherit;
   background: var(--mint-glow);
   color: var(--mint);
-  border: 1px solid rgba(22,199,154,.25);
+  border: 1px solid rgba(124,108,245,.25);
   cursor: pointer;
   transition: all var(--transition);
 }
@@ -1152,7 +1159,7 @@ header {
   overflow: hidden;
   transition: border-color var(--transition);
 }
-.faq-item.open { border-color: rgba(22,199,154,.3); }
+.faq-item.open { border-color: rgba(124,108,245,.3); }
 .faq-q {
   padding: 16px 20px;
   font-size: 14px;
@@ -1191,7 +1198,7 @@ header {
 ══════════════════════════════════════════ */
 .trust-banner {
   background: var(--card);
-  border: 1px solid rgba(22,199,154,.15);
+  border: 1px solid rgba(124,108,245,.15);
   border-radius: var(--radius);
   padding: 28px 32px;
   margin: 16px 0;
@@ -1288,7 +1295,7 @@ footer ul li a:hover { color: var(--mint); }
   bottom: 24px;
   left: 24px;
   width: 48px; height: 48px;
-  background: linear-gradient(135deg, var(--mint-dark), var(--mint));
+  background: var(--grad-primary);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 20px var(--mint-glow);
@@ -1358,3 +1365,122 @@ footer ul li a:hover { color: var(--mint); }
 .aligncenter { text-align: center; }
 .alignright  { float: right; margin-left: 1em; }
 .alignleft   { float: left; margin-right: 1em; }
+
+/* ══════════════════════════════════════════
+   ✦ PREMIUM POLISH LAYER ✦
+   (international-grade refinement)
+══════════════════════════════════════════ */
+
+/* — Featured cards: real banner feel with brand watermark — */
+.feat-card {
+  min-height: 128px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 6px 22px rgba(0,0,0,0.28);
+  isolation: isolate;
+}
+.feat-card::after {            /* subtle top sheen */
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,0.16) 0%, transparent 42%);
+  z-index: 1;
+  pointer-events: none;
+}
+.feat-card.tall { min-height: 268px; }
+.feat-bg-icon {
+  position: absolute;
+  left: -8px; top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+  width: 118px; height: 118px;
+  object-fit: contain;
+  opacity: 0.9;
+  filter: drop-shadow(0 12px 22px rgba(0,0,0,0.4));
+  z-index: 1;
+  transition: transform var(--transition);
+}
+.feat-card.tall .feat-bg-icon { width: 168px; height: 168px; }
+.feat-card:hover .feat-bg-icon { transform: translateY(-50%) rotate(-4deg) scale(1.06); }
+.feat-card-overlay {
+  background: linear-gradient(300deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.12) 55%, transparent 100%);
+  z-index: 2;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.feat-card-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+.feat-card-link  { font-weight: 600; }
+
+/* — Buttons: premium glow + smoother motion — */
+.btn-hero {
+  background: var(--grad-primary);
+  box-shadow: 0 6px 20px rgba(124,108,245,0.28);
+}
+.btn-hero:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+.btn-primary { box-shadow: 0 4px 14px rgba(124,108,245,0.25); }
+.btn-primary:hover { opacity: 1; transform: translateY(-1px); box-shadow: var(--shadow-glow); }
+.plan-btn-primary { box-shadow: 0 4px 16px rgba(124,108,245,0.28); }
+.plan-btn-primary:hover { opacity: 1; box-shadow: var(--shadow-glow); }
+.mtc-btn:hover { background: var(--grad-primary); border-color: transparent; color: #fff; }
+.price-table .buy-btn:hover,
+.filter-tab.active { box-shadow: 0 2px 10px rgba(124,108,245,0.2); }
+
+/* — Cards: crisper hover lift — */
+.qcat, .stat-card, .scat, .why-card, .acc-card, .plan-card, .member-type-card, .step-card, .faq-item {
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), background var(--transition);
+}
+.scat:hover, .acc-card:hover, .qcat:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+
+/* — Section headings: gradient accent bar instead of plain dot — */
+.section-dot {
+  width: 4px; height: 18px;
+  border-radius: 4px;
+  background: var(--grad-primary);
+}
+.section-heading { font-size: 17px; letter-spacing: -0.2px; }
+
+/* — Hero eyebrow gradient text — */
+.hero-eyebrow {
+  background: linear-gradient(135deg, rgba(124,108,245,0.16), rgba(76,147,247,0.12));
+  border-color: rgba(124,108,245,0.28);
+}
+
+/* — Stat cards: subtle gradient top border — */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(124,108,245,0.05), var(--card) 60%);
+}
+
+/* — Promo banner: richer indigo — */
+.promo-banner {
+  background: linear-gradient(120deg, #141033 0%, #241a5c 50%, #1b2570 100%);
+  border-color: rgba(124,108,245,0.22);
+}
+.promo-eyebrow { color: var(--mint-light); }
+
+/* — Account featured icon watermark sizing — */
+.feat-card[data-brand] .feat-card-overlay { padding: 16px 18px; }
+
+/* — Logo mark premium — */
+.logo-mark {
+  background: var(--grad-primary);
+  box-shadow: 0 4px 12px rgba(124,108,245,0.3);
+}
+.logo-mark img { width: 26px; height: 26px; }
+
+/* — Trust banner accent — */
+.trust-banner {
+  background: linear-gradient(135deg, rgba(124,108,245,0.06), var(--card) 55%);
+  border-color: rgba(124,108,245,0.16);
+}
+
+/* — Page hero: refined member title accent — */
+.page-hero.member h1 span { color: #b9b0ff; }
+
+/* — Scrollbar (desktop) — */
+@media (min-width: 769px) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #262b45; border-radius: 6px; border: 2px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: #333a5c; }
+}

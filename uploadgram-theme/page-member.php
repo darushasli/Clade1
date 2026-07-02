@@ -11,7 +11,7 @@ get_header();
 
   <!-- ══ PAGE HERO ══ -->
   <div class="page-hero member">
-    <img src="<?php echo esc_url( ug_asset( 'promo/member-banner.svg' ) ); ?>" alt="" class="page-hero-photo" style="max-width:190px;">
+    <img src="<?php echo esc_url( ug_asset( 'hero/members-hero.svg' ) ); ?>" alt="" class="page-hero-photo" style="max-width:230px;">
     <div class="page-hero-content">
       <div class="hero-eyebrow">👥 رشد واقعی شبکه‌های اجتماعی</div>
       <h1>فروش ممبر <span>واقعی و فعال</span><br>برای تمام پلتفرم‌ها</h1>

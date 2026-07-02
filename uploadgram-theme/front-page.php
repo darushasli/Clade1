@@ -113,31 +113,36 @@ get_header();
   <div class="section">
     <?php ug_section_head( 'پیشنهاد ویژه امروز' ); ?>
     <div class="featured-grid">
-      <a class="feat-card tall" href="<?php echo esc_url( home_url( '/account/' ) ); ?>" style="background:linear-gradient(135deg,#0088cc,#833ab4);">
+      <a class="feat-card tall" href="<?php echo esc_url( home_url( '/member/' ) ); ?>" style="background:linear-gradient(135deg,#0088cc,#3a2a9c);">
+        <img class="feat-bg-icon" src="<?php echo esc_url( ug_asset( 'iconpack/telegram.svg' ) ); ?>" alt="">
         <div class="feat-card-overlay">
           <span class="feat-card-title">ممبر واقعی تلگرام</span>
           <span class="feat-card-link">خرید ممبر تلگرام ←</span>
         </div>
       </a>
       <a class="feat-card" href="<?php echo esc_url( home_url( '/account/' ) ); ?>" style="background:linear-gradient(135deg,#1db954,#0d7a38);">
+        <img class="feat-bg-icon" src="<?php echo esc_url( ug_asset( 'iconpack/spotify.svg' ) ); ?>" alt="">
         <div class="feat-card-overlay">
           <span class="feat-card-title">اسپاتیفای پرمیوم</span>
           <span class="feat-card-link">خرید اسپاتیفای ←</span>
         </div>
       </a>
       <a class="feat-card" href="<?php echo esc_url( home_url( '/account/' ) ); ?>" style="background:linear-gradient(135deg,#10a37f,#0d7a5a);">
+        <img class="feat-bg-icon" src="<?php echo esc_url( ug_asset( 'ai/chatgpt.svg' ) ); ?>" alt="">
         <div class="feat-card-overlay">
           <span class="feat-card-title">تخفیف ویژه ChatGPT Plus</span>
           <span class="feat-card-link">خرید اکانت ←</span>
         </div>
       </a>
       <a class="feat-card" href="<?php echo esc_url( home_url( '/account/' ) ); ?>" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9);">
+        <img class="feat-bg-icon" src="<?php echo esc_url( ug_asset( 'new/canva-icon.svg' ) ); ?>" alt="">
         <div class="feat-card-overlay">
           <span class="feat-card-title">اشتراک کانوا پرو</span>
           <span class="feat-card-link">خرید کانوا ←</span>
         </div>
       </a>
       <a class="feat-card" href="<?php echo esc_url( home_url( '/account/' ) ); ?>" style="background:linear-gradient(135deg,#ff0000,#9c0000);">
+        <img class="feat-bg-icon" src="<?php echo esc_url( ug_asset( 'iconpack/youtube.svg' ) ); ?>" alt="">
         <div class="feat-card-overlay">
           <span class="feat-card-title">لذت تماشا با یوتیوب پرمیوم</span>
           <span class="feat-card-link">خرید اشتراک یوتیوب ←</span>
