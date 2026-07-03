@@ -11,7 +11,7 @@ get_header();
 
   <!-- ══ PAGE HERO ══ -->
   <div class="page-hero member">
-    <img src="<?php echo esc_url( ug_asset( 'hero/members-hero.svg' ) ); ?>" alt="" class="page-hero-photo" style="max-width:230px;">
+    <img src="<?php echo esc_url( ug_asset( 'custom/icon-member-group.png' ) ); ?>" alt="" class="page-hero-photo" style="max-width:180px;">
     <div class="page-hero-content">
       <div class="hero-eyebrow">👥 رشد واقعی شبکه‌های اجتماعی</div>
       <h1>فروش ممبر <span>واقعی و فعال</span><br>برای تمام پلتفرم‌ها</h1>
@@ -34,12 +34,12 @@ get_header();
     <div class="member-types-grid">
       <?php
       $member_types = [
-          [ 'icon' => 'custom/icon-member-iran.svg',    'name' => 'ممبر ایرانی<br>واقعی',   'price' => '۱۸,۰۰۰' ],
-          [ 'icon' => 'custom/icon-member-foreign.svg', 'name' => 'ممبر خارجی<br>ترکیبی',   'price' => '۲۲,۵۰۰' ],
-          [ 'icon' => 'custom/icon-member-active.svg',  'name' => 'ممبر کانال<br>فعال',     'price' => '۳۲,۰۰۰' ],
-          [ 'icon' => 'custom/icon-member-group.png',   'name' => 'ممبر گروه<br>تلگرام',    'price' => '۲۰,۰۰۰' ],
-          [ 'icon' => 'custom/icon-vip10k.png',         'name' => 'بسته VIP<br><span class="num">10K</span> ممبر', 'price' => '۱۹۵,۰۰۰' ],
-          [ 'icon' => 'custom/icon-fast24.svg',         'name' => 'ممبر فوری<br><span class="num">24</span> ساعته', 'price' => '۲۸,۰۰۰' ],
+          [ 'icon' => 'custom/icon-member-group.png', 'name' => 'ممبر ایرانی<br>واقعی',   'price' => '۱۸,۰۰۰' ],
+          [ 'icon' => 'iconpack/telegram.svg',        'name' => 'ممبر خارجی<br>ترکیبی',   'price' => '۲۲,۵۰۰' ],
+          [ 'icon' => 'custom/icon-stars.png',        'name' => 'ممبر کانال<br>فعال',     'price' => '۳۲,۰۰۰' ],
+          [ 'icon' => 'custom/icon-member-group.png', 'name' => 'ممبر گروه<br>تلگرام',    'price' => '۲۰,۰۰۰' ],
+          [ 'icon' => 'custom/icon-vip10k.png',       'name' => 'بسته VIP<br><span class="num">10K</span> ممبر', 'price' => '۱۹۵,۰۰۰' ],
+          [ 'icon' => 'custom/icon-premium.png',      'name' => 'ممبر فوری<br><span class="num">24</span> ساعته', 'price' => '۲۸,۰۰۰' ],
       ];
       foreach ( $member_types as $mt ) : ?>
         <a class="member-type-card" href="#plans" data-tab-jump="tg">

@@ -273,7 +273,7 @@ header {
 ══════════════════════════════════════════ */
 .hero {
   position: relative;
-  background: linear-gradient(135deg, #070a1a 0%, #0d1330 48%, #141244 100%);
+  background: linear-gradient(135deg, #070a18 0%, #0c1228 48%, #101a3a 100%);
   border-radius: var(--radius);
   overflow: hidden;
   margin: 20px 0;
@@ -286,7 +286,7 @@ header {
   content: '';
   position: absolute; inset: 0;
   background:
-    radial-gradient(600px 320px at 90% 10%, rgba(124,108,245,.18), transparent 60%),
+    radial-gradient(600px 320px at 90% 10%, rgba(76,147,247,.16), transparent 60%),
     radial-gradient(400px 300px at 5% 90%, rgba(0,153,221,.14), transparent 60%);
   pointer-events: none;
 }
@@ -644,8 +644,8 @@ header {
    PROMO BANNER (بنر تبلیغاتی)
 ══════════════════════════════════════════ */
 .promo-banner {
-  background: linear-gradient(120deg, #1a1236 0%, #2a1556 50%, #1e2060 100%);
-  border: 1px solid rgba(139,92,246,.2);
+  background: linear-gradient(120deg, #0e1428 0%, #172247 50%, #14284f 100%);
+  border: 1px solid rgba(76,147,247,.18);
   border-radius: var(--radius);
   padding: 32px 40px;
   display: flex;
@@ -764,13 +764,13 @@ header {
   position: absolute; inset: 0;
   pointer-events: none;
 }
-.page-hero.member  { background: linear-gradient(135deg,#0e1236 0%,#26256f 55%,#5b4fe0 130%); }
-.page-hero.account { background: linear-gradient(135deg,#0f0a2e 0%,#1e1060 55%,#7c3aed 130%); }
+.page-hero.member  { background: linear-gradient(135deg,#0b1226 0%,#152246 55%,#2b3f7d 130%); }
+.page-hero.account { background: linear-gradient(135deg,#0a1020 0%,#122045 55%,#22336b 130%); }
 .page-hero.virtual { background: linear-gradient(135deg,#0c1e3d 0%,#0e3570 55%,#0099dd 130%); }
 
 .page-hero.member::before {
   background:
-    radial-gradient(540px 280px at 85% 0%, rgba(124,108,245,.25), transparent 60%),
+    radial-gradient(540px 280px at 85% 0%, rgba(76,147,247,.20), transparent 60%),
     radial-gradient(420px 260px at 8% 100%, rgba(244,183,64,.14), transparent 60%);
 }
 .page-hero.account::before {
@@ -810,7 +810,7 @@ header {
   line-height: 1.35;
   margin-bottom: 12px;
 }
-.page-hero h1 span { color: var(--mint); }
+.page-hero h1 span { color: #8fb8ff; }
 .page-hero.account h1 span { color: #c4b5fd; }
 .page-hero.virtual h1 span { color: #7dd3fc; }
 .page-hero p {
@@ -897,7 +897,7 @@ header {
 .ps-ig  { background: linear-gradient(120deg,#833ab4,#fd1d1d 55%,#fcb045); }
 .ps-yt  { background: linear-gradient(120deg,#ff0000,#9c0000); }
 .ps-sc  { background: linear-gradient(120deg,#f97316,#c2410c); }
-.ps-sp  { background: linear-gradient(120deg,#1db954,#0d7a38); }
+.ps-sp  { background: linear-gradient(120deg,#242a44,#161a2e); }
 
 /* ══════════════════════════════════════════
    PLANS GRID (پکیج‌های قیمت)
@@ -1371,44 +1371,49 @@ footer ul li a:hover { color: var(--mint); }
    (international-grade refinement)
 ══════════════════════════════════════════ */
 
-/* — Featured cards: real banner feel with brand watermark — */
+/* — Featured cards: unified premium dark card, brand icon in a clean tile — */
 .feat-card {
-  min-height: 128px;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 6px 22px rgba(0,0,0,0.28);
-  isolation: isolate;
+  min-height: 96px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  position: relative;
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
-.feat-card::after {            /* subtle top sheen */
+.feat-card::before {                     /* subtle brand-tinted glow, very soft */
   content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(160deg, rgba(255,255,255,0.16) 0%, transparent 42%);
-  z-index: 1;
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(160px 120px at 12% 50%, var(--fc, rgba(124,108,245,.14)), transparent 70%);
   pointer-events: none;
 }
-.feat-card.tall { min-height: 268px; }
-.feat-bg-icon {
-  position: absolute;
-  left: -8px; top: 50%;
-  transform: translateY(-50%) rotate(-8deg);
-  width: 118px; height: 118px;
-  object-fit: contain;
-  opacity: 0.9;
-  filter: drop-shadow(0 12px 22px rgba(0,0,0,0.4));
-  z-index: 1;
-  transition: transform var(--transition);
+.feat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border2);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
 }
-.feat-card.tall .feat-bg-icon { width: 168px; height: 168px; }
-.feat-card:hover .feat-bg-icon { transform: translateY(-50%) rotate(-4deg) scale(1.06); }
-.feat-card-overlay {
-  background: linear-gradient(300deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.12) 55%, transparent 100%);
-  z-index: 2;
-  align-self: stretch;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+.feat-card.tall { min-height: 208px; flex-direction: column; justify-content: center; text-align: center; }
+/* brand icon tile */
+.feat-icon {
+  width: 54px; height: 54px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 2;
 }
-.feat-card-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-.feat-card-link  { font-weight: 600; }
+.feat-icon img { width: 34px; height: 34px; object-fit: contain; }
+.feat-card.tall .feat-icon { width: 76px; height: 76px; border-radius: 20px; }
+.feat-card.tall .feat-icon img { width: 48px; height: 48px; }
+.feat-text { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 3px; }
+.feat-card-title { font-size: 15px; font-weight: 800; letter-spacing: -0.2px; color: var(--text); }
+.feat-card-link  { font-size: 12.5px; font-weight: 600; color: var(--mint); }
 
 /* — Buttons: premium glow + smoother motion — */
 .btn-hero {
@@ -1453,7 +1458,7 @@ footer ul li a:hover { color: var(--mint); }
 
 /* — Promo banner: richer indigo — */
 .promo-banner {
-  background: linear-gradient(120deg, #141033 0%, #241a5c 50%, #1b2570 100%);
+  background: linear-gradient(120deg, #0e1428 0%, #172247 50%, #14284f 100%);
   border-color: rgba(124,108,245,0.22);
 }
 .promo-eyebrow { color: var(--mint-light); }
@@ -1475,7 +1480,7 @@ footer ul li a:hover { color: var(--mint); }
 }
 
 /* — Page hero: refined member title accent — */
-.page-hero.member h1 span { color: #b9b0ff; }
+.page-hero.member h1 span { color: #8fb8ff; }
 
 /* — Scrollbar (desktop) — */
 @media (min-width: 769px) {
@@ -1484,3 +1489,82 @@ footer ul li a:hover { color: var(--mint); }
   ::-webkit-scrollbar-thumb { background: #262b45; border-radius: 6px; border: 2px solid var(--bg); }
   ::-webkit-scrollbar-thumb:hover { background: #333a5c; }
 }
+
+/* ══════════════════════════════════════════
+   ✦ RESTRAINT LAYER — less indigo, cleaner ✦
+   (prices in clean white; indigo reserved for
+    primary CTAs & active states only)
+══════════════════════════════════════════ */
+
+/* Prices → clean bold white (was indigo) */
+.plan-price,
+.acc-price,
+.mtc-price,
+.price-table .price-val { color: var(--text); }
+.plan-price .orig { color: var(--text-dim); }
+
+/* Amounts stay white, unit muted — premium & neutral */
+.plan-amount { color: #fff; }
+
+/* Outline "add to cart" buttons → neutral, fill indigo only on hover */
+.plan-btn-default {
+  color: var(--text);
+  border-color: var(--border2);
+  background: transparent;
+}
+.plan-btn-default:hover {
+  background: var(--grad-primary);
+  border-color: transparent;
+  color: #fff;
+}
+.mtc-btn {
+  background: var(--bg3);
+  color: var(--text-2);
+  border-color: var(--border);
+}
+.price-table .buy-btn {
+  background: var(--bg3);
+  color: var(--text-2);
+  border-color: var(--border);
+}
+.price-table .buy-btn:hover { background: var(--grad-primary); color: #fff; border-color: transparent; }
+
+/* Section "see all" & scat/feat links → calm blue instead of indigo */
+.section-see-all {
+  color: var(--sky);
+  background: rgba(76,147,247,.10);
+  border-color: rgba(76,147,247,.20);
+}
+.section-see-all:hover { background: rgba(76,147,247,.18); }
+.scat-link { color: var(--sky); }
+.feat-card-link { color: var(--sky); }
+
+/* Member-type 3D icons: show full, no clipping, a touch bigger */
+.mtc-img { width: 54px; height: 54px; }
+.mtc-img img { width: 52px; height: 52px; border-radius: 0; }
+
+/* Member-type card hover → neutral lift (less indigo glow) */
+.member-type-card:hover {
+  border-color: var(--border2);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.4);
+}
+
+/* Popular plan → subtle, not a bright indigo wash */
+.plan-card.popular {
+  background: linear-gradient(180deg, rgba(124,108,245,.05) 0%, var(--card) 60%);
+  border-color: rgba(124,108,245,.4);
+}
+
+/* Trust/why icon tiles: keep neutral tints */
+.why-icon.g { background: rgba(76,147,247,.14); }
+
+/* Home hero: big accent text → blue (not indigo) */
+.hero h1 span { color: #7db3ff; }
+.hero-eyebrow { color: #9cc4ff; }
+.hero-trust .text-mint,
+.stat-val.mint,
+.text-mint { color: #7db3ff; }
+
+/* Keep the logo wordmark accent calm (blue) */
+.logo-text span { color: #7db3ff; }
+.nav-link.active { color: #cbd5f0; background: rgba(255,255,255,0.06); }
