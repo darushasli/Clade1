@@ -1,0 +1,95 @@
+/* UploadGram — panel & order form (matches theme; indigo accent) */
+.ug-panel, .ug-wallet-card, .ug-order-form, .ug-orders { font-family: 'Vazirmatn', sans-serif; direction: rtl; }
+
+.ug-notice {
+  background: rgba(124,108,245,.08);
+  border: 1px solid rgba(124,108,245,.2);
+  color: #cbd5f0;
+  border-radius: 12px;
+  padding: 16px 18px;
+  font-size: 14px;
+}
+.ug-notice a { color: #7db3ff; font-weight: 700; }
+
+/* Wallet card */
+.ug-wallet-card {
+  background: linear-gradient(135deg, #101a3a, #14172a);
+  border: 1px solid rgba(124,108,245,.22);
+  border-radius: 16px;
+  padding: 24px 26px;
+  color: #e9ebf4;
+}
+.ug-wallet-label { font-size: 13px; color: #9aa3b8; margin-bottom: 6px; }
+.ug-wallet-balance { font-size: 30px; font-weight: 900; font-family: 'Inter', sans-serif; color: #fff; margin-bottom: 16px; }
+
+/* Buttons */
+.ug-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 11px 22px; border-radius: 10px;
+  font-size: 14px; font-weight: 700; font-family: inherit;
+  cursor: pointer; border: none; transition: all .2s ease; text-decoration: none;
+}
+.ug-btn-primary {
+  background: linear-gradient(135deg, #5B8DEF, #7C6CF5);
+  color: #fff; box-shadow: 0 4px 16px rgba(124,108,245,.28);
+}
+.ug-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,108,245,.36); color:#fff; }
+.ug-btn.is-loading { opacity: .6; pointer-events: none; }
+
+/* Order form */
+.ug-order-form {
+  background: #14172a;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 16px;
+  padding: 22px;
+  display: flex; flex-direction: column; gap: 14px;
+  max-width: 460px;
+}
+.ug-field { display: flex; flex-direction: column; gap: 6px; }
+.ug-field span { font-size: 13px; color: #b4bcd0; font-weight: 600; }
+.ug-field input {
+  background: #171a2c; border: 1px solid rgba(255,255,255,.1);
+  border-radius: 9px; color: #e9ebf4; padding: 11px 14px;
+  font-family: inherit; font-size: 14px; direction: ltr; text-align: right;
+}
+.ug-field input:focus { outline: none; border-color: #7C6CF5; }
+.ug-hint { font-size: 12px; color: #7d879e; }
+
+.ug-price-row {
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid rgba(255,255,255,.07); padding-top: 14px;
+  font-size: 14px; color: #b4bcd0;
+}
+.ug-calc-price { color: #fff; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 17px; }
+
+.ug-form-msg { font-size: 13.5px; border-radius: 9px; padding: 10px 14px; }
+.ug-form-msg.is-error   { background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+.ug-form-msg.is-success { background: rgba(52,211,153,.12); color: #6ee7b7; border: 1px solid rgba(52,211,153,.25); }
+
+.ug-otp-box { background:#0f1220; border:1px dashed rgba(124,108,245,.4); border-radius:10px; padding:14px; color:#e9ebf4; font-size:14px; }
+.ug-otp-box code, .ug-otp { font-family: 'Inter', monospace; font-size: 18px; font-weight: 800; color: #7db3ff; letter-spacing: 1px; }
+.ug-otp-wait { color: #9aa3b8; font-size: 13px; }
+
+/* Orders table */
+.ug-orders-table { width: 100%; border-collapse: collapse; background: #14172a; border: 1px solid rgba(255,255,255,.07); border-radius: 14px; overflow: hidden; font-size: 13.5px; }
+.ug-orders-table th { background: #171a2c; color: #7d879e; font-weight: 700; padding: 12px 14px; text-align: right; font-size: 12px; }
+.ug-orders-table td { padding: 12px 14px; border-top: 1px solid rgba(255,255,255,.06); color: #b4bcd0; }
+.ug-orders-table .num { font-family: 'Inter', sans-serif; }
+.ug-orders-table code { background:#0f1220; padding:2px 8px; border-radius:6px; color:#7db3ff; font-family:'Inter',monospace; }
+
+.ug-status { padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; }
+.ug-status-completed   { background: rgba(52,211,153,.15); color: #6ee7b7; }
+.ug-status-processing,
+.ug-status-pending,
+.ug-status-awaiting_otp{ background: rgba(76,147,247,.15); color: #93c5fd; }
+.ug-status-partial     { background: rgba(244,183,64,.15); color: #fcd34d; }
+.ug-status-failed,
+.ug-status-canceled    { background: rgba(239,68,68,.15); color: #fca5a5; }
+.ug-status-refunded    { background: rgba(148,163,184,.15); color: #cbd5e1; }
+
+.ug-panel-title { color: #e9ebf4; font-size: 18px; font-weight: 800; margin: 24px 0 14px; }
+.ug-panel-head { margin-bottom: 8px; }
+
+@media (max-width: 600px) {
+  .ug-orders-table { display: block; overflow-x: auto; white-space: nowrap; }
+}
