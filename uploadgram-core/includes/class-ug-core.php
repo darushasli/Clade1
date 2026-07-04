@@ -67,6 +67,7 @@ class UG_Core {
         new UG_Ajax( $this->dispatcher, $this->wallet, $this->orders, $this->settings, $this->otp, $this->auth, $this->google );
         new UG_Cron( $this->dispatcher, $this->orders, $this->wallet );
         new UG_Panel( $this->wallet, $this->orders, $this->settings, $this->auth );
+        new UG_Shortcodes();
 
         add_action( 'init', [ $this, 'load_textdomain' ] );
     }

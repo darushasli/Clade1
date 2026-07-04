@@ -1032,7 +1032,7 @@ header {
   font-size: 36px;
   font-weight: 900;
   font-family: 'Inter', sans-serif;
-  color: #fff;
+  color: var(--text);
   line-height: 1;
 }
 .plan-unit { font-size: 13px; color: var(--text-muted); }
@@ -1594,8 +1594,8 @@ footer ul li a:hover { color: var(--mint); }
 .price-table .price-val { color: var(--text); }
 .plan-price .orig { color: var(--text-dim); }
 
-/* Amounts stay white, unit muted — premium & neutral */
-.plan-amount { color: #fff; }
+/* Amounts follow theme text color (dark on light, light on dark) */
+.plan-amount { color: var(--text); }
 
 /* Outline "add to cart" buttons → neutral, fill indigo only on hover */
 .plan-btn-default {
