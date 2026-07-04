@@ -36,11 +36,42 @@ class UG_Ajax {
         add_action( 'wp_ajax_ug_update_profile', [ $this, 'update_profile' ] );
         add_action( 'wp_ajax_nopriv_ug_register', [ $this, 'register' ] );
         add_action( 'wp_ajax_nopriv_ug_login', [ $this, 'login' ] );
+        add_action( 'wp_ajax_nopriv_ug_check_phone', [ $this, 'check_phone' ] );
         add_action( 'wp_ajax_nopriv_ug_send_otp', [ $this, 'send_otp' ] );
         add_action( 'wp_ajax_ug_send_otp', [ $this, 'send_otp' ] );
         add_action( 'wp_ajax_nopriv_ug_verify_otp_register', [ $this, 'verify_otp_register' ] );
         add_action( 'wp_ajax_nopriv_ug_verify_otp_login', [ $this, 'verify_otp_login' ] );
         add_action( 'wp_ajax_nopriv_ug_google_signin', [ $this, 'google_signin' ] );
+    }
+
+    /* ── Detect if a phone belongs to an existing user ── */
+
+    public function check_phone(): void {
+        check_ajax_referer( 'ug_front', 'nonce' );
+        $phone = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+        $phone = UG_Otp::normalize_phone( $phone );
+
+        if ( ! UG_Otp::is_valid_phone( $phone ) ) {
+            wp_send_json_error( [ 'message' => 'شماره موبایل معتبر نیست.' ], 400 );
+        }
+
+        $users  = get_users( [ 'meta_key' => '_ug_phone', 'meta_value' => $phone, 'number' => 1, 'fields' => 'ID' ] );
+        $exists = ! empty( $users );
+
+        // Does the existing user have a usable password? (phone-only accounts may not.)
+        $has_password = false;
+        if ( $exists ) {
+            $u = get_userdata( (int) $users[0] );
+            // Accounts created via phone get a random password, so password login
+            // is always technically possible; expose the option regardless.
+            $has_password = (bool) $u;
+        }
+
+        wp_send_json_success( [
+            'exists'       => $exists,
+            'has_password' => $has_password,
+            'phone'        => $phone,
+        ] );
     }
 
     /* ── OTP: send code ─────────────── */
@@ -279,6 +310,15 @@ class UG_Ajax {
         if ( is_email( $login ) ) {
             $user  = get_user_by( 'email', $login );
             $login = $user ? $user->user_login : $login;
+        } else {
+            // Maybe it's a phone number → resolve to username.
+            $maybe_phone = UG_Otp::normalize_phone( $login );
+            if ( UG_Otp::is_valid_phone( $maybe_phone ) ) {
+                $users = get_users( [ 'meta_key' => '_ug_phone', 'meta_value' => $maybe_phone, 'number' => 1, 'fields' => 'ID' ] );
+                if ( ! empty( $users ) ) {
+                    $login = get_userdata( (int) $users[0] )->user_login;
+                }
+            }
         }
 
         $signon = wp_signon( [ 'user_login' => $login, 'user_password' => $pass, 'remember' => true ], is_ssl() );

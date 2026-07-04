@@ -197,3 +197,33 @@
     animateCounters();
   });
 })();
+
+/* ══ Theme toggle (light/dark) + Language menu ══ */
+(function () {
+  'use strict';
+  var root = document.documentElement;
+
+  // Theme toggle
+  var toggle = document.getElementById('ug-theme-toggle');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var cur = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      var next = cur === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('ug-theme', next); } catch (e) {}
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) { meta.setAttribute('content', next === 'dark' ? '#0b0d17' : '#ffffff'); }
+    });
+  }
+
+  // Language dropdown open/close
+  var lang = document.getElementById('ug-lang-switch');
+  if (lang) {
+    var btn = lang.querySelector('.lang-current');
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      lang.classList.toggle('open');
+    });
+    document.addEventListener('click', function () { lang.classList.remove('open'); });
+  }
+})();

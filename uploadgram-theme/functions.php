@@ -5,12 +5,112 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'UG_VERSION', '1.0.0' );
+define( 'UG_VERSION', '1.1.0' );
 define( 'UG_DIR',     get_template_directory() );
 define( 'UG_URI',     get_template_directory_uri() );
 
 /* Auto page/menu setup on activation */
 require_once UG_DIR . '/inc/setup-pages.php';
+
+/* ══════════════════════════════════════════
+   Multi-language (UI switcher)
+   Persian default + 5 international languages.
+   Deep content translation → use Polylang; this
+   handles the theme's own chrome + <html dir/lang>.
+══════════════════════════════════════════ */
+
+/**
+ * Supported languages.
+ */
+function ug_languages() {
+    return [
+        'fa' => [ 'name' => 'فارسی',    'flag' => '🇮🇷', 'dir' => 'rtl', 'locale' => 'fa_IR' ],
+        'en' => [ 'name' => 'English',  'flag' => '🇬🇧', 'dir' => 'ltr', 'locale' => 'en_US' ],
+        'ar' => [ 'name' => 'العربية',  'flag' => '🇸🇦', 'dir' => 'rtl', 'locale' => 'ar' ],
+        'tr' => [ 'name' => 'Türkçe',   'flag' => '🇹🇷', 'dir' => 'ltr', 'locale' => 'tr_TR' ],
+        'ru' => [ 'name' => 'Русский',  'flag' => '🇷🇺', 'dir' => 'ltr', 'locale' => 'ru_RU' ],
+        'es' => [ 'name' => 'Español',  'flag' => '🇪🇸', 'dir' => 'ltr', 'locale' => 'es_ES' ],
+    ];
+}
+
+/**
+ * Current language code — from ?lang= (sets cookie) or cookie, default fa.
+ */
+function ug_current_lang() {
+    static $lang = null;
+    if ( null !== $lang ) {
+        return $lang;
+    }
+    $langs = ug_languages();
+
+    if ( isset( $_GET['lang'] ) && isset( $langs[ sanitize_key( $_GET['lang'] ) ] ) ) {
+        $lang = sanitize_key( $_GET['lang'] );
+        if ( ! headers_sent() ) {
+            setcookie( 'ug_lang', $lang, time() + YEAR_IN_SECONDS, COOKIEPATH ?: '/', COOKIE_DOMAIN );
+        }
+        return $lang;
+    }
+    if ( isset( $_COOKIE['ug_lang'] ) && isset( $langs[ sanitize_key( $_COOKIE['ug_lang'] ) ] ) ) {
+        $lang = sanitize_key( $_COOKIE['ug_lang'] );
+        return $lang;
+    }
+    $lang = 'fa';
+    return $lang;
+}
+
+function ug_dir() {
+    $langs = ug_languages();
+    return $langs[ ug_current_lang() ]['dir'] ?? 'rtl';
+}
+
+function ug_lang_flag( $code ) {
+    $langs = ug_languages();
+    return $langs[ $code ]['flag'] ?? '🌐';
+}
+
+/**
+ * Switch WordPress locale to the chosen language.
+ */
+add_filter( 'locale', function ( $locale ) {
+    if ( is_admin() ) {
+        return $locale;
+    }
+    $langs = ug_languages();
+    $cur   = ug_current_lang();
+    return $langs[ $cur ]['locale'] ?? $locale;
+} );
+
+/**
+ * Theme UI string dictionary (chrome only). Deep content → Polylang.
+ */
+function ug_strings() {
+    return [
+        'search_ph'    => [ 'fa' => 'جستجو در خدمات...', 'en' => 'Search services...', 'ar' => 'ابحث في الخدمات...', 'tr' => 'Hizmetlerde ara...', 'ru' => 'Поиск услуг...', 'es' => 'Buscar servicios...' ],
+        'login'        => [ 'fa' => 'ورود', 'en' => 'Login', 'ar' => 'دخول', 'tr' => 'Giriş', 'ru' => 'Вход', 'es' => 'Entrar' ],
+        'signup'       => [ 'fa' => 'ثبت‌نام', 'en' => 'Sign up', 'ar' => 'تسجيل', 'tr' => 'Kayıt ol', 'ru' => 'Регистрация', 'es' => 'Registrarse' ],
+        'panel'        => [ 'fa' => 'پنل', 'en' => 'Panel', 'ar' => 'اللوحة', 'tr' => 'Panel', 'ru' => 'Панель', 'es' => 'Panel' ],
+        'wallet'       => [ 'fa' => 'کیف پول', 'en' => 'Wallet', 'ar' => 'المحفظة', 'tr' => 'Cüzdan', 'ru' => 'Кошелёк', 'es' => 'Cartera' ],
+        'nav_home'     => [ 'fa' => 'خانه', 'en' => 'Home', 'ar' => 'الرئيسية', 'tr' => 'Anasayfa', 'ru' => 'Главная', 'es' => 'Inicio' ],
+        'nav_member'   => [ 'fa' => 'خرید ممبر', 'en' => 'Buy Members', 'ar' => 'شراء أعضاء', 'tr' => 'Üye Al', 'ru' => 'Купить подписчиков', 'es' => 'Comprar miembros' ],
+        'nav_account'  => [ 'fa' => 'اکانت پرمیوم', 'en' => 'Premium Accounts', 'ar' => 'حسابات بريميوم', 'tr' => 'Premium Hesap', 'ru' => 'Премиум аккаунты', 'es' => 'Cuentas premium' ],
+        'nav_number'   => [ 'fa' => 'شماره مجازی', 'en' => 'Virtual Number', 'ar' => 'رقم افتراضي', 'tr' => 'Sanal Numara', 'ru' => 'Виртуальный номер', 'es' => 'Número virtual' ],
+        'nav_stars'    => [ 'fa' => 'استارز', 'en' => 'Stars', 'ar' => 'ستارز', 'tr' => 'Stars', 'ru' => 'Stars', 'es' => 'Stars' ],
+        'nav_discount' => [ 'fa' => 'تخفیف‌ها', 'en' => 'Discounts', 'ar' => 'خصومات', 'tr' => 'İndirimler', 'ru' => 'Скидки', 'es' => 'Descuentos' ],
+        'nav_contact'  => [ 'fa' => 'تماس با ما', 'en' => 'Contact', 'ar' => 'اتصل بنا', 'tr' => 'İletişim', 'ru' => 'Контакты', 'es' => 'Contacto' ],
+    ];
+}
+
+/**
+ * Translate a chrome key to the current language.
+ */
+function ug_t( $key ) {
+    $strings = ug_strings();
+    $lang    = ug_current_lang();
+    if ( isset( $strings[ $key ][ $lang ] ) ) {
+        return $strings[ $key ][ $lang ];
+    }
+    return $strings[ $key ]['fa'] ?? $key;
+}
 
 /* ══════════════════════════════════════════
    Theme Setup
@@ -263,13 +363,13 @@ function ug_primary_nav_fallback() {
     }
 
     $links = [
-        [ 'label' => 'خانه',         'url' => home_url( '/' ),                'slug' => 'home' ],
-        [ 'label' => 'خرید ممبر',    'url' => home_url( '/member/' ),         'slug' => 'member' ],
-        [ 'label' => 'اکانت پرمیوم', 'url' => home_url( '/account/' ),        'slug' => 'account' ],
-        [ 'label' => 'شماره مجازی',  'url' => home_url( '/virtual-number/' ), 'slug' => 'virtual-number' ],
-        [ 'label' => 'استارز',       'url' => '#',                            'slug' => '' ],
-        [ 'label' => 'تخفیف‌ها',     'url' => '#',                            'slug' => '' ],
-        [ 'label' => 'تماس با ما',   'url' => home_url( '/contact/' ),        'slug' => 'contact' ],
+        [ 'label' => ug_t( 'nav_home' ),     'url' => home_url( '/' ),                'slug' => 'home' ],
+        [ 'label' => ug_t( 'nav_member' ),   'url' => home_url( '/member/' ),         'slug' => 'member' ],
+        [ 'label' => ug_t( 'nav_account' ),  'url' => home_url( '/account/' ),        'slug' => 'account' ],
+        [ 'label' => ug_t( 'nav_number' ),   'url' => home_url( '/virtual-number/' ), 'slug' => 'virtual-number' ],
+        [ 'label' => ug_t( 'nav_stars' ),    'url' => '#',                            'slug' => '' ],
+        [ 'label' => ug_t( 'nav_discount' ), 'url' => '#',                            'slug' => '' ],
+        [ 'label' => ug_t( 'nav_contact' ),  'url' => home_url( '/contact/' ),        'slug' => 'contact' ],
     ];
 
     foreach ( $links as $l ) {

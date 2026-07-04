@@ -418,93 +418,88 @@ class UG_Panel {
 
         ob_start();
         ?>
-        <div class="ug-auth-card">
-            <div class="ug-auth-tabs">
-                <button type="button" class="ug-auth-tab active" data-tab="login">ورود</button>
-                <button type="button" class="ug-auth-tab" data-tab="register">ثبت‌نام</button>
+        <div class="ug-auth-card" id="ug-auth">
+            <div class="ug-auth-head">
+                <div class="ug-auth-logo">آپلود<span>گرام</span></div>
+                <div class="ug-auth-sub" id="ug-auth-sub">ورود یا ثبت‌نام با شماره موبایل</div>
             </div>
 
             <?php if ( $client_id ) : ?>
-                <div class="ug-google-wrap">
-                    <div id="ug-google-btn"
-                         data-client-id="<?php echo $client_id; ?>"></div>
-                </div>
+                <div class="ug-google-wrap"><div id="ug-google-btn" data-client-id="<?php echo $client_id; ?>"></div></div>
                 <div class="ug-auth-divider"><span>یا</span></div>
             <?php endif; ?>
 
-            <!-- ═══ LOGIN ═══ -->
-            <div class="ug-auth-body" data-body="login">
-                <div class="ug-auth-subtabs">
-                    <button type="button" class="ug-auth-subtab active" data-subtab="phone">با شماره موبایل</button>
-                    <button type="button" class="ug-auth-subtab" data-subtab="email">با ایمیل و رمز</button>
+            <!-- STEP 1 — phone -->
+            <form class="ug-auth-form" data-step="phone">
+                <label class="ug-field">
+                    <span>شماره موبایل</span>
+                    <input type="tel" name="phone" placeholder="09xxxxxxxxx" required inputmode="numeric" maxlength="11" autocomplete="tel">
+                </label>
+                <button type="submit" class="ug-btn ug-btn-primary">ادامه</button>
+                <div class="ug-form-msg" style="display:none;"></div>
+            </form>
+
+            <!-- STEP 2a — existing user: choose method -->
+            <div class="ug-auth-step" data-step="choose" style="display:none;">
+                <div class="ug-auth-phone-badge"><span class="ug-auth-phone"></span> <button type="button" class="ug-auth-edit">تغییر</button></div>
+                <div class="ug-method-grid">
+                    <button type="button" class="ug-btn ug-btn-primary ug-method" data-method="otp">ورود با کد پیامکی</button>
+                    <button type="button" class="ug-btn ug-btn-secondary ug-method" data-method="password">ورود با رمز عبور</button>
                 </div>
-
-                <!-- login by phone -->
-                <form class="ug-auth-form" data-form="login-phone">
-                    <label class="ug-field">
-                        <span>شماره موبایل</span>
-                        <input type="tel" name="phone" placeholder="09xxxxxxxxx" required inputmode="numeric" maxlength="11">
-                    </label>
-                    <button type="button" class="ug-btn ug-btn-secondary ug-send-otp" data-purpose="login">ارسال کد تایید</button>
-
-                    <label class="ug-field ug-code-field" style="display:none;">
-                        <span>کد ۶ رقمی</span>
-                        <input type="text" name="code" inputmode="numeric" maxlength="6" placeholder="------">
-                    </label>
-                    <button type="submit" class="ug-btn ug-btn-primary" style="display:none;">ورود</button>
-                    <div class="ug-form-msg" style="display:none;"></div>
-                </form>
-
-                <!-- login by email -->
-                <form class="ug-auth-form" data-form="login-email" style="display:none;">
-                    <label class="ug-field">
-                        <span>ایمیل یا نام کاربری</span>
-                        <input type="text" name="login" autocomplete="username" required>
-                    </label>
-                    <label class="ug-field">
-                        <span>رمز عبور</span>
-                        <input type="password" name="password" autocomplete="current-password" required>
-                    </label>
-                    <button type="submit" class="ug-btn ug-btn-primary">ورود</button>
-                    <div class="ug-form-msg" style="display:none;"></div>
-                </form>
             </div>
 
-            <!-- ═══ REGISTER ═══ -->
-            <div class="ug-auth-body" data-body="register" style="display:none;">
-                <form class="ug-auth-form" data-form="register">
-                    <label class="ug-field">
-                        <span>نام و نام‌خانوادگی</span>
-                        <input type="text" name="name" required>
-                    </label>
-                    <label class="ug-field">
-                        <span>ایمیل</span>
-                        <input type="email" name="email" autocomplete="email" required>
-                    </label>
-                    <label class="ug-field">
-                        <span>رمز عبور (حداقل ۶ کاراکتر)</span>
-                        <input type="password" name="password" autocomplete="new-password" minlength="6" required>
-                    </label>
-                    <label class="ug-field">
-                        <span>شماره موبایل</span>
-                        <input type="tel" name="phone" placeholder="09xxxxxxxxx" required inputmode="numeric" maxlength="11">
-                    </label>
-                    <button type="button" class="ug-btn ug-btn-secondary ug-send-otp" data-purpose="register">ارسال کد به موبایل</button>
+            <!-- STEP 2b — existing user: OTP login -->
+            <form class="ug-auth-form" data-step="login-otp" style="display:none;">
+                <div class="ug-auth-phone-badge"><span class="ug-auth-phone"></span> <button type="button" class="ug-auth-edit">تغییر</button></div>
+                <label class="ug-field ug-code-field">
+                    <span>کد ۶ رقمی پیامک‌شده</span>
+                    <input type="text" name="code" inputmode="numeric" maxlength="6" placeholder="------">
+                </label>
+                <button type="button" class="ug-btn ug-btn-secondary ug-resend" data-purpose="login">ارسال مجدد کد</button>
+                <button type="submit" class="ug-btn ug-btn-primary">ورود</button>
+                <div class="ug-form-msg" style="display:none;"></div>
+            </form>
 
-                    <label class="ug-field ug-code-field" style="display:none;">
-                        <span>کد ۶ رقمی ارسال‌شده</span>
-                        <input type="text" name="code" inputmode="numeric" maxlength="6" placeholder="------">
-                    </label>
+            <!-- STEP 2c — existing user: password login -->
+            <form class="ug-auth-form" data-step="login-password" style="display:none;">
+                <div class="ug-auth-phone-badge"><span class="ug-auth-phone"></span> <button type="button" class="ug-auth-edit">تغییر</button></div>
+                <input type="hidden" name="login" value="">
+                <label class="ug-field">
+                    <span>رمز عبور</span>
+                    <input type="password" name="password" autocomplete="current-password" placeholder="رمز عبور شما">
+                </label>
+                <button type="button" class="ug-btn ug-btn-secondary ug-switch-otp">فراموشی رمز؟ ورود با کد پیامکی</button>
+                <button type="submit" class="ug-btn ug-btn-primary">ورود</button>
+                <div class="ug-form-msg" style="display:none;"></div>
+            </form>
 
-                    <label class="ug-terms">
-                        <input type="checkbox" name="terms" required>
-                        <span><a href="<?php echo $terms_url; ?>" target="_blank">قوانین و شرایط استفاده</a> را می‌پذیرم</span>
-                    </label>
-
-                    <button type="submit" class="ug-btn ug-btn-primary" style="display:none;">ثبت‌نام و ورود</button>
-                    <div class="ug-form-msg" style="display:none;"></div>
-                </form>
-            </div>
+            <!-- STEP 3 — new user: register -->
+            <form class="ug-auth-form" data-step="register" style="display:none;">
+                <div class="ug-auth-phone-badge"><span class="ug-auth-phone"></span> <button type="button" class="ug-auth-edit">تغییر</button></div>
+                <label class="ug-field">
+                    <span>نام و نام‌خانوادگی</span>
+                    <input type="text" name="name" autocomplete="name">
+                </label>
+                <label class="ug-field">
+                    <span>ایمیل</span>
+                    <input type="email" name="email" autocomplete="email">
+                </label>
+                <label class="ug-field">
+                    <span>رمز عبور (حداقل ۶ کاراکتر)</span>
+                    <input type="password" name="password" autocomplete="new-password" minlength="6">
+                </label>
+                <label class="ug-field ug-code-field">
+                    <span>کد ۶ رقمی پیامک‌شده</span>
+                    <input type="text" name="code" inputmode="numeric" maxlength="6" placeholder="------">
+                </label>
+                <button type="button" class="ug-btn ug-btn-secondary ug-resend" data-purpose="register">ارسال مجدد کد</button>
+                <label class="ug-terms">
+                    <input type="checkbox" name="terms">
+                    <span><a href="<?php echo $terms_url; ?>" target="_blank">قوانین و شرایط استفاده</a> را می‌پذیرم</span>
+                </label>
+                <button type="submit" class="ug-btn ug-btn-primary">تکمیل ثبت‌نام</button>
+                <div class="ug-form-msg" style="display:none;"></div>
+            </form>
         </div>
         <?php
         return ob_get_clean();

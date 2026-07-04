@@ -1,223 +1,170 @@
-/* UploadGram — auth card interactions (SMS OTP, email/pass, Google) */
+/* UploadGram — unified phone-first auth flow */
 (function ($) {
   'use strict';
 
-  var $card = $('.ug-auth-card');
+  var $card = $('#ug-auth');
   if ($card.length === 0) { return; }
 
-  /* ── main tabs (Login / Register) ── */
-  $card.on('click', '.ug-auth-tab', function () {
-    var tab = $(this).data('tab');
-    $card.find('.ug-auth-tab').removeClass('active');
-    $(this).addClass('active');
-    $card.find('.ug-auth-body').hide();
-    $card.find('.ug-auth-body[data-body="' + tab + '"]').show();
-  });
+  var phone = '';
 
-  /* ── sub-tabs (login phone / email) ── */
-  $card.on('click', '.ug-auth-subtab', function () {
-    var s = $(this).data('subtab');
-    $card.find('.ug-auth-subtab').removeClass('active');
-    $(this).addClass('active');
-    if (s === 'phone') {
-      $card.find('[data-form="login-phone"]').show();
-      $card.find('[data-form="login-email"]').hide();
-    } else {
-      $card.find('[data-form="login-phone"]').hide();
-      $card.find('[data-form="login-email"]').show();
-    }
-  });
+  function post(action, data) {
+    data = data || {};
+    data.action = action;
+    data.nonce = ugPanel.nonce;
+    return $.post(ugPanel.ajaxUrl, data);
+  }
 
-  /* ── send OTP ── */
-  $card.on('click', '.ug-send-otp', function () {
-    var $btn  = $(this);
-    var $form = $btn.closest('form');
-    var $phone = $form.find('input[name="phone"]');
-    var phone  = ($phone.val() || '').trim();
-    var purpose = $btn.data('purpose') || 'login';
-    var $msg = $form.find('.ug-form-msg').hide().removeClass('is-error is-success');
+  function showStep(step) {
+    $card.find('[data-step]').hide();
+    $card.find('[data-step="' + step + '"]').show();
+    var subs = {
+      'phone': 'ورود یا ثبت‌نام با شماره موبایل',
+      'choose': 'خوش آمدید! روش ورود را انتخاب کنید',
+      'login-otp': 'کد پیامک‌شده را وارد کنید',
+      'login-password': 'رمز عبور خود را وارد کنید',
+      'register': 'تکمیل ثبت‌نام — کد برایتان ارسال شد'
+    };
+    $('#ug-auth-sub').text(subs[step] || '');
+    $card.find('.ug-auth-phone').text(phone);
+    $card.find('input[name="login"]').val(phone);
+  }
 
-    if (!/^09\d{9}$/.test(phone)) {
-      $msg.addClass('is-error').text('شماره موبایل نامعتبر است.').show();
-      return;
-    }
+  function msg($form, text, type) {
+    $form.find('.ug-form-msg').removeClass('is-error is-success').addClass(type).text(text).show();
+  }
+  function busy($btn, on) { $btn.prop('disabled', on).toggleClass('is-loading', on); }
 
-    $btn.prop('disabled', true).addClass('is-loading').text('در حال ارسال…');
+  function redirect(res) {
+    if (res && res.success) { window.location.href = res.data.redirect || ugPanel.panelUrl; return true; }
+    return false;
+  }
+  function errText(x) { try { return JSON.parse(x.responseText).data.message; } catch (e) { return 'خطا'; } }
 
-    $.post(ugPanel.ajaxUrl, {
-      action: 'ug_send_otp',
-      nonce: ugPanel.nonce,
-      phone: phone,
-      purpose: purpose
-    }).done(function (res) {
-      if (res && res.success) {
-        $msg.addClass('is-success').text('کد به شماره ' + phone + ' ارسال شد.').show();
-        $form.find('.ug-code-field').show();
-        $form.find('button[type="submit"]').show();
-        startCountdown($btn, res.data.wait || 60);
-      } else {
-        var m = (res && res.data && res.data.message) ? res.data.message : 'خطا در ارسال';
-        $msg.addClass('is-error').text(m).show();
-        $btn.prop('disabled', false).removeClass('is-loading').text('ارسال کد تایید');
-      }
-    }).fail(function (x) {
-      var m = 'خطا در ارسال کد.';
-      try { m = JSON.parse(x.responseText).data.message; } catch (e) {}
-      $msg.addClass('is-error').text(m).show();
-      $btn.prop('disabled', false).removeClass('is-loading').text('ارسال کد تایید');
-    });
-  });
-
-  function startCountdown($btn, seconds) {
-    var s = parseInt(seconds, 10) || 60;
+  function countdown($btn, seconds) {
+    var s = seconds || 60;
     var label = $btn.data('label') || $btn.text();
     $btn.data('label', label);
+    busy($btn, true);
     var iv = setInterval(function () {
-      s -= 1;
-      if (s <= 0) {
-        clearInterval(iv);
-        $btn.prop('disabled', false).removeClass('is-loading').text('ارسال مجدد کد');
-      } else {
-        $btn.text('ارسال مجدد در ' + s + ' ثانیه');
-      }
+      s--;
+      if (s <= 0) { clearInterval(iv); busy($btn, false); $btn.text(label); }
+      else { $btn.text('ارسال مجدد در ' + s + ' ثانیه'); }
     }, 1000);
   }
 
-  /* ── login by phone (OTP verify) ── */
-  $card.on('submit', '[data-form="login-phone"]', function (e) {
-    e.preventDefault();
-    var $form = $(this);
-    var phone = $form.find('input[name="phone"]').val();
-    var code  = $form.find('input[name="code"]').val();
-    var $msg  = $form.find('.ug-form-msg').hide().removeClass('is-error is-success');
-    var $btn  = $form.find('button[type="submit"]').prop('disabled', true).addClass('is-loading');
-
-    $.post(ugPanel.ajaxUrl, {
-      action: 'ug_verify_otp_login',
-      nonce: ugPanel.nonce,
-      phone: phone,
-      code: code
-    }).done(function (res) {
-      if (res && res.success) {
-        $msg.addClass('is-success').text(res.data.message).show();
-        setTimeout(function () { window.location.href = res.data.redirect || ugPanel.panelUrl; }, 500);
-      } else {
-        $msg.addClass('is-error').text(res.data.message || 'خطا').show();
-        $btn.prop('disabled', false).removeClass('is-loading');
-      }
-    }).fail(function (x) {
-      var m = 'خطا در ورود'; try { m = JSON.parse(x.responseText).data.message; } catch(e){}
-      $msg.addClass('is-error').text(m).show();
-      $btn.prop('disabled', false).removeClass('is-loading');
-    });
-  });
-
-  /* ── login by email/pass ── */
-  $card.on('submit', '[data-form="login-email"]', function (e) {
-    e.preventDefault();
-    var $form = $(this);
-    var $msg  = $form.find('.ug-form-msg').hide().removeClass('is-error is-success');
-    var $btn  = $form.find('button[type="submit"]').prop('disabled', true).addClass('is-loading');
-
-    $.post(ugPanel.ajaxUrl, {
-      action: 'ug_login',
-      nonce: ugPanel.nonce,
-      login: $form.find('input[name="login"]').val(),
-      password: $form.find('input[name="password"]').val()
-    }).done(function (res) {
-      if (res && res.success) {
-        window.location.href = res.data.redirect || ugPanel.panelUrl;
-      } else {
-        $msg.addClass('is-error').text(res.data.message || 'خطا').show();
-        $btn.prop('disabled', false).removeClass('is-loading');
-      }
-    }).fail(function (x) {
-      var m = 'خطا در ورود'; try { m = JSON.parse(x.responseText).data.message; } catch(e){}
-      $msg.addClass('is-error').text(m).show();
-      $btn.prop('disabled', false).removeClass('is-loading');
-    });
-  });
-
-  /* ── register (phone + code + full profile) ── */
-  $card.on('submit', '[data-form="register"]', function (e) {
-    e.preventDefault();
-    var $form = $(this);
-    var $msg  = $form.find('.ug-form-msg').hide().removeClass('is-error is-success');
-    var $btn  = $form.find('button[type="submit"]').prop('disabled', true).addClass('is-loading');
-
-    if (!$form.find('input[name="terms"]').is(':checked')) {
-      $msg.addClass('is-error').text('پذیرش قوانین الزامی است.').show();
-      $btn.prop('disabled', false).removeClass('is-loading');
-      return;
-    }
-
-    $.post(ugPanel.ajaxUrl, {
-      action:   'ug_verify_otp_register',
-      nonce:    ugPanel.nonce,
-      name:     $form.find('input[name="name"]').val(),
-      email:    $form.find('input[name="email"]').val(),
-      password: $form.find('input[name="password"]').val(),
-      phone:    $form.find('input[name="phone"]').val(),
-      code:     $form.find('input[name="code"]').val(),
-      terms:    $form.find('input[name="terms"]').is(':checked') ? 1 : 0
-    }).done(function (res) {
-      if (res && res.success) {
-        $msg.addClass('is-success').text(res.data.message).show();
-        setTimeout(function () { window.location.href = res.data.redirect || ugPanel.panelUrl; }, 600);
-      } else {
-        $msg.addClass('is-error').text(res.data.message || 'خطا').show();
-        $btn.prop('disabled', false).removeClass('is-loading');
-      }
-    }).fail(function (x) {
-      var m = 'خطا در ثبت‌نام'; try { m = JSON.parse(x.responseText).data.message; } catch(e){}
-      $msg.addClass('is-error').text(m).show();
-      $btn.prop('disabled', false).removeClass('is-loading');
-    });
-  });
-
-  /* ── Google Sign-In ── */
-  window.ugGoogleCallback = function (response) {
-    if (!response || !response.credential) { return; }
-    $.post(ugPanel.ajaxUrl, {
-      action: 'ug_google_signin',
-      nonce: ugPanel.nonce,
-      credential: response.credential
-    }).done(function (res) {
-      if (res && res.success) {
-        window.location.href = res.data.redirect || ugPanel.panelUrl;
-      } else {
-        alert((res && res.data && res.data.message) || 'ورود با گوگل ناموفق بود.');
-      }
-    });
-  };
-
-  function initGoogle() {
-    var $slot = $('#ug-google-btn');
-    if ($slot.length === 0) { return; }
-    var clientId = $slot.data('client-id') || ugPanel.googleClientId;
-    if (!clientId || !window.google || !window.google.accounts) { return; }
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback:  window.ugGoogleCallback,
-      ux_mode:   'popup',
-      auto_select: false
-    });
-    window.google.accounts.id.renderButton($slot[0], {
-      theme: 'filled_black',
-      size:  'large',
-      shape: 'pill',
-      text:  'signin_with',
-      locale: 'fa',
-      width: 300
+  function sendOtp(purpose, $btn) {
+    if ($btn) { busy($btn, true); }
+    return post('ug_send_otp', { phone: phone, purpose: purpose }).done(function (res) {
+      if ($btn) { busy($btn, false); if (res && res.success) { countdown($btn, res.data.wait || 60); } }
     });
   }
 
-  var giTimer = setInterval(function () {
-    if (window.google && window.google.accounts) {
-      clearInterval(giTimer);
-      initGoogle();
+  /* Step 1: phone → detect new/existing */
+  $card.on('submit', '[data-step="phone"]', function (e) {
+    e.preventDefault();
+    var $form = $(this);
+    var $btn = $form.find('button[type="submit"]');
+    phone = ($form.find('input[name="phone"]').val() || '').trim();
+    if (!/^09\d{9}$/.test(phone)) { msg($form, 'شماره موبایل نامعتبر است.', 'is-error'); return; }
+
+    busy($btn, true);
+    post('ug_check_phone', { phone: phone }).done(function (res) {
+      busy($btn, false);
+      if (!res || !res.success) { msg($form, (res.data && res.data.message) || 'خطا', 'is-error'); return; }
+      if (res.data.exists) {
+        showStep('choose');
+      } else {
+        sendOtp('register');
+        showStep('register');
+      }
+    }).fail(function (x) { busy($btn, false); msg($form, errText(x), 'is-error'); });
+  });
+
+  /* Step 2a: existing user picks a method */
+  $card.on('click', '.ug-method', function () {
+    var method = $(this).data('method');
+    if (method === 'otp') {
+      var $b = $card.find('[data-step="login-otp"] .ug-resend');
+      sendOtp('login', $b);
+      showStep('login-otp');
+    } else {
+      showStep('login-password');
     }
-  }, 300);
-  setTimeout(function () { clearInterval(giTimer); }, 10000);
+  });
+
+  /* switch from password → OTP */
+  $card.on('click', '.ug-switch-otp', function () {
+    var $b = $card.find('[data-step="login-otp"] .ug-resend');
+    sendOtp('login', $b);
+    showStep('login-otp');
+  });
+
+  /* resend buttons */
+  $card.on('click', '.ug-resend', function () {
+    var purpose = $(this).data('purpose');
+    sendOtp(purpose, $(this));
+  });
+
+  /* edit phone → back to step 1 */
+  $card.on('click', '.ug-auth-edit', function () { showStep('phone'); });
+
+  /* Step 2b: OTP login */
+  $card.on('submit', '[data-step="login-otp"]', function (e) {
+    e.preventDefault();
+    var $form = $(this);
+    var $btn = $form.find('button[type="submit"]');
+    busy($btn, true);
+    post('ug_verify_otp_login', { phone: phone, code: $form.find('input[name="code"]').val() })
+      .done(function (res) { if (!redirect(res)) { busy($btn, false); msg($form, res.data.message, 'is-error'); } })
+      .fail(function (x) { busy($btn, false); msg($form, errText(x), 'is-error'); });
+  });
+
+  /* Step 2c: password login */
+  $card.on('submit', '[data-step="login-password"]', function (e) {
+    e.preventDefault();
+    var $form = $(this);
+    var $btn = $form.find('button[type="submit"]');
+    busy($btn, true);
+    post('ug_login', { login: phone, password: $form.find('input[name="password"]').val() })
+      .done(function (res) { if (!redirect(res)) { busy($btn, false); msg($form, res.data.message, 'is-error'); } })
+      .fail(function (x) { busy($btn, false); msg($form, errText(x), 'is-error'); });
+  });
+
+  /* Step 3: register */
+  $card.on('submit', '[data-step="register"]', function (e) {
+    e.preventDefault();
+    var $form = $(this);
+    var $btn = $form.find('button[type="submit"]');
+    if (!$form.find('input[name="terms"]').is(':checked')) { msg($form, 'پذیرش قوانین الزامی است.', 'is-error'); return; }
+    busy($btn, true);
+    post('ug_verify_otp_register', {
+      phone: phone,
+      code: $form.find('input[name="code"]').val(),
+      name: $form.find('input[name="name"]').val(),
+      email: $form.find('input[name="email"]').val(),
+      password: $form.find('input[name="password"]').val(),
+      terms: 1
+    }).done(function (res) {
+      if (!redirect(res)) { busy($btn, false); msg($form, res.data.message, 'is-error'); }
+    }).fail(function (x) { busy($btn, false); msg($form, errText(x), 'is-error'); });
+  });
+
+  /* Google Sign-In */
+  window.ugGoogleCallback = function (response) {
+    if (!response || !response.credential) { return; }
+    post('ug_google_signin', { credential: response.credential }).done(function (res) {
+      if (!redirect(res)) { alert((res.data && res.data.message) || 'ورود با گوگل ناموفق بود.'); }
+    });
+  };
+  function initGoogle() {
+    var $slot = $('#ug-google-btn');
+    if (!$slot.length || !window.google || !window.google.accounts) { return; }
+    var clientId = $slot.data('client-id') || ugPanel.googleClientId;
+    if (!clientId) { return; }
+    window.google.accounts.id.initialize({ client_id: clientId, callback: window.ugGoogleCallback, ux_mode: 'popup' });
+    window.google.accounts.id.renderButton($slot[0], { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', locale: 'fa', width: 300 });
+  }
+  var gi = setInterval(function () { if (window.google && window.google.accounts) { clearInterval(gi); initGoogle(); } }, 300);
+  setTimeout(function () { clearInterval(gi); }, 10000);
 
 })(jQuery);

@@ -7,7 +7,59 @@
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&family=Inter:wght@500;600;700;800;900&display=swap');
 
 /* ── CSS Variables ── */
+/* ─────────────────────────────────────────────
+   THEME TOKENS
+   :root            = LIGHT (default)
+   [data-theme=dark]= DARK  (the original look)
+   Accent (indigo/blue/gold) is shared by both.
+───────────────────────────────────────────── */
 :root {
+  /* Surfaces — light */
+  --bg:         #f3f4fa;
+  --bg2:        #ffffff;
+  --bg3:        #eceef6;
+  --card:       #ffffff;
+  --card2:      #f6f7fc;
+  --card-hover: #f0f2fa;
+  --border:     rgba(18,22,45,0.09);
+  --border2:    rgba(18,22,45,0.16);
+  --header-bg:  rgba(255,255,255,0.86);
+
+  /* Text — light */
+  --text:       #15182b;
+  --text-2:     #454c66;
+  --text-muted: #6b7288;
+  --text-dim:   #98a0b4;
+
+  /* Shared accent — Indigo (var name kept as --mint) */
+  --mint:       #6d5cf0;
+  --mint-dark:  #5646d8;
+  --mint-light: #8b7cf8;
+  --mint-glow:  rgba(109,92,240,0.12);
+  --sky:        #3b82f6;
+  --sky-dark:   #2f6fd6;
+  --gold:       #d98a1f;
+  --red:        #ef4444;
+  --purple:     #8b5cf6;
+
+  --grad-primary:  linear-gradient(135deg, #5B8DEF 0%, #7C6CF5 100%);
+  --grad-primary2: linear-gradient(135deg, #4C93F7 0%, #8B7CF8 100%);
+
+  /* Shadows — light (soft grey) */
+  --shadow:     0 10px 34px rgba(20,25,55,0.10);
+  --shadow-sm:  0 3px 12px rgba(20,25,55,0.07);
+  --shadow-glow: 0 10px 30px rgba(109,92,240,0.22);
+
+  /* Structure (shared) */
+  --header-h:   66px;
+  --nav-h:      48px;
+  --radius:     16px;
+  --radius-sm:  10px;
+  --radius-xs:  7px;
+  --transition: 0.22s cubic-bezier(.4,0,.2,1);
+}
+
+:root[data-theme="dark"] {
   --bg:         #0b0d17;
   --bg2:        #111320;
   --bg3:        #171a2c;
@@ -16,36 +68,23 @@
   --card-hover: #1f2440;
   --border:     rgba(255,255,255,0.07);
   --border2:    rgba(255,255,255,0.12);
-
-  /* Primary brand — Indigo (var name kept as --mint to avoid churn) */
-  --mint:       #7C6CF5;
-  --mint-dark:  #6355E0;
-  --mint-light: #9E93F9;
-  --mint-glow:  rgba(124,108,245,0.16);
-  --sky:        #4C93F7;
-  --sky-dark:   #2f6fd6;
-  --gold:       #F4B740;
-  --red:        #ef4444;
-  --purple:     #8b5cf6;
-
-  /* Premium gradients (blue → indigo) */
-  --grad-primary:  linear-gradient(135deg, #5B8DEF 0%, #7C6CF5 100%);
-  --grad-primary2: linear-gradient(135deg, #4C93F7 0%, #8B7CF8 100%);
+  --header-bg:  rgba(11,13,23,0.92);
 
   --text:       #e9ebf4;
   --text-2:     #b4bcd0;
   --text-muted: #7d879e;
   --text-dim:   #4a5470;
 
-  --header-h:   66px;
-  --nav-h:      48px;
-  --radius:     16px;
-  --radius-sm:  10px;
-  --radius-xs:  7px;
+  --mint:       #7C6CF5;
+  --mint-dark:  #6355E0;
+  --mint-light: #9E93F9;
+  --mint-glow:  rgba(124,108,245,0.16);
+  --sky:        #4C93F7;
+  --gold:       #F4B740;
+
   --shadow:     0 10px 40px rgba(0,0,0,0.5);
   --shadow-sm:  0 3px 14px rgba(0,0,0,0.32);
   --shadow-glow: 0 10px 32px rgba(124,108,245,0.32);
-  --transition: 0.22s cubic-bezier(.4,0,.2,1);
 }
 
 /* ── Reset & Base ── */
@@ -92,7 +131,7 @@ header {
   top: 0;
   z-index: 100;
   height: var(--header-h);
-  background: rgba(11,13,23,0.92);
+  background: var(--header-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
@@ -128,7 +167,7 @@ header {
 .logo-text {
   font-size: 18px;
   font-weight: 800;
-  color: #fff;
+  color: var(--text);
   letter-spacing: -0.3px;
 }
 .logo-text span { color: var(--mint); }
@@ -174,6 +213,58 @@ header {
   flex-shrink: 0;
   margin-right: auto;
 }
+
+/* Icon button (theme toggle, lang) */
+.icon-btn {
+  width: 38px; height: 38px;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 3px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--border2); }
+.icon-btn svg { width: 18px; height: 18px; }
+
+/* Theme toggle: show sun in dark mode, moon in light mode */
+.ico-sun { display: none; }
+.ico-moon { display: block; }
+:root[data-theme="dark"] .ico-sun { display: block; }
+:root[data-theme="dark"] .ico-moon { display: none; }
+
+/* Language switcher */
+.lang-switch { position: relative; }
+.lang-current { width: auto; padding: 0 10px; }
+.lang-flag { font-size: 16px; line-height: 1; }
+.lang-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  min-width: 168px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: none;
+  z-index: 300;
+}
+.lang-switch.open .lang-menu { display: block; }
+.lang-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  transition: all var(--transition);
+}
+.lang-item:hover { background: var(--bg3); color: var(--text); }
+.lang-item.active { color: var(--mint); background: var(--mint-glow); }
 
 /* Buttons */
 .btn-ghost {
@@ -320,7 +411,7 @@ header {
 .hero h1 span { color: var(--mint); }
 .hero p {
   font-size: 14.5px;
-  color: var(--text-2);
+  color: rgba(255,255,255,0.72);
   line-height: 1.8;
   margin-bottom: 28px;
   max-width: 480px;
@@ -443,7 +534,7 @@ header {
   font-size: 30px;
   font-weight: 900;
   font-family: 'Inter', sans-serif;
-  color: #fff;
+  color: var(--text);
 }
 .stat-val.mint { color: var(--mint); }
 .stat-val.gold { color: var(--gold); }
@@ -669,7 +760,7 @@ header {
   margin-bottom: 8px;
 }
 .promo-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px; }
-.promo-desc { font-size: 13.5px; color: var(--text-2); }
+.promo-desc { font-size: 13.5px; color: rgba(255,255,255,0.75); }
 .promo-img { height: 100px; object-fit: contain; position: relative; z-index: 2; }
 
 /* ══════════════════════════════════════════
@@ -1231,7 +1322,7 @@ footer {
   gap: 10px;
   font-size: 18px;
   font-weight: 800;
-  color: #fff;
+  color: var(--text);
   margin-bottom: 14px;
 }
 .footer-desc {
@@ -1403,7 +1494,7 @@ footer ul li a:hover { color: var(--mint); }
   width: 54px; height: 54px;
   flex-shrink: 0;
   border-radius: 14px;
-  background: rgba(255,255,255,0.05);
+  background: var(--bg3);
   border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   position: relative; z-index: 2;
@@ -1567,4 +1658,4 @@ footer ul li a:hover { color: var(--mint); }
 
 /* Keep the logo wordmark accent calm (blue) */
 .logo-text span { color: #7db3ff; }
-.nav-link.active { color: #cbd5f0; background: rgba(255,255,255,0.06); }
+.nav-link.active { color: var(--mint); background: var(--mint-glow); }
