@@ -2,9 +2,8 @@
 /**
  * Elementor Pro custom Footer template overrides ours when assigned.
  */
-if ( function_exists( 'elementor_theme_do_location' ) && elementor_theme_do_location( 'footer' ) ) {
-    // Elementor footer rendered — skip our default footer markup.
-} else :
+$ug_elementor_footer = function_exists( 'elementor_theme_do_location' ) && elementor_theme_do_location( 'footer' );
+if ( ! $ug_elementor_footer ) :
 ?>
 
 <!-- ══ FOOTER ══ -->
