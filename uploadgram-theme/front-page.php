@@ -12,17 +12,17 @@ get_header();
   <section class="hero">
     <img class="hero-img" src="<?php echo esc_url( ug_asset( 'hero/upload-hero-phone.png' ) ); ?>" alt="آپلودگرام">
     <div class="hero-content">
-      <div class="hero-eyebrow">✦ بهترین خدمات دیجیتال در ایران</div>
-      <h1>خرید <span>ممبر، اکانت و شماره مجازی</span><br>با تحویل آنی و امن</h1>
-      <p>ممبر واقعی تلگرام و اینستاگرام، اکانت پرمیوم اصل، شماره مجازی معتبر از ۳۰+ کشور — سفارش می‌دهید، در همان لحظه تحویل می‌گیرید.</p>
+      <div class="hero-eyebrow"><?php echo esc_html( ug_t( 'hero_eyebrow' ) ); ?></div>
+      <h1><span><?php echo esc_html( ug_t( 'hero_h1a' ) ); ?></span><br><?php echo esc_html( ug_t( 'hero_h1b' ) ); ?></h1>
+      <p><?php echo esc_html( ug_t( 'hero_sub' ) ); ?></p>
       <div class="hero-ctas">
-        <a href="<?php echo esc_url( home_url( '/member/' ) ); ?>" class="btn-hero">مشاهده همه خدمات ←</a>
-        <a href="#" class="btn-hero-outline">شروع در تلگرام</a>
+        <a href="<?php echo esc_url( home_url( '/member/' ) ); ?>" class="btn-hero"><?php echo esc_html( ug_t( 'hero_cta1' ) ); ?></a>
+        <a href="#" class="btn-hero-outline"><?php echo esc_html( ug_t( 'hero_cta2' ) ); ?></a>
       </div>
       <div class="hero-trust">
-        <div><span class="n num">24/7</span><span class="l">پشتیبانی آنلاین</span></div>
-        <div><span class="n num text-gold">۴.۹ ★</span><span class="l">امتیاز میانگین</span></div>
-        <div><span class="n num text-mint">+12K</span><span class="l">مشتری راضی</span></div>
+        <div><span class="n num">24/7</span><span class="l"><?php echo esc_html( ug_t( 'trust_support' ) ); ?></span></div>
+        <div><span class="n num text-gold">۴.۹ ★</span><span class="l"><?php echo esc_html( ug_t( 'trust_rating' ) ); ?></span></div>
+        <div><span class="n num text-mint">+12K</span><span class="l"><?php echo esc_html( ug_t( 'trust_clients' ) ); ?></span></div>
       </div>
     </div>
   </section>

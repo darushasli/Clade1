@@ -78,8 +78,7 @@ if ( function_exists( 'elementor_theme_do_location' ) && elementor_theme_do_loca
           <?php echo esc_html( wp_get_current_user()->first_name ?: wp_get_current_user()->display_name ); ?> · <?php echo esc_html( ug_t( 'panel' ) ); ?>
         </a>
       <?php else : ?>
-        <a href="<?php echo esc_url( $auth_url ); ?>" class="btn-ghost"><?php echo esc_html( ug_t( 'login' ) ); ?></a>
-        <a href="<?php echo esc_url( $auth_url ); ?>" class="btn-primary"><?php echo esc_html( ug_t( 'signup' ) ); ?></a>
+        <a href="<?php echo esc_url( $auth_url ); ?>" class="btn-primary"><?php echo esc_html( ug_t( 'auth' ) ); ?></a>
       <?php endif; ?>
     </div>
   </div>

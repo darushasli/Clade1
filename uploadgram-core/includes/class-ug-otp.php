@@ -13,8 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 class UG_Otp {
 
     const TTL_SECONDS      = 300;   // 5 min
-    const RESEND_COOLDOWN  = 60;    // 60 s between sends
-    const MAX_PER_HOUR     = 5;     // per phone
+    const RESEND_COOLDOWN  = 120;   // 2 min between sends
+    const MAX_PER_HOUR     = 6;     // per phone
     const MAX_ATTEMPTS     = 5;     // per code
 
     private UG_Sms_Kavenegar $sms;
@@ -136,20 +136,39 @@ class UG_Otp {
     /* ══════════════ Helpers ══════════════ */
 
     public static function normalize_phone( string $phone ): string {
-        $phone = preg_replace( '/\D/', '', $phone );
-        // 00989xxxxxxxxx → 09xxxxxxxxx
-        if ( str_starts_with( $phone, '0098' ) ) {
-            $phone = '0' . substr( $phone, 4 );
-        } elseif ( str_starts_with( $phone, '98' ) && strlen( $phone ) === 12 ) {
-            $phone = '0' . substr( $phone, 2 );
-        } elseif ( str_starts_with( $phone, '9' ) && strlen( $phone ) === 10 ) {
-            $phone = '0' . $phone;
+        $phone = trim( $phone );
+        $is_intl = str_starts_with( $phone, '+' );
+        $digits  = preg_replace( '/\D/', '', $phone );
+
+        if ( $is_intl ) {
+            // Iran in E.164 → local 09xxxxxxxxx for a single canonical form.
+            if ( str_starts_with( $digits, '98' ) && strlen( $digits ) === 12 ) {
+                return '0' . substr( $digits, 2 );
+            }
+            return '+' . $digits;
         }
-        return $phone;
+
+        // No plus → treat as Iranian local.
+        if ( str_starts_with( $digits, '0098' ) ) {
+            return '0' . substr( $digits, 4 );
+        }
+        if ( str_starts_with( $digits, '98' ) && strlen( $digits ) === 12 ) {
+            return '0' . substr( $digits, 2 );
+        }
+        if ( str_starts_with( $digits, '9' ) && strlen( $digits ) === 10 ) {
+            return '0' . $digits;
+        }
+        return $digits;
     }
 
     public static function is_valid_phone( string $phone ): bool {
-        return (bool) preg_match( '/^09\d{9}$/', $phone );
+        if ( preg_match( '/^09\d{9}$/', $phone ) ) {
+            return true; // Iran local
+        }
+        if ( preg_match( '/^\+\d{8,15}$/', $phone ) ) {
+            return true; // international E.164
+        }
+        return false;
     }
 
     private static function client_ip(): string {

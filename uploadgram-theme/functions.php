@@ -88,6 +88,7 @@ function ug_strings() {
         'search_ph'    => [ 'fa' => 'جستجو در خدمات...', 'en' => 'Search services...', 'ar' => 'ابحث في الخدمات...', 'tr' => 'Hizmetlerde ara...', 'ru' => 'Поиск услуг...', 'es' => 'Buscar servicios...' ],
         'login'        => [ 'fa' => 'ورود', 'en' => 'Login', 'ar' => 'دخول', 'tr' => 'Giriş', 'ru' => 'Вход', 'es' => 'Entrar' ],
         'signup'       => [ 'fa' => 'ثبت‌نام', 'en' => 'Sign up', 'ar' => 'تسجيل', 'tr' => 'Kayıt ol', 'ru' => 'Регистрация', 'es' => 'Registrarse' ],
+        'auth'         => [ 'fa' => 'ورود / ثبت‌نام', 'en' => 'Login / Sign up', 'ar' => 'دخول / تسجيل', 'tr' => 'Giriş / Kayıt', 'ru' => 'Вход / Регистрация', 'es' => 'Entrar / Registrarse' ],
         'panel'        => [ 'fa' => 'پنل', 'en' => 'Panel', 'ar' => 'اللوحة', 'tr' => 'Panel', 'ru' => 'Панель', 'es' => 'Panel' ],
         'wallet'       => [ 'fa' => 'کیف پول', 'en' => 'Wallet', 'ar' => 'المحفظة', 'tr' => 'Cüzdan', 'ru' => 'Кошелёк', 'es' => 'Cartera' ],
         'nav_home'     => [ 'fa' => 'خانه', 'en' => 'Home', 'ar' => 'الرئيسية', 'tr' => 'Anasayfa', 'ru' => 'Главная', 'es' => 'Inicio' ],
@@ -97,6 +98,17 @@ function ug_strings() {
         'nav_stars'    => [ 'fa' => 'استارز', 'en' => 'Stars', 'ar' => 'ستارز', 'tr' => 'Stars', 'ru' => 'Stars', 'es' => 'Stars' ],
         'nav_discount' => [ 'fa' => 'تخفیف‌ها', 'en' => 'Discounts', 'ar' => 'خصومات', 'tr' => 'İndirimler', 'ru' => 'Скидки', 'es' => 'Descuentos' ],
         'nav_contact'  => [ 'fa' => 'تماس با ما', 'en' => 'Contact', 'ar' => 'اتصل بنا', 'tr' => 'İletişim', 'ru' => 'Контакты', 'es' => 'Contacto' ],
+
+        /* Homepage hero */
+        'hero_eyebrow' => [ 'fa' => '✦ بهترین خدمات دیجیتال در ایران', 'en' => '✦ The best digital services', 'ar' => '✦ أفضل الخدمات الرقمية', 'tr' => '✦ En iyi dijital hizmetler', 'ru' => '✦ Лучшие цифровые услуги', 'es' => '✦ Los mejores servicios digitales' ],
+        'hero_h1a'     => [ 'fa' => 'خرید ممبر، اکانت و شماره مجازی', 'en' => 'Members, accounts & virtual numbers', 'ar' => 'أعضاء وحسابات وأرقام افتراضية', 'tr' => 'Üye, hesap ve sanal numara', 'ru' => 'Подписчики, аккаунты и виртуальные номера', 'es' => 'Miembros, cuentas y números virtuales' ],
+        'hero_h1b'     => [ 'fa' => 'با تحویل آنی و امن', 'en' => 'delivered instantly & securely', 'ar' => 'بتسليم فوري وآمن', 'tr' => 'anında ve güvenli teslimat', 'ru' => 'мгновенно и безопасно', 'es' => 'entrega instantánea y segura' ],
+        'hero_sub'     => [ 'fa' => 'ممبر واقعی تلگرام و اینستاگرام، اکانت پرمیوم اصل، شماره مجازی معتبر از ۳۰+ کشور — سفارش می‌دهید، در همان لحظه تحویل می‌گیرید.', 'en' => 'Real Telegram & Instagram members, genuine premium accounts, verified virtual numbers from 30+ countries — order and receive instantly.', 'ar' => 'أعضاء حقيقيون لتيليجرام وإنستغرام، حسابات بريميوم أصلية، أرقام افتراضية موثوقة من أكثر من 30 دولة — اطلب واستلم فورًا.', 'tr' => 'Gerçek Telegram ve Instagram üyeleri, orijinal premium hesaplar, 30+ ülkeden doğrulanmış sanal numaralar — sipariş verin, anında alın.', 'ru' => 'Реальные подписчики Telegram и Instagram, оригинальные премиум-аккаунты, проверенные виртуальные номера из 30+ стран — заказывайте и получайте мгновенно.', 'es' => 'Miembros reales de Telegram e Instagram, cuentas premium genuinas, números virtuales verificados de más de 30 países: pide y recibe al instante.' ],
+        'hero_cta1'    => [ 'fa' => 'مشاهده همه خدمات ←', 'en' => 'View all services ←', 'ar' => 'كل الخدمات ←', 'tr' => 'Tüm hizmetler ←', 'ru' => 'Все услуги ←', 'es' => 'Ver servicios ←' ],
+        'hero_cta2'    => [ 'fa' => 'شروع در تلگرام', 'en' => 'Start on Telegram', 'ar' => 'ابدأ في تيليجرام', 'tr' => "Telegram'da başla", 'ru' => 'Начать в Telegram', 'es' => 'Empezar en Telegram' ],
+        'trust_support'=> [ 'fa' => 'پشتیبانی آنلاین', 'en' => 'Online support', 'ar' => 'دعم مباشر', 'tr' => 'Çevrimiçi destek', 'ru' => 'Онлайн-поддержка', 'es' => 'Soporte en línea' ],
+        'trust_rating' => [ 'fa' => 'امتیاز میانگین', 'en' => 'Average rating', 'ar' => 'متوسط التقييم', 'tr' => 'Ortalama puan', 'ru' => 'Средний рейтинг', 'es' => 'Valoración media' ],
+        'trust_clients'=> [ 'fa' => 'مشتری راضی', 'en' => 'Happy clients', 'ar' => 'عملاء سعداء', 'tr' => 'Mutlu müşteri', 'ru' => 'Довольных клиентов', 'es' => 'Clientes felices' ],
     ];
 }
 

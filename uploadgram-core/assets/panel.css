@@ -17,9 +17,9 @@
   border: 1px solid rgba(124,108,245,.22);
   border-radius: 16px;
   padding: 24px 26px;
-  color: var(--text);
+  color: #fff;
 }
-.ug-wallet-label { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+.ug-wallet-label { font-size: 13px; color: rgba(255,255,255,0.82); margin-bottom: 6px; }
 .ug-wallet-balance { font-size: 30px; font-weight: 900; font-family: 'Inter', sans-serif; color: #fff; margin-bottom: 16px; }
 
 /* Buttons */
@@ -196,9 +196,65 @@
 
 /* Responsive */
 @media (max-width: 900px) {
-  .ug-panel { grid-template-columns: 1fr; }
-  .ug-panel-sidebar { position: static; }
-  .ug-panel-nav { flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
-  .ug-nav-item { white-space: nowrap; }
-  .ug-nav-logout { border-top: none; margin-top: 0; padding-top: 11px; }
+  .ug-panel {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin: 14px auto;
+    padding: 0 14px;
+  }
+  .ug-panel-sidebar { position: static; padding: 16px; }
+  .ug-panel-user { padding-bottom: 14px; margin-bottom: 12px; }
+  .ug-avatar, .ug-avatar-initial { width: 56px; height: 56px; font-size: 22px; }
+
+  /* Nav becomes a horizontal scroll strip, items centered & even */
+  .ug-panel-nav {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .ug-panel-nav::-webkit-scrollbar { display: none; }
+  .ug-nav-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+  .ug-nav-logout {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 9px;
+  }
+
+  .ug-panel-content { padding: 18px 16px; }
+  .ug-panel-heading { font-size: 18px; margin-bottom: 16px; }
+
+  /* Forms & cards go full width, no overflow */
+  .ug-order-form, .ug-topup-form, .ug-profile-form, .ug-wallet-card { max-width: 100%; }
+  .ug-wallet-card { padding: 20px; }
+  .ug-wallet-balance { font-size: 26px; }
+
+  /* Tables scroll inside their own container */
+  .ug-tx-wrap, .ug-orders { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ug-orders-table { min-width: 520px; }
 }
+
+@media (max-width: 480px) {
+  .ug-panel { padding: 0 10px; }
+  .ug-panel-content { padding: 16px 12px; }
+  .ug-topup-chips { gap: 6px; }
+  .ug-chip { padding: 6px 11px; font-size: 12px; }
+  .ug-nav-item span:not(.ug-nav-icon) { font-size: 12.5px; }
+}
+
+/* Recharge button sits on the indigo wallet card → light glass style */
+.ug-wallet-card .ug-btn-primary {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow: none;
+  backdrop-filter: blur(4px);
+}
+.ug-wallet-card .ug-btn-primary:hover { background: rgba(255,255,255,0.28); box-shadow: none; }

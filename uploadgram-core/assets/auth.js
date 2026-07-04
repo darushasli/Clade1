@@ -7,6 +7,23 @@
 
   var phone = '';
 
+  // Build the canonical phone from the country dial + typed number.
+  function buildPhone($form) {
+    var dial = ($form.find('select[name="dial"]').val() || '98').replace(/\D/g, '');
+    var num  = ($form.find('input[name="phone"]').val() || '').replace(/\D/g, '');
+    if (!num) { return ''; }
+    if (dial === '98') {
+      // Iran → local 09xxxxxxxxx
+      if (num.length === 10 && num.charAt(0) === '9') { return '0' + num; }
+      if (num.length === 11 && num.substr(0, 2) === '09') { return num; }
+      if (num.length === 12 && num.substr(0, 3) === '989') { return '0' + num.substr(2); }
+      return num.charAt(0) === '0' ? num : '0' + num;
+    }
+    // International E.164
+    num = num.replace(/^0+/, '');
+    return '+' + dial + num;
+  }
+
   function post(action, data) {
     data = data || {};
     data.action = action;
@@ -40,15 +57,21 @@
   }
   function errText(x) { try { return JSON.parse(x.responseText).data.message; } catch (e) { return 'خطا'; } }
 
+  function fmt(s) {
+    var m = Math.floor(s / 60), r = s % 60;
+    return m + ':' + (r < 10 ? '0' + r : r);
+  }
   function countdown($btn, seconds) {
-    var s = seconds || 60;
+    if (!$btn || !$btn.length) { return; }
+    var s = seconds || 120;
     var label = $btn.data('label') || $btn.text();
     $btn.data('label', label);
     busy($btn, true);
+    $btn.text('ارسال مجدد تا ' + fmt(s));
     var iv = setInterval(function () {
       s--;
       if (s <= 0) { clearInterval(iv); busy($btn, false); $btn.text(label); }
-      else { $btn.text('ارسال مجدد در ' + s + ' ثانیه'); }
+      else { $btn.text('ارسال مجدد تا ' + fmt(s)); }
     }, 1000);
   }
 
@@ -64,8 +87,9 @@
     e.preventDefault();
     var $form = $(this);
     var $btn = $form.find('button[type="submit"]');
-    phone = ($form.find('input[name="phone"]').val() || '').trim();
-    if (!/^09\d{9}$/.test(phone)) { msg($form, 'شماره موبایل نامعتبر است.', 'is-error'); return; }
+    phone = buildPhone($form);
+    var ok = /^09\d{9}$/.test(phone) || /^\+\d{8,15}$/.test(phone);
+    if (!ok) { msg($form, 'شماره موبایل نامعتبر است.', 'is-error'); return; }
 
     busy($btn, true);
     post('ug_check_phone', { phone: phone }).done(function (res) {
@@ -74,8 +98,8 @@
       if (res.data.exists) {
         showStep('choose');
       } else {
-        sendOtp('register');
         showStep('register');
+        sendOtp('register', $card.find('[data-step="register"] .ug-resend'));
       }
     }).fail(function (x) { busy($btn, false); msg($form, errText(x), 'is-error'); });
   });
