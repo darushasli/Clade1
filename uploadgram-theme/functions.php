@@ -37,8 +37,21 @@ function ug_setup() {
         'footer-1' => __( 'منوی پاورقی خدمات', 'uploadgram' ),
         'footer-2' => __( 'منوی پاورقی راهنما', 'uploadgram' ),
     ] );
+
+    // Editor / block styles so Elementor & Gutenberg get full-width canvases.
+    add_theme_support( 'align-wide' );
+    add_theme_support( 'responsive-embeds' );
 }
 add_action( 'after_setup_theme', 'ug_setup' );
+
+/* ══════════════════════════════════════════
+   Elementor Pro — Theme Builder locations
+   (lets Elementor Pro override header/footer/
+    single/archive; falls back to our templates)
+══════════════════════════════════════════ */
+add_action( 'elementor/theme/register_locations', function ( $manager ) {
+    $manager->register_all_core_location();
+} );
 
 /* ══════════════════════════════════════════
    Enqueue Styles & Scripts

@@ -9,6 +9,16 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
+<?php
+/**
+ * If Elementor Pro has a custom Header template assigned, render it and
+ * skip our built-in header entirely. Otherwise fall through to ours.
+ */
+if ( function_exists( 'elementor_theme_do_location' ) && elementor_theme_do_location( 'header' ) ) {
+    return;
+}
+?>
+
 <!-- ══ HEADER ══ -->
 <header>
   <div class="header-inner">

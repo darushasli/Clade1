@@ -1,3 +1,12 @@
+<?php
+/**
+ * Elementor Pro custom Footer template overrides ours when assigned.
+ */
+if ( function_exists( 'elementor_theme_do_location' ) && elementor_theme_do_location( 'footer' ) ) {
+    // Elementor footer rendered — skip our default footer markup.
+} else :
+?>
+
 <!-- ══ FOOTER ══ -->
 <footer>
   <div class="container footer-grid">
@@ -63,6 +72,7 @@
     </div>
   </div>
 </footer>
+<?php endif; // end Elementor footer fallback ?>
 
 <!-- Floating chat button -->
 <a class="float-chat" href="#" title="پشتیبانی تلگرام" aria-label="پشتیبانی تلگرام">
