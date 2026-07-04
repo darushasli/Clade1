@@ -41,6 +41,16 @@ function ug_activate_setup() {
             'template' => '',
             'content'  => 'برای ارتباط با ما در تلگرام پیام دهید.',
         ],
+        'auth' => [
+            'title'    => 'ورود و ثبت‌نام',
+            'template' => 'page-auth.php',
+            'content'  => '',
+        ],
+        'panel' => [
+            'title'    => 'پنل کاربری',
+            'template' => 'page-panel.php',
+            'content'  => '',
+        ],
     ];
 
     $page_ids = [];

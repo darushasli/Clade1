@@ -46,7 +46,7 @@ get_header();
           <div class="mtc-img"><img loading="lazy" src="<?php echo esc_url( ug_asset( $mt['icon'] ) ); ?>" alt=""></div>
           <div class="mtc-name"><?php echo wp_kses_post( $mt['name'] ); ?></div>
           <div class="mtc-price num"><?php echo esc_html( $mt['price'] ); ?> تومان</div>
-          <button class="mtc-btn" type="button">افزودن به سبد</button>
+          <?php echo apply_filters( 'ug_purchase_button', '<button class="mtc-btn" type="button">افزودن به سبد</button>', 0, [ 'label' => 'ورود برای خرید', 'class' => 'mtc-btn' ] ); ?>
         </a>
       <?php endforeach; ?>
     </div>
@@ -152,7 +152,13 @@ get_header();
               <?php foreach ( $plan['f'] as $feat ) : ?><li><?php echo esc_html( $feat ); ?></li><?php endforeach; ?>
             </ul>
             <div class="plan-price"><span class="orig num"><?php echo esc_html( $plan['orig'] ); ?></span><span class="num"><?php echo esc_html( $plan['price'] ); ?></span> تومان</div>
-            <button class="plan-btn <?php echo $plan['pop'] ? 'plan-btn-primary' : 'plan-btn-default'; ?>">افزودن به سبد</button>
+            <?php
+            $btn_html = '<button class="plan-btn ' . ( $plan['pop'] ? 'plan-btn-primary' : 'plan-btn-default' ) . '">افزودن به سبد</button>';
+            echo apply_filters( 'ug_purchase_button', $btn_html, 0, [
+                'label' => 'ورود برای خرید',
+                'class' => 'plan-btn ' . ( $plan['pop'] ? 'plan-btn-primary' : 'plan-btn-default' ),
+            ] );
+            ?>
           </div>
         <?php endforeach; ?>
       </div>

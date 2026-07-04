@@ -3,7 +3,7 @@
  * Plugin Name: UploadGram Core
  * Plugin URI:  https://uploadgram.ir
  * Description: هسته فروشگاه آپلودگرام — اتصال خدمات به API فالوران، نامبرلند و ربات تلگرام، کیف پول و پنل کاربری بدون سبد خرید.
- * Version:     1.0.0
+ * Version:     1.2.0
  * Author:      UploadGram Team
  * Text Domain: uploadgram-core
  * Domain Path: /languages
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'UGC_VERSION', '1.0.0' );
+define( 'UGC_VERSION', '1.2.0' );
 define( 'UGC_FILE', __FILE__ );
 define( 'UGC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UGC_URL', plugin_dir_url( __FILE__ ) );
@@ -38,6 +38,11 @@ require_once UGC_DIR . 'includes/class-ug-dispatcher.php';
 require_once UGC_DIR . 'includes/class-ug-wallet.php';
 require_once UGC_DIR . 'includes/class-ug-orders.php';
 require_once UGC_DIR . 'includes/class-ug-wc-integration.php';
+require_once UGC_DIR . 'includes/class-ug-sms-kavenegar.php';
+require_once UGC_DIR . 'includes/class-ug-otp.php';
+require_once UGC_DIR . 'includes/class-ug-google-auth.php';
+require_once UGC_DIR . 'includes/class-ug-auth.php';
+require_once UGC_DIR . 'includes/class-ug-guard.php';
 require_once UGC_DIR . 'includes/class-ug-ajax.php';
 require_once UGC_DIR . 'includes/class-ug-cron.php';
 require_once UGC_DIR . 'includes/class-ug-panel.php';

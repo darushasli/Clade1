@@ -26,6 +26,21 @@ class UG_Core {
     /** @var UG_Orders */
     public $orders;
 
+    /** @var UG_Sms_Kavenegar */
+    public $sms;
+
+    /** @var UG_Otp */
+    public $otp;
+
+    /** @var UG_Google_Auth */
+    public $google;
+
+    /** @var UG_Auth */
+    public $auth;
+
+    /** @var UG_Guard */
+    public $guard;
+
     public static function instance(): UG_Core {
         if ( null === self::$instance ) {
             self::$instance = new self();
@@ -40,11 +55,18 @@ class UG_Core {
         $this->wallet     = new UG_Wallet();
         $this->dispatcher = new UG_Dispatcher( $this->settings );
 
+        // Auth stack.
+        $this->sms    = new UG_Sms_Kavenegar( $this->settings );
+        $this->otp    = new UG_Otp( $this->sms );
+        $this->google = new UG_Google_Auth( $this->settings );
+        $this->auth   = new UG_Auth( $this->wallet );
+        $this->guard  = new UG_Guard();
+
         // Integrations.
         new UG_WC_Integration( $this->settings );
-        new UG_Ajax( $this->dispatcher, $this->wallet, $this->orders, $this->settings );
+        new UG_Ajax( $this->dispatcher, $this->wallet, $this->orders, $this->settings, $this->otp, $this->auth, $this->google );
         new UG_Cron( $this->dispatcher, $this->orders, $this->wallet );
-        new UG_Panel( $this->wallet, $this->orders, $this->settings );
+        new UG_Panel( $this->wallet, $this->orders, $this->settings, $this->auth );
 
         add_action( 'init', [ $this, 'load_textdomain' ] );
     }

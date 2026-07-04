@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class UG_Install {
 
-    const DB_VERSION = '1.0.0';
+    const DB_VERSION = '1.2.0';
 
     /**
      * Orders table name (without prefix helper).
@@ -74,6 +74,41 @@ class UG_Install {
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta( $sql );
+
+        // OTP table (phone-verification codes).
+        $otp_table = $wpdb->prefix . 'ug_otp';
+        $sql_otp   = "CREATE TABLE {$otp_table} (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            phone VARCHAR(20) NOT NULL DEFAULT '',
+            code_hash VARCHAR(255) NOT NULL DEFAULT '',
+            purpose VARCHAR(20) NOT NULL DEFAULT 'login',
+            attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+            ip VARCHAR(45) NOT NULL DEFAULT '',
+            expires_at DATETIME NOT NULL,
+            used_at DATETIME NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY phone (phone),
+            KEY purpose (purpose),
+            KEY expires_at (expires_at)
+        ) {$charset_collate};";
+        dbDelta( $sql_otp );
+
+        // Wallet transactions table.
+        $tx_table = $wpdb->prefix . 'ug_wallet_tx';
+        $sql_tx   = "CREATE TABLE {$tx_table} (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id BIGINT(20) UNSIGNED NOT NULL DEFAULT 0,
+            type VARCHAR(10) NOT NULL DEFAULT 'credit',
+            amount DECIMAL(18,2) NOT NULL DEFAULT 0,
+            balance DECIMAL(18,2) NOT NULL DEFAULT 0,
+            description TEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY user_id (user_id),
+            KEY type (type)
+        ) {$charset_collate};";
+        dbDelta( $sql_tx );
     }
 
     /**

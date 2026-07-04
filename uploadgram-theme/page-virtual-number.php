@@ -136,7 +136,7 @@ get_header();
               <td><?php echo esc_html( $r[3] ); ?></td>
               <td><?php echo esc_html( $r[4] ); ?></td>
               <td class="price-val num"><?php echo esc_html( $r[5] ); ?> تومان</td>
-              <td><button class="buy-btn">خرید</button></td>
+              <td><?php echo apply_filters( 'ug_purchase_button', '<button class="buy-btn">خرید</button>', 0, [ 'label' => 'ورود', 'class' => 'buy-btn' ] ); ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>

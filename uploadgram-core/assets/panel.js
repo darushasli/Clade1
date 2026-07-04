@@ -113,3 +113,68 @@
   });
 
 })(jQuery);
+
+/* ═══ Top-up chips + submit ═══ */
+(function ($) {
+  $(document).on('click', '.ug-topup-chips .ug-chip', function () {
+    var amt = $(this).data('amount');
+    var $form = $(this).closest('form');
+    $form.find('input[name="amount"]').val(amt);
+    $form.find('.ug-chip').removeClass('active');
+    $(this).addClass('active');
+  });
+
+  $(document).on('submit', '.ug-topup-form', function (e) {
+    e.preventDefault();
+    var $form = $(this);
+    var amt = parseInt($form.find('input[name="amount"]').val(), 10) || 0;
+    var $msg = $form.find('.ug-form-msg').hide().removeClass('is-error is-success');
+    var $btn = $form.find('button[type="submit"]').prop('disabled', true).addClass('is-loading');
+
+    $.post(ugPanel.ajaxUrl, {
+      action: 'ug_topup',
+      nonce: ugPanel.nonce,
+      amount: amt
+    }).done(function (res) {
+      if (res && res.success && res.data.redirect) {
+        window.location.href = res.data.redirect;
+      } else {
+        $msg.addClass('is-error').text((res.data && res.data.message) || 'خطا').show();
+        $btn.prop('disabled', false).removeClass('is-loading');
+      }
+    }).fail(function (x) {
+      var m = 'خطای شارژ'; try { m = JSON.parse(x.responseText).data.message; } catch(e){}
+      $msg.addClass('is-error').text(m).show();
+      $btn.prop('disabled', false).removeClass('is-loading');
+    });
+  });
+
+  /* Profile form */
+  $(document).on('submit', '.ug-profile-form', function (e) {
+    e.preventDefault();
+    var $form = $(this);
+    var $msg  = $form.find('.ug-form-msg').hide().removeClass('is-error is-success');
+    var $btn  = $form.find('button[type="submit"]').prop('disabled', true).addClass('is-loading');
+
+    $.post(ugPanel.ajaxUrl, {
+      action: 'ug_update_profile',
+      nonce: ugPanel.nonce,
+      name: $form.find('input[name="name"]').val(),
+      email: $form.find('input[name="email"]').val(),
+      current_password: $form.find('input[name="current_password"]').val(),
+      new_password: $form.find('input[name="new_password"]').val()
+    }).done(function (res) {
+      if (res && res.success) {
+        $msg.addClass('is-success').text(res.data.message).show();
+        $form.find('input[name="current_password"], input[name="new_password"]').val('');
+      } else {
+        $msg.addClass('is-error').text((res.data && res.data.message) || 'خطا').show();
+      }
+      $btn.prop('disabled', false).removeClass('is-loading');
+    }).fail(function (x) {
+      var m = 'خطا'; try { m = JSON.parse(x.responseText).data.message; } catch(e){}
+      $msg.addClass('is-error').text(m).show();
+      $btn.prop('disabled', false).removeClass('is-loading');
+    });
+  });
+})(jQuery);

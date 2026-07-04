@@ -23,25 +23,26 @@
     </div>
 
     <div class="header-actions">
+      <?php
+      $auth_url  = class_exists( 'UG_Guard' ) ? UG_Guard::auth_url() : wp_login_url();
+      $panel_url = home_url( '/panel/' );
+      $wallet_display = '';
+      if ( is_user_logged_in() && class_exists( 'UG_Core' ) && UG_Core::instance()->wallet ) {
+          $wallet_display = UG_Core::instance()->wallet->balance_display();
+      }
+      ?>
       <?php if ( is_user_logged_in() ) : ?>
-        <a href="<?php echo esc_url( get_dashboard_url() ); ?>" class="btn-ghost">
-          <?php esc_html_e( 'پنل کاربری', 'uploadgram' ); ?>
+        <?php if ( $wallet_display ) : ?>
+          <a href="<?php echo esc_url( add_query_arg( 'section', 'wallet', $panel_url ) ); ?>" class="btn-ghost" title="کیف پول">
+            💳 <span class="num"><?php echo esc_html( $wallet_display ); ?></span>
+          </a>
+        <?php endif; ?>
+        <a href="<?php echo esc_url( $panel_url ); ?>" class="btn-primary">
+          <?php echo esc_html( wp_get_current_user()->first_name ?: wp_get_current_user()->display_name ); ?> · پنل
         </a>
       <?php else : ?>
-        <a href="<?php echo esc_url( wp_login_url() ); ?>" class="btn-ghost">
-          <?php esc_html_e( 'ورود | ثبت‌نام', 'uploadgram' ); ?>
-        </a>
-      <?php endif; ?>
-
-      <?php if ( class_exists( 'WooCommerce' ) ) : ?>
-        <a href="<?php echo esc_url( wc_get_cart_url() ); ?>" class="btn-primary">
-          🛒 <?php esc_html_e( 'سبد خرید', 'uploadgram' ); ?>
-          <span class="cart-badge num">
-            <?php echo WC()->cart ? intval( WC()->cart->get_cart_contents_count() ) : 0; ?>
-          </span>
-        </a>
-      <?php else : ?>
-        <button class="btn-primary">🛒 <?php esc_html_e( 'سبد خرید', 'uploadgram' ); ?> <span class="cart-badge num">0</span></button>
+        <a href="<?php echo esc_url( $auth_url ); ?>" class="btn-ghost"><?php esc_html_e( 'ورود', 'uploadgram' ); ?></a>
+        <a href="<?php echo esc_url( $auth_url ); ?>" class="btn-primary"><?php esc_html_e( 'ثبت‌نام', 'uploadgram' ); ?></a>
       <?php endif; ?>
     </div>
   </div>

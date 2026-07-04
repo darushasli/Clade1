@@ -89,6 +89,7 @@ class UG_Settings {
         $tab  = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
         $tabs = [
             'general'    => 'عمومی',
+            'auth'       => 'ورود و ثبت‌نام',
             'followeran' => 'فالوران (SMM)',
             'numberland' => 'نامبرلند (شماره مجازی)',
             'telegram'   => 'ربات تلگرام',
@@ -163,6 +164,18 @@ class UG_Settings {
                 $this->field( 'telegram_endpoint', 'آدرس وب‌هوک ربات', 'text', 'آدرسی که ربات شما سفارش‌ها را روی آن دریافت می‌کند', 'https://your-bot.example.com/order' );
                 $this->field( 'telegram_token', 'توکن امنیتی', 'text', 'توکن مشترک بین سایت و ربات برای احراز هویت درخواست‌ها' );
                 break;
+
+            case 'auth':
+                echo '<tr><th colspan="2"><h2 style="margin:0;">پیامک — کاوه‌نگار</h2></th></tr>';
+                $this->field( 'kavenegar_api_key', 'API Key کاوه‌نگار', 'text', 'از پنل کاوه‌نگار › تنظیمات › API' );
+                $this->field( 'kavenegar_template', 'نام Template تأیید', 'text', 'نام قالب تأیید در پنل کاوه‌نگار (مثلاً uploadgram-verify)' );
+
+                echo '<tr><th colspan="2"><h2 style="margin:24px 0 0;">ورود با گوگل</h2></th></tr>';
+                $this->field( 'google_client_id', 'Google Client ID', 'text', 'از console.cloud.google.com › OAuth 2.0 Client IDs' );
+
+                echo '<tr><th colspan="2"><h2 style="margin:24px 0 0;">قوانین و آدرس‌ها</h2></th></tr>';
+                $this->field( 'terms_url', 'آدرس صفحه قوانین و شرایط', 'text', 'لینکی که در چک‌باکس ثبت‌نام نمایش داده می‌شود' );
+                break;
         }
     }
 
@@ -177,21 +190,35 @@ class UG_Settings {
             <button class="button button-secondary ug-test" data-provider="numberland"><?php esc_html_e( 'تست نامبرلند', 'uploadgram-core' ); ?></button>
             <button class="button button-secondary ug-test" data-provider="telegram"><?php esc_html_e( 'تست ربات', 'uploadgram-core' ); ?></button>
         </p>
+        <h2><?php esc_html_e( 'تست ارسال پیامک', 'uploadgram-core' ); ?></h2>
+        <p>
+            <input type="text" id="ug-test-phone" placeholder="09xxxxxxxxx" style="width:220px;">
+            <button class="button button-secondary" id="ug-test-sms"><?php esc_html_e( 'ارسال کد آزمایشی', 'uploadgram-core' ); ?></button>
+        </p>
         <pre id="ug-test-result" style="background:#111;color:#0f0;padding:14px;border-radius:8px;max-height:320px;overflow:auto;display:none;"></pre>
         <script>
         (function($){
+            var nonce = '<?php echo esc_js( wp_create_nonce( 'ug_test' ) ); ?>';
             $('.ug-test').on('click', function(e){
                 e.preventDefault();
                 var provider = $(this).data('provider');
                 var $out = $('#ug-test-result').show().text('در حال تست ' + provider + '...');
-                $.post(ajaxurl, {
-                    action: 'ug_test_provider',
-                    provider: provider,
-                    _wpnonce: '<?php echo esc_js( wp_create_nonce( 'ug_test' ) ); ?>'
-                }, function(res){
+                $.post(ajaxurl, { action: 'ug_test_provider', provider: provider, _wpnonce: nonce }, function(res){
                     $out.text(JSON.stringify(res, null, 2));
                 }).fail(function(x){
                     $out.text('خطا: ' + x.status + ' ' + x.statusText);
+                });
+            });
+            $('#ug-test-sms').on('click', function(e){
+                e.preventDefault();
+                var phone = $('#ug-test-phone').val() || '';
+                var $out = $('#ug-test-result').show().text('در حال ارسال پیامک به ' + phone + ' ...');
+                $.post(ajaxurl, { action: 'ug_test_sms', phone: phone, _wpnonce: nonce }, function(res){
+                    $out.text(JSON.stringify(res, null, 2));
+                }).fail(function(x){
+                    var msg = 'خطا: ' + x.status;
+                    try { msg += '\n' + x.responseText; } catch(e){}
+                    $out.text(msg);
                 });
             });
         })(jQuery);
