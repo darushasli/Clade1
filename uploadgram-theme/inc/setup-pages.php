@@ -1,16 +1,36 @@
 <?php
 /**
- * Auto-setup on theme activation:
+ * Auto-setup:
  *  - Creates core pages with correct page templates
  *  - Sets the static front page
  *  - Builds the primary navigation menu
  *
- * Runs once when the theme is switched on.
+ * Runs on theme switch AND on any admin request when the setup version
+ * marker doesn't match the current one — so theme UPGRADES (which don't
+ * fire after_switch_theme) still pick up new pages like /panel/ and /auth/.
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+define( 'UG_SETUP_VERSION', '1.2.0' );
+
 add_action( 'after_switch_theme', 'ug_activate_setup' );
+add_action( 'admin_init',         'ug_maybe_setup' );
+
+/**
+ * On every admin load: run setup ONCE per version bump, then remember it.
+ * Cheap: bails immediately when the version matches.
+ */
+function ug_maybe_setup() {
+    if ( get_option( 'ug_setup_done_v' ) === UG_SETUP_VERSION ) {
+        return;
+    }
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return; // avoid running for non-admin AJAX etc.
+    }
+    ug_activate_setup();
+    update_option( 'ug_setup_done_v', UG_SETUP_VERSION );
+}
 
 function ug_activate_setup() {
 
