@@ -37,6 +37,7 @@ class UG_Settings {
             case 'followeran':
                 return [
                     'endpoint' => $this->get( 'followeran_endpoint', 'https://my.followeran.ir/api/v2' ),
+                    'fallback' => $this->get( 'followeran_fallback', 'https://panel.smmflw.com/api/iran' ),
                     'api_key'  => $this->get( 'followeran_key' ),
                 ];
             case 'numberland':
@@ -152,6 +153,7 @@ class UG_Settings {
 
             case 'followeran':
                 $this->field( 'followeran_endpoint', 'آدرس API', 'text', 'معمولاً https://my.followeran.ir/api/v2', 'https://my.followeran.ir/api/v2' );
+                $this->field( 'followeran_fallback', 'آدرس پشتیبان', 'text', 'اگر آدرس اصلی در دسترس نبود استفاده می‌شود', 'https://panel.smmflw.com/api/iran' );
                 $this->field( 'followeran_key', 'کلید API', 'text', 'از پنل فالوران › بخش API دریافت کنید' );
                 break;
 
@@ -161,8 +163,9 @@ class UG_Settings {
                 break;
 
             case 'telegram':
-                $this->field( 'telegram_endpoint', 'آدرس وب‌هوک ربات', 'text', 'آدرسی که ربات شما سفارش‌ها را روی آن دریافت می‌کند', 'https://your-bot.example.com/order' );
-                $this->field( 'telegram_token', 'توکن امنیتی', 'text', 'توکن مشترک بین سایت و ربات برای احراز هویت درخواست‌ها' );
+                echo '<tr><td colspan="2"><p class="description">فایل <code>bridge/ug-bridge.php</code> را کنار سورس ربات آپلود کنید (راهنما: <code>bridge/README.md</code>). دو مقدار زیر باید با آن فایل یکی باشند.</p></td></tr>';
+                $this->field( 'telegram_endpoint', 'آدرس پل ربات', 'text', 'آدرس کامل ug-bridge.php روی هاست ربات', 'https://activemember.shop/6/ug-bridge.php' );
+                $this->field( 'telegram_token', 'توکن امنیتی', 'text', 'همان مقدار UG_BRIDGE_SECRET داخل ug-bridge.php' );
                 break;
 
             case 'auth':

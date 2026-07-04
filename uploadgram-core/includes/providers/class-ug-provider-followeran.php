@@ -21,10 +21,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class UG_Provider_Followeran implements UG_Provider_Interface {
 
     private string $endpoint;
+    private string $fallback;
     private string $key;
 
     public function __construct( array $config ) {
         $this->endpoint = $config['endpoint'] ?? 'https://my.followeran.ir/api/v2';
+        // Followeran also serves the same API here; used if the primary host is
+        // unreachable (DNS/connection error).
+        $this->fallback = $config['fallback'] ?? 'https://panel.smmflw.com/api/iran';
         $this->key      = $config['api_key'] ?? '';
     }
 
@@ -131,6 +135,15 @@ class UG_Provider_Followeran implements UG_Provider_Interface {
             'timeout' => 30,
             'body'    => $params,
         ] );
+
+        // On a connection-level failure, retry once against the fallback host.
+        if ( is_wp_error( $response ) && $this->fallback && $this->fallback !== $this->endpoint ) {
+            UG_Logger::error( 'Followeran primary failed, trying fallback', [ 'err' => $response->get_error_message() ] );
+            $response = wp_remote_post( $this->fallback, [
+                'timeout' => 30,
+                'body'    => $params,
+            ] );
+        }
 
         if ( is_wp_error( $response ) ) {
             UG_Logger::error( 'Followeran request failed', [ 'err' => $response->get_error_message() ] );

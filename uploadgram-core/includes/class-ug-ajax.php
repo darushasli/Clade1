@@ -371,6 +371,31 @@ class UG_Ajax {
             wp_send_json_error( [ 'message' => 'محاسبه قیمت ناموفق بود.' ], 400 );
         }
 
+        // Telegram member orders: the check-bot must already be an admin of the
+        // customer's channel BEFORE we charge — otherwise money is taken but the
+        // service can't run. Verify first (no charge on failure).
+        $assigned_bot = 0;
+        if ( 'telegram' === $m['provider'] ) {
+            $tg = $this->dispatcher->provider( 'telegram' );
+            if ( $tg instanceof UG_Provider_Telegram ) {
+                $q = $tg->quote( $m['order_type'], $quantity );
+                if ( empty( $q['ok'] ) ) {
+                    wp_send_json_error( [ 'message' => $q['error'] ?: 'اتصال به ربات ناموفق بود.' ], 502 );
+                }
+                $assigned_bot = (int) ( $q['data']['assigned_bot'] ?? 0 );
+                $check_bot    = $q['data']['check_bot'] ?? '';
+                if ( ! $assigned_bot || ! $tg->check_membership( $assigned_bot, $target ) ) {
+                    wp_send_json_error( [
+                        'message'    => $check_bot
+                            ? sprintf( 'ابتدا ربات @%s را ادمین کانال خود کنید، سپس دوباره ثبت کنید.', $check_bot )
+                            : 'ابتدا ربات بررسی را ادمین کانال خود کنید.',
+                        'need_admin' => true,
+                        'check_bot'  => $check_bot,
+                    ], 409 );
+                }
+            }
+        }
+
         // Check & debit wallet BEFORE calling the provider.
         if ( $this->wallet->balance( $user_id ) < $price ) {
             wp_send_json_error( [
@@ -407,11 +432,17 @@ class UG_Ajax {
         }
 
         // Dispatch to provider.
+        $extra = [ 'local_order' => $order_id ];
+        if ( 'telegram' === $m['provider'] ) {
+            $extra['order_type']   = $m['order_type'];
+            $extra['assigned_bot'] = $assigned_bot;
+            $extra['web_user_id']  = $user_id;
+        }
         $result = $this->dispatcher->create_order( $m['provider'], [
             'service_id' => $m['service_id'],
             'target'     => $target,
             'quantity'   => $quantity,
-            'extra'      => [ 'local_order' => $order_id ],
+            'extra'      => $extra,
         ] );
 
         if ( empty( $result['ok'] ) ) {

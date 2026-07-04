@@ -43,6 +43,7 @@ class UG_WC_Integration {
             'max'        => (int) get_post_meta( $product_id, '_ug_max', true ),
             'rate'       => (float) get_post_meta( $product_id, '_ug_rate', true ),
             'fixed'      => 'yes' === get_post_meta( $product_id, '_ug_fixed', true ),
+            'order_type' => get_post_meta( $product_id, '_ug_order_type', true ) ?: 'ethical',
         ];
     }
 
@@ -97,6 +98,18 @@ class UG_WC_Integration {
                 ],
             ] );
 
+            woocommerce_wp_select( [
+                'id'          => '_ug_order_type',
+                'label'       => __( 'نوع سفارش تلگرام', 'uploadgram-core' ),
+                'value'       => $m['order_type'],
+                'options'     => [
+                    'ethical'   => __( 'ممبر اجباری (اخلاقی)', 'uploadgram-core' ),
+                    'unethical' => __( 'ممبر مجازی (غیراخلاقی)', 'uploadgram-core' ),
+                ],
+                'desc_tip'    => true,
+                'description' => __( 'فقط برای محصولات «ربات تلگرام» کاربرد دارد.', 'uploadgram-core' ),
+            ] );
+
             woocommerce_wp_text_input( [
                 'id'    => '_ug_min',
                 'label' => __( 'حداقل تعداد', 'uploadgram-core' ),
@@ -135,6 +148,7 @@ class UG_WC_Integration {
             '_ug_provider'   => 'sanitize_text_field',
             '_ug_service_id' => 'sanitize_text_field',
             '_ug_input_type' => 'sanitize_text_field',
+            '_ug_order_type' => 'sanitize_text_field',
             '_ug_min'        => 'absint',
             '_ug_max'        => 'absint',
             '_ug_rate'       => 'floatval',

@@ -2,15 +2,22 @@
 /**
  * Numberland (numberland.ir) — virtual number / OTP provider.
  *
- * Typical Numberland API (GET, param-based). Exact method/param names may
- * differ per their docs — they are centralised in request()/create_order()
- * so you can adjust in one place after checking the official docs.
+ * Matches the official numberland.ir/developers v2 API:
+ *   Base: https://api.numberland.ir/v2.php/?apikey=[API_CODE]&method=[METHOD]
+ *   HTTP: GET · Response: JSON · Fields are UPPERCASE.
+ *   Error rule: field RESULT < 0  ⇒ error (see error map below).
  *
- *   method=getbalance                         → { balance }
- *   method=services                           → [ services ]
- *   method=getnumber&service=..&country=..    → { id, number }
- *   method=getsms&id=..                        → { sms / code }
- *   method=cancel&id=..                        → { status }
+ *   method=balance                    → { RESULT: <balance> }
+ *   method=getinfo                    → [ { id: SERVICE_COUNTRY_ID, ... }, ... ]
+ *   method=getnum&sid=<id>            → { RESULT, ID, NUMBER, AREACODE, AMOUNT }
+ *   method=checkstatus&id=<ID>        → { RESULT: 1..6, CODE }
+ *   method=cancelnumber&id=<ID>       → { RESULT }
+ *   method=bannumber&id=<ID>          → { RESULT }
+ *   method=repeat&id=<ID>             → { RESULT }
+ *   method=closenumber&id=<ID>        → { RESULT }
+ *   method=getcountry / getservice    → [ ... ]
+ *
+ * See docs/api-numberland.md for the full analysis.
  *
  * @package UploadGram
  */
@@ -24,6 +31,31 @@ class UG_Provider_Numberland implements UG_Provider_Interface {
     private string $endpoint;
     private string $key;
 
+    /** checkstatus RESULT codes → internal status. */
+    private const STATUS_MAP = [
+        1 => 'awaiting_otp', // waiting for SMS
+        2 => 'awaiting_otp', // number ready, waiting for SMS
+        3 => 'completed',    // code received (CODE field is filled)
+        4 => 'canceled',     // number canceled
+        5 => 'failed',       // number banned
+        6 => 'failed',       // expired / closed
+    ];
+
+    /** Negative RESULT error codes → Persian message. */
+    private const ERROR_MAP = [
+        -901 => 'کلید API نامعتبر است',
+        -902 => 'دسترسی مسدود است (IP مجاز نیست)',
+        -990 => 'خطای عمومی سرور نامبرلند',
+        -900 => 'پارامتر ارسالی نامعتبر است',
+        -202 => 'موجودی حساب نامبرلند کافی نیست',
+        -204 => 'این سرویس موجود نیست',
+        -205 => 'شماره‌ای برای این سرویس موجود نیست',
+        -210 => 'شناسه سفارش نامعتبر است',
+        -211 => 'این عملیات روی این سفارش مجاز نیست',
+        -212 => 'این شماره قبلاً بسته شده است',
+        -304 => 'محدودیت تعداد درخواست (کمی صبر کنید)',
+    ];
+
     public function __construct( array $config ) {
         $this->endpoint = $config['endpoint'] ?? 'https://api.numberland.ir/v2.php';
         $this->key      = $config['api_key'] ?? '';
@@ -34,53 +66,55 @@ class UG_Provider_Numberland implements UG_Provider_Interface {
     }
 
     public function test(): array {
-        $res = $this->request( [ 'method' => 'getbalance' ] );
+        $res = $this->request( [ 'method' => 'balance' ] );
         return $res['ok']
             ? [ 'ok' => true, 'data' => $res['data'], 'error' => '' ]
             : [ 'ok' => false, 'data' => $res['data'], 'error' => $res['error'] ];
     }
 
+    /**
+     * Remote catalogue of service+country combinations (each has an `id` =
+     * SERVICE_COUNTRY_ID which is what you pass to getnum as `sid`).
+     */
     public function services(): array {
-        $res = $this->request( [ 'method' => 'services' ] );
+        $res = $this->request( [ 'method' => 'getinfo' ] );
         return $res['ok'] ? [ 'ok' => true, 'data' => $res['data'], 'error' => '' ]
                           : [ 'ok' => false, 'data' => [], 'error' => $res['error'] ];
     }
 
     /**
-     * Buy a number. service_id encodes "service:country" or uses extra.
+     * Buy / reserve a number.
+     * service_id = SERVICE_COUNTRY_ID (the `id` from getinfo).
      */
     public function create_order( array $args ): array {
-        $service = $args['service_id'] ?? '';
-        $country = $args['extra']['country'] ?? '';
-
-        // Allow "service:country" combined id.
-        if ( $country === '' && str_contains( $service, ':' ) ) {
-            [ $service, $country ] = array_pad( explode( ':', $service, 2 ), 2, '' );
+        $sid = $args['service_id'] ?? '';
+        if ( '' === $sid ) {
+            return $this->fail_order( 'شناسه سرویس (sid) مشخص نشده است' );
         }
 
-        $res = $this->request( [
-            'method'  => 'getnumber',
-            'service' => $service,
-            'country' => $country,
-        ] );
-
+        $res = $this->request( [ 'method' => 'getnum', 'sid' => $sid ] );
         if ( ! $res['ok'] ) {
-            return [ 'ok' => false, 'provider_order_id' => '', 'status' => 'failed', 'data' => $res['data'], 'error' => $res['error'] ];
+            return $this->fail_order( $res['error'], $res['data'] );
         }
 
-        $data = $res['data'];
-        $id   = $data['id'] ?? ( $data['number_id'] ?? '' );
-        $num  = $data['number'] ?? ( $data['phone'] ?? '' );
+        $data   = $res['data'];
+        $id     = $data['ID']       ?? '';
+        $number = $data['NUMBER']   ?? '';
+        $area   = $data['AREACODE'] ?? '';
 
-        if ( empty( $id ) ) {
-            return [ 'ok' => false, 'provider_order_id' => '', 'status' => 'failed', 'data' => $data, 'error' => 'شماره‌ای دریافت نشد (احتمالاً موجودی سرویس تمام است)' ];
+        if ( '' === (string) $id ) {
+            return $this->fail_order( 'شماره‌ای دریافت نشد (احتمالاً موجودی سرویس تمام است)', $data );
         }
 
         return [
             'ok'                => true,
             'provider_order_id' => (string) $id,
             'status'            => 'awaiting_otp',
-            'data'              => [ 'number' => $num ] + (array) $data,
+            'data'              => [
+                'number'   => (string) $number,
+                'areacode' => (string) $area,
+                'amount'   => $data['AMOUNT'] ?? null,
+            ] + (array) $data,
             'error'             => '',
         ];
     }
@@ -89,39 +123,87 @@ class UG_Provider_Numberland implements UG_Provider_Interface {
      * Poll for the SMS/OTP.
      */
     public function order_status( string $provider_order_id, array $context = [] ): array {
-        $res = $this->request( [ 'method' => 'getsms', 'id' => $provider_order_id ] );
+        $res = $this->request( [ 'method' => 'checkstatus', 'id' => $provider_order_id ] );
         if ( ! $res['ok'] ) {
             return [ 'ok' => false, 'status' => '', 'data' => $res['data'], 'error' => $res['error'] ];
         }
 
-        $data = $res['data'];
-        $sms  = $data['sms'] ?? ( $data['code'] ?? ( $data['message'] ?? '' ) );
+        $data   = $res['data'];
+        $result = isset( $data['RESULT'] ) ? (int) $data['RESULT'] : 0;
+        $status = self::STATUS_MAP[ $result ] ?? 'awaiting_otp';
+        $code   = $data['CODE'] ?? '';
 
-        if ( ! empty( $sms ) ) {
-            return [ 'ok' => true, 'status' => 'completed', 'data' => [ 'otp' => $sms ] + (array) $data, 'error' => '' ];
-        }
-
-        // Still waiting.
-        return [ 'ok' => true, 'status' => 'awaiting_otp', 'data' => (array) $data, 'error' => '' ];
+        return [
+            'ok'     => true,
+            'status' => $status,
+            'data'   => ( '' !== (string) $code ? [ 'otp' => (string) $code ] : [] ) + (array) $data,
+            'error'  => '',
+        ];
     }
 
     /**
-     * Cancel / release a number.
+     * Cancel a number (refund if no code arrived yet).
      */
     public function cancel( string $provider_order_id ): array {
-        return $this->request( [ 'method' => 'cancel', 'id' => $provider_order_id ] );
+        return $this->action_by_id( 'cancelnumber', $provider_order_id );
+    }
+
+    /**
+     * Ban a broken number.
+     */
+    public function ban( string $provider_order_id ): array {
+        return $this->action_by_id( 'bannumber', $provider_order_id );
+    }
+
+    /**
+     * Ask the same number for another SMS.
+     */
+    public function repeat( string $provider_order_id ): array {
+        return $this->action_by_id( 'repeat', $provider_order_id );
+    }
+
+    /**
+     * Close / release a number.
+     */
+    public function close( string $provider_order_id ): array {
+        return $this->action_by_id( 'closenumber', $provider_order_id );
+    }
+
+    public function balance(): array {
+        return $this->request( [ 'method' => 'balance' ] );
+    }
+
+    public function countries(): array {
+        return $this->request( [ 'method' => 'getcountry' ] );
+    }
+
+    /* ── helpers ─────────────────────────────── */
+
+    private function action_by_id( string $method, string $id ): array {
+        $res = $this->request( [ 'method' => $method, 'id' => $id ] );
+        return [
+            'ok'    => $res['ok'],
+            'data'  => $res['data'],
+            'error' => $res['error'],
+        ];
+    }
+
+    private function fail_order( string $error, $data = null ): array {
+        return [ 'ok' => false, 'provider_order_id' => '', 'status' => 'failed', 'data' => $data, 'error' => $error ];
     }
 
     /**
      * HTTP GET request. Returns [ ok, data, error ].
+     * Applies the Numberland error rule (RESULT < 0 ⇒ error).
      */
     private function request( array $params ): array {
         if ( empty( $this->key ) ) {
             return [ 'ok' => false, 'data' => null, 'error' => 'کلید API نامبرلند تنظیم نشده است' ];
         }
 
-        $params['apikey'] = $this->key;
-        $url              = add_query_arg( array_map( 'rawurlencode', $params ), $this->endpoint );
+        $params = [ 'apikey' => $this->key ] + $params;
+        // Docs show base as ".../v2.php/?apikey=..&method=.." — keep that shape.
+        $url = rtrim( $this->endpoint, '/' ) . '/?' . http_build_query( $params );
 
         $response = wp_remote_get( $url, [ 'timeout' => 30 ] );
 
@@ -138,14 +220,14 @@ class UG_Provider_Numberland implements UG_Provider_Interface {
             return [ 'ok' => false, 'data' => $data ?? $body, 'error' => 'کد وضعیت HTTP ' . $code ];
         }
         if ( null === $data ) {
-            // Some endpoints return plain text; wrap it.
-            return [ 'ok' => true, 'data' => [ 'raw' => $body ], 'error' => '' ];
+            return [ 'ok' => false, 'data' => $body, 'error' => 'پاسخ JSON نامعتبر از نامبرلند' ];
         }
 
-        // Numberland often returns an "amount"/"status" error envelope.
-        if ( isset( $data['status'] ) && in_array( strtolower( (string) $data['status'] ), [ 'error', 'fail', '0' ], true ) ) {
-            $msg = $data['message'] ?? ( $data['error'] ?? 'خطای نامبرلند' );
-            return [ 'ok' => false, 'data' => $data, 'error' => (string) $msg ];
+        // Error rule: a negative RESULT means failure.
+        if ( isset( $data['RESULT'] ) && is_numeric( $data['RESULT'] ) && (int) $data['RESULT'] < 0 ) {
+            $rc  = (int) $data['RESULT'];
+            $msg = self::ERROR_MAP[ $rc ] ?? ( 'خطای نامبرلند (کد ' . $rc . ')' );
+            return [ 'ok' => false, 'data' => $data, 'error' => $msg ];
         }
 
         return [ 'ok' => true, 'data' => $data, 'error' => '' ];
