@@ -5,7 +5,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'UG_VERSION', '1.2.0' );
+define( 'UG_VERSION', '1.3.0' );
 define( 'UG_DIR',     get_template_directory() );
 define( 'UG_URI',     get_template_directory_uri() );
 
