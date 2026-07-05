@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class UG_Tickets {
 
-    const DB_VERSION = '1.0.0';
+    const DB_VERSION = '1.1.0';
 
     public static function departments(): array {
         return [
@@ -77,6 +77,7 @@ class UG_Tickets {
             ticket_id BIGINT UNSIGNED NOT NULL,
             sender VARCHAR(10) NOT NULL DEFAULT 'user',
             body TEXT NOT NULL,
+            attachment VARCHAR(255) NULL,
             created_at DATETIME NOT NULL,
             PRIMARY KEY (id),
             KEY ticket_id (ticket_id)
@@ -87,6 +88,29 @@ class UG_Tickets {
 
     private function t(): string { global $wpdb; return $wpdb->prefix . 'ug_tickets'; }
     private function tm(): string { global $wpdb; return $wpdb->prefix . 'ug_ticket_msgs'; }
+
+    /**
+     * Handle an optional file upload on a ticket message. Returns the URL or ''.
+     */
+    private function handle_upload(): string {
+        if ( empty( $_FILES['file']['name'] ) ) {
+            return '';
+        }
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        $mimes = [
+            'jpg|jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp',
+            'pdf' => 'application/pdf', 'zip' => 'application/zip', 'rar' => 'application/x-rar-compressed', 'txt' => 'text/plain',
+        ];
+        $up = wp_handle_upload( $_FILES['file'], [ 'test_form' => false, 'mimes' => $mimes ] );
+        return isset( $up['url'] ) ? esc_url_raw( $up['url'] ) : '';
+    }
+
+    private function attachment_html( string $url ): string {
+        if ( '' === $url ) {
+            return '';
+        }
+        return '<div class="ug-tmsg-file"><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener">📎 مشاهده پیوست</a></div>';
+    }
 
     /* ══════════════ Panel shortcode ══════════════ */
 
@@ -107,8 +131,14 @@ class UG_Tickets {
         global $wpdb;
         $rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$this->t()} WHERE user_id = %d ORDER BY updated_at DESC", $uid ), ARRAY_A );
 
-        // Products the user can reference (from their orders).
-        $products = wc_get_products( [ 'limit' => 50, 'status' => 'publish', 'return' => 'objects' ] );
+        // Related product = only products this user has actually ordered.
+        $order_tbl = $wpdb->prefix . 'ug_orders';
+        $pids = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT product_id FROM $order_tbl WHERE user_id = %d AND product_id > 0", $uid ) );
+        $products = [];
+        foreach ( (array) $pids as $pid ) {
+            $p = wc_get_product( (int) $pid );
+            if ( $p ) { $products[] = $p; }
+        }
 
         ob_start(); ?>
         <div class="ug-tickets">
@@ -128,6 +158,7 @@ class UG_Tickets {
             </label>
             <label class="ug-field"><span>موضوع</span><input type="text" name="subject" maxlength="200" required></label>
             <label class="ug-field"><span>پیام</span><textarea name="body" rows="4" required></textarea></label>
+            <label class="ug-field"><span>پیوست (اختیاری — عکس، PDF، ZIP)</span><input type="file" name="file" accept="image/*,.pdf,.zip,.txt,.rar"></label>
             <button type="submit" class="ug-btn ug-btn-primary">ارسال تیکت</button>
             <div class="ug-form-msg" style="display:none;"></div>
           </form>
@@ -175,6 +206,7 @@ class UG_Tickets {
               <div class="ug-tmsg ug-tmsg-<?php echo esc_attr( $m['sender'] ); ?>">
                 <div class="ug-tmsg-who"><?php echo 'admin' === $m['sender'] ? 'پشتیبانی' : 'شما'; ?></div>
                 <div class="ug-tmsg-body"><?php echo nl2br( esc_html( $m['body'] ) ); ?></div>
+                <?php echo $this->attachment_html( $m['attachment'] ?? '' ); ?>
                 <div class="ug-tmsg-time"><?php echo esc_html( mysql2date( 'Y/m/d H:i', $m['created_at'] ) ); ?></div>
               </div>
             <?php endforeach; ?>
@@ -182,6 +214,7 @@ class UG_Tickets {
           <?php if ( 'closed' !== $ticket['status'] ) : ?>
             <form class="ug-ticket-reply" data-ticket="<?php echo (int) $ticket_id; ?>">
               <label class="ug-field"><span>پاسخ شما</span><textarea name="body" rows="3" required></textarea></label>
+              <label class="ug-field"><span>پیوست (اختیاری)</span><input type="file" name="file" accept="image/*,.pdf,.zip,.txt,.rar"></label>
               <button type="submit" class="ug-btn ug-btn-primary">ارسال پاسخ</button>
               <div class="ug-form-msg" style="display:none;"></div>
             </form>
@@ -215,12 +248,13 @@ class UG_Tickets {
         }
 
         $now = current_time( 'mysql' );
+        $att = $this->handle_upload();
         $wpdb->insert( $this->t(), [
             'user_id' => $uid, 'department' => $dep, 'priority' => $pri, 'product_id' => $pid,
             'subject' => $subject, 'status' => 'open', 'created_at' => $now, 'updated_at' => $now,
         ] );
         $tid = (int) $wpdb->insert_id;
-        $wpdb->insert( $this->tm(), [ 'ticket_id' => $tid, 'sender' => 'user', 'body' => $body, 'created_at' => $now ] );
+        $wpdb->insert( $this->tm(), [ 'ticket_id' => $tid, 'sender' => 'user', 'body' => $body, 'attachment' => $att, 'created_at' => $now ] );
 
         wp_send_json_success( [ 'message' => 'تیکت شما ثبت شد.', 'redirect' => add_query_arg( [ 'section' => 'tickets', 'ticket' => $tid ], home_url( '/panel/' ) ) ] );
     }
@@ -243,7 +277,8 @@ class UG_Tickets {
             wp_send_json_error( [ 'message' => 'متن پاسخ خالی است.' ], 400 );
         }
         $now = current_time( 'mysql' );
-        $wpdb->insert( $this->tm(), [ 'ticket_id' => $tid, 'sender' => 'user', 'body' => $body, 'created_at' => $now ] );
+        $att = $this->handle_upload();
+        $wpdb->insert( $this->tm(), [ 'ticket_id' => $tid, 'sender' => 'user', 'body' => $body, 'attachment' => $att, 'created_at' => $now ] );
         $wpdb->update( $this->t(), [ 'status' => 'user_reply', 'updated_at' => $now ], [ 'id' => $tid ] );
         wp_send_json_success( [ 'message' => 'پاسخ ارسال شد.', 'reload' => true ] );
     }
@@ -285,17 +320,18 @@ class UG_Tickets {
             foreach ( $msgs as $m ) {
                 $who = 'admin' === $m['sender'] ? 'پشتیبانی' : 'کاربر';
                 $bg  = 'admin' === $m['sender'] ? '#e7f0ff' : '#f3f3f7';
+                $att = ! empty( $m['attachment'] ) ? '<div><a href="' . esc_url( $m['attachment'] ) . '" target="_blank" rel="noopener">📎 پیوست</a></div>' : '';
                 echo '<div style="background:' . $bg . ';padding:12px 14px;border-radius:10px;margin:8px 0;">'
-                   . '<b>' . esc_html( $who ) . ':</b><br>' . nl2br( esc_html( $m['body'] ) )
+                   . '<b>' . esc_html( $who ) . ':</b><br>' . nl2br( esc_html( $m['body'] ) ) . $att
                    . '<div style="color:#888;font-size:11px;margin-top:6px;">' . esc_html( mysql2date( 'Y/m/d H:i', $m['created_at'] ) ) . '</div></div>';
             }
             echo '</div>';
-            echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="max-width:720px;margin-top:14px;">';
+            echo '<form method="post" enctype="multipart/form-data" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="max-width:720px;margin-top:14px;">';
             wp_nonce_field( 'ug_ticket_admin_reply' );
             echo '<input type="hidden" name="action" value="ug_ticket_admin_reply">';
             echo '<input type="hidden" name="ticket_id" value="' . (int) $view . '">';
             echo '<textarea name="body" rows="4" class="large-text" placeholder="پاسخ..."></textarea>';
-            echo '<p><label><input type="checkbox" name="close" value="1"> بستن تیکت پس از پاسخ</label></p>';
+            echo '<p><input type="file" name="file"> <label><input type="checkbox" name="close" value="1"> بستن تیکت پس از پاسخ</label></p>';
             submit_button( 'ارسال پاسخ' );
             echo '</form></div>';
             return;
@@ -324,8 +360,9 @@ class UG_Tickets {
         $body  = isset( $_POST['body'] ) ? sanitize_textarea_field( wp_unslash( $_POST['body'] ) ) : '';
         $close = ! empty( $_POST['close'] );
         $now   = current_time( 'mysql' );
-        if ( $tid && '' !== $body ) {
-            $wpdb->insert( $this->tm(), [ 'ticket_id' => $tid, 'sender' => 'admin', 'body' => $body, 'created_at' => $now ] );
+        $att   = $this->handle_upload();
+        if ( $tid && ( '' !== $body || '' !== $att ) ) {
+            $wpdb->insert( $this->tm(), [ 'ticket_id' => $tid, 'sender' => 'admin', 'body' => $body, 'attachment' => $att, 'created_at' => $now ] );
             $wpdb->update( $this->t(), [ 'status' => $close ? 'closed' : 'answered', 'updated_at' => $now ], [ 'id' => $tid ] );
         }
         wp_safe_redirect( admin_url( 'admin.php?page=ug-tickets&ticket=' . $tid ) );

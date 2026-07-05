@@ -1678,3 +1678,7 @@ body.ug-in-panel.ug-nav-open .main-nav { display: block; }
 #scroll-to-top, .scroll-to-top, #back-to-top, .back-to-top,
 .backtotop, #backtotop, .scrolltotop, #scrolltotop,
 .cart-nav-item { display: none !important; }
+
+/* ── Prevent any horizontal overflow from zooming out mobile browsers ── */
+html { overflow-x: clip; }
+body { overflow-x: clip; max-width: 100%; }

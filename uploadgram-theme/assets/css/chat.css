@@ -12,7 +12,7 @@
 
 .ugc-panel {
   position: absolute; bottom: 72px; inset-inline-start: 0;
-  width: min(92vw, 340px); max-height: min(70vh, 520px);
+  width: min(92vw, 350px); height: min(74vh, 560px);
   background: var(--card, #fff); color: var(--text, #15182b);
   border: 1px solid var(--border, rgba(0,0,0,.1)); border-radius: 18px;
   box-shadow: 0 24px 60px -18px rgba(0,0,0,.45);
@@ -28,12 +28,12 @@
 .ugc-head small { display: block; font-weight: 500; opacity: .85; font-size: 12px; margin-top: 2px; }
 .ugc-dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.3); }
 
-.ugc-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.ugc-body { flex: 1 1 auto; min-height: 0; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
 .ugc-msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.7; }
 .ugc-msg.bot  { background: var(--bg3, #eef); color: var(--text, #15182b); align-self: flex-start; border-bottom-inline-start-radius: 4px; }
 .ugc-msg.user { background: linear-gradient(135deg,#5B8DEF,#7C6CF5); color: #fff; align-self: flex-end; border-bottom-inline-end-radius: 4px; }
 
-.ugc-faqs { display: flex; flex-direction: column; gap: 8px; padding: 4px 16px 8px; }
+.ugc-faqs { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .ugc-faq {
   text-align: start; padding: 10px 14px; border-radius: 12px; cursor: pointer; font: inherit; font-size: 13px;
   background: transparent; border: 1.5px solid var(--border, rgba(0,0,0,.12)); color: var(--text, #15182b); transition: .15s;

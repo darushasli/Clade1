@@ -376,6 +376,7 @@ class UG_Panel {
         ob_start();
         ?>
         <div class="ug-panel">
+            <div class="ug-panel-backdrop"></div>
             <aside class="ug-panel-sidebar">
                 <div class="ug-panel-user">
                     <?php if ( $avatar ) : ?>
@@ -402,7 +403,12 @@ class UG_Panel {
                 </nav>
             </aside>
             <main class="ug-panel-content">
-                <h2 class="ug-panel-heading"><?php echo esc_html( $sections[ $section ]['label'] ); ?></h2>
+                <div class="ug-panel-topbar">
+                    <button type="button" class="ug-panel-burger" aria-label="منوی پنل">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
+                    <h2 class="ug-panel-heading"><?php echo esc_html( $sections[ $section ]['label'] ); ?></h2>
+                </div>
                 <?php echo $this->render_section( $section ); ?>
             </main>
         </div>

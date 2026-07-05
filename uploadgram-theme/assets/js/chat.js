@@ -31,24 +31,24 @@
   var panel = el('div', 'ugc-panel');
   var head = el('div', 'ugc-head', '<span class="ugc-dot"></span><div>پشتیبانی آپلودگرام<small>معمولاً چند دقیقه‌ای پاسخ می‌دهیم</small></div>');
   var body = el('div', 'ugc-body');
-  body.appendChild(el('div', 'ugc-msg bot', 'سلام 👋 خوش آمدید! یکی از سوال‌های زیر را انتخاب کنید یا با پشتیبانی گفتگو کنید.'));
+  body.appendChild(el('div', 'ugc-msg bot', 'سلام 👋 خوش آمدید! یکی از سوال‌های پرتکرار را بزنید یا با پشتیبانی گفتگو کنید.'));
 
+  // FAQ quick-reply chips live INSIDE the scrollable body so answers stay visible.
   var faqs = el('div', 'ugc-faqs');
   FAQS.forEach(function (f) {
     var b = el('button', 'ugc-faq', esc(f.q));
     b.addEventListener('click', function () {
       body.appendChild(el('div', 'ugc-msg user', esc(f.q)));
-      body.appendChild(el('div', 'ugc-msg bot', esc(f.a)));
+      var a = el('div', 'ugc-msg bot', esc(f.a));
+      body.appendChild(a);
+      a.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       body.scrollTop = body.scrollHeight;
     });
     faqs.appendChild(b);
   });
+  body.appendChild(faqs);
 
   var foot = el('div', 'ugc-foot');
-  var lead = el('div', 'ugc-msg bot', 'سوال دیگری دارید؟ با پشتیبانی در ارتباط باشید:');
-  lead.style.maxWidth = '100%';
-  foot.appendChild(lead);
-
   var ticket = el('a', 'ugc-cta');
   ticket.textContent = 'ثبت تیکت پشتیبانی';
   ticket.href = loggedIn ? panelUrl : authUrl;
@@ -65,7 +65,6 @@
 
   panel.appendChild(head);
   panel.appendChild(body);
-  panel.appendChild(faqs);
   panel.appendChild(foot);
   root.appendChild(panel);
   root.appendChild(bubble);
