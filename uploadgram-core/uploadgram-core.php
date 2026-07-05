@@ -47,6 +47,10 @@ require_once UGC_DIR . 'includes/class-ug-ajax.php';
 require_once UGC_DIR . 'includes/class-ug-cron.php';
 require_once UGC_DIR . 'includes/class-ug-panel.php';
 require_once UGC_DIR . 'includes/class-ug-shortcodes.php';
+require_once UGC_DIR . 'includes/class-ug-account-seed.php';
+require_once UGC_DIR . 'includes/class-ug-sync.php';
+require_once UGC_DIR . 'includes/class-ug-app-selector.php';
+require_once UGC_DIR . 'includes/class-ug-elementor.php';
 require_once UGC_DIR . 'includes/class-ug-core.php';
 
 /**

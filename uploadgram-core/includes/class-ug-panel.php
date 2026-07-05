@@ -336,11 +336,14 @@ class UG_Panel {
         }
         $section = isset( $_GET['section'] ) ? sanitize_key( $_GET['section'] ) : 'dashboard';
         $sections = [
-            'dashboard' => [ 'label' => 'داشبورد',    'icon' => '🏠' ],
-            'orders'    => [ 'label' => 'سفارش‌ها',   'icon' => '📦' ],
-            'wallet'    => [ 'label' => 'کیف پول',    'icon' => '💳' ],
-            'tx'        => [ 'label' => 'تراکنش‌ها',  'icon' => '📊' ],
-            'profile'   => [ 'label' => 'پروفایل',   'icon' => '👤' ],
+            'dashboard' => [ 'label' => 'داشبورد',      'icon' => '🏠' ],
+            'services'  => [ 'label' => 'خدمات مجازی',  'icon' => '🚀' ],
+            'numbers'   => [ 'label' => 'شماره مجازی',  'icon' => '📱' ],
+            'accounts'  => [ 'label' => 'اکانت پرمیوم', 'icon' => '💎' ],
+            'orders'    => [ 'label' => 'سفارش‌ها',     'icon' => '📦' ],
+            'wallet'    => [ 'label' => 'کیف پول',      'icon' => '💳' ],
+            'tx'        => [ 'label' => 'تراکنش‌ها',    'icon' => '📊' ],
+            'profile'   => [ 'label' => 'پروفایل',     'icon' => '👤' ],
         ];
         if ( ! isset( $sections[ $section ] ) ) {
             $section = 'dashboard';
@@ -387,6 +390,14 @@ class UG_Panel {
 
     private function render_section( string $section ): string {
         switch ( $section ) {
+            case 'services':
+                return '<p class="ug-panel-lead">اپلیکیشن موردنظر را انتخاب کنید، سپس نوع خدمت را برگزینید و همین‌جا سفارش دهید.</p>'
+                    . do_shortcode( '[ug_services_app]' );
+            case 'numbers':
+                return '<p class="ug-panel-lead">اپلیکیشن موردنظر را انتخاب کنید تا شماره‌های مناسب آن نمایش داده شوند.</p>'
+                    . do_shortcode( '[ug_numbers_app]' );
+            case 'accounts':
+                return $this->accounts_grid();
             case 'orders':
                 return $this->sc_my_orders();
             case 'wallet':
@@ -398,6 +409,42 @@ class UG_Panel {
             default:
                 return $this->sc_dashboard();
         }
+    }
+
+    /**
+     * Premium-account cards → each links to its own product page.
+     */
+    private function accounts_grid(): string {
+        $q = new WP_Query( [
+            'post_type'      => 'product',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+            'meta_query'     => [ [ 'key' => '_ug_kind', 'value' => 'account' ] ],
+        ] );
+        if ( ! $q->have_posts() ) {
+            return '<div class="ug-notice">هنوز اکانتی اضافه نشده است. از پیشخوان › آپلودگرام › همگام‌سازی سرویس‌ها › «ساخت اکانت‌های پرمیوم نمونه» استفاده کنید.</div>';
+        }
+        ob_start();
+        echo '<p class="ug-panel-lead">روی هر اکانت بزنید تا جزئیات و خرید آن باز شود.</p>';
+        echo '<div class="ug-acc-grid">';
+        foreach ( $q->posts as $pid ) {
+            $product = wc_get_product( $pid );
+            if ( ! $product ) {
+                continue;
+            }
+            $img = $product->get_image( 'woocommerce_thumbnail' );
+            printf(
+                '<a class="ug-acc-item" href="%s"><div class="ug-acc-thumb">%s</div><div class="ug-acc-info"><div class="ug-acc-title">%s</div><div class="ug-acc-price">%s</div></div></a>',
+                esc_url( get_permalink( $pid ) ),
+                $img,
+                esc_html( $product->get_name() ),
+                wp_kses_post( wc_price( $product->get_price() ) )
+            );
+        }
+        echo '</div>';
+        return ob_get_clean();
     }
 
     /**

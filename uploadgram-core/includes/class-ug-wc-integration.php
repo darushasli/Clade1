@@ -44,6 +44,8 @@ class UG_WC_Integration {
             'rate'       => (float) get_post_meta( $product_id, '_ug_rate', true ),
             'fixed'      => 'yes' === get_post_meta( $product_id, '_ug_fixed', true ),
             'order_type' => get_post_meta( $product_id, '_ug_order_type', true ) ?: 'ethical',
+            'platform'   => get_post_meta( $product_id, '_ug_platform', true ),
+            'kind'       => get_post_meta( $product_id, '_ug_kind', true ),
         ];
     }
 
@@ -138,6 +140,22 @@ class UG_WC_Integration {
                 'desc_tip'    => true,
                 'description' => __( 'برای خدمات تعدادی: قیمت به‌ازای هر ۱۰۰۰ واحد. قیمت نهایی = تعداد ÷ ۱۰۰۰ × نرخ.', 'uploadgram-core' ),
             ] );
+
+            woocommerce_wp_text_input( [
+                'id'          => '_ug_platform',
+                'label'       => __( 'پلتفرم (اپلیکیشن)', 'uploadgram-core' ),
+                'value'       => $m['platform'],
+                'desc_tip'    => true,
+                'description' => __( 'برای دسته‌بندی در «خدمات مجازی/شماره مجازی». مثال: instagram / telegram / youtube / tiktok / spotify / whatsapp', 'uploadgram-core' ),
+            ] );
+
+            woocommerce_wp_text_input( [
+                'id'          => '_ug_kind',
+                'label'       => __( 'نوع خدمت', 'uploadgram-core' ),
+                'value'       => $m['kind'],
+                'desc_tip'    => true,
+                'description' => __( 'مثال: followers (فالوور) / likes (لایک) / views (بازدید) / members (ممبر) / comments (کامنت)', 'uploadgram-core' ),
+            ] );
             ?>
         </div>
         <?php
@@ -149,6 +167,8 @@ class UG_WC_Integration {
             '_ug_service_id' => 'sanitize_text_field',
             '_ug_input_type' => 'sanitize_text_field',
             '_ug_order_type' => 'sanitize_text_field',
+            '_ug_platform'   => 'sanitize_text_field',
+            '_ug_kind'       => 'sanitize_text_field',
             '_ug_min'        => 'absint',
             '_ug_max'        => 'absint',
             '_ug_rate'       => 'floatval',

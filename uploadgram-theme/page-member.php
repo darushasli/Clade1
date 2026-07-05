@@ -28,6 +28,12 @@ get_header();
     </div>
   </div>
 
+  <!-- ══ APP-FIRST QUICK ORDER ══ -->
+  <div class="section">
+    <?php ug_section_head( '⚡ سفارش سریع — اپلیکیشن و نوع خدمت را انتخاب کنید' ); ?>
+    <?php echo do_shortcode( '[ug_services_app]' ); ?>
+  </div>
+
   <!-- ══ QUICK PICK — انواع پکیج ممبر ══ -->
   <div class="section">
     <?php ug_section_head( 'انواع پکیج ممبر — برای خرید سریع انتخاب کنید' ); ?>

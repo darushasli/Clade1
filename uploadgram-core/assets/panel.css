@@ -258,3 +258,17 @@
   backdrop-filter: blur(4px);
 }
 .ug-wallet-card .ug-btn-primary:hover { background: rgba(255,255,255,0.28); box-shadow: none; }
+
+/* ── Panel buying sections ── */
+.ug-panel-lead { color: var(--muted, #667); margin: 0 0 16px; font-size: 14px; }
+.ug-acc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 14px; }
+.ug-acc-item {
+  display: flex; flex-direction: column; text-decoration: none;
+  background: var(--card, #fff); border: 1.5px solid var(--border, rgba(0,0,0,.08));
+  border-radius: 16px; overflow: hidden; transition: .18s; color: var(--text, #15182b);
+}
+.ug-acc-item:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -14px rgba(0,0,0,.4); border-color: var(--mint, #6d5cf0); }
+.ug-acc-thumb img { width: 100%; height: 130px; object-fit: cover; display: block; }
+.ug-acc-info { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.ug-acc-title { font-weight: 700; font-size: 14px; line-height: 1.5; }
+.ug-acc-price { font-weight: 800; color: var(--mint, #6d5cf0); }

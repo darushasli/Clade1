@@ -28,6 +28,12 @@ get_header();
     </div>
   </div>
 
+  <!-- ══ APP-FIRST NUMBER PICKER ══ -->
+  <div class="section">
+    <?php ug_section_head( '⚡ خرید سریع شماره — اپلیکیشن را انتخاب کنید' ); ?>
+    <?php echo do_shortcode( '[ug_numbers_app]' ); ?>
+  </div>
+
   <!-- ══ HOW IT WORKS — 4 STEPS ══ -->
   <div class="steps-row">
     <div class="step-card">

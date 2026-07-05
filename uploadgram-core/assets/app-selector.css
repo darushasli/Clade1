@@ -1,0 +1,60 @@
+/* UploadGram — app-first selector. Uses theme CSS vars so it matches light/dark. */
+.ug-app { margin: 8px 0 24px; }
+.ug-app-empty {
+  padding: 22px; text-align: center; border-radius: 16px;
+  background: var(--card, #fff); color: var(--muted, #667);
+  border: 1px solid var(--border, rgba(0,0,0,.08));
+}
+
+/* app icon row */
+.ug-app-apps {
+  display: flex; gap: 10px; overflow-x: auto; padding: 6px 2px 14px;
+  scrollbar-width: thin;
+}
+.ug-app-chip {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: 78px; padding: 12px 8px; cursor: pointer;
+  border-radius: 16px; border: 1.5px solid var(--border, rgba(0,0,0,.08));
+  background: var(--card, #fff); color: var(--text, #15182b);
+  font: inherit; font-size: 12px; transition: .18s;
+}
+.ug-app-chip img { width: 34px; height: 34px; object-fit: contain; }
+.ug-app-chip:hover { transform: translateY(-2px); }
+.ug-app-chip.active {
+  border-color: var(--mint, #6d5cf0);
+  box-shadow: 0 6px 18px -8px var(--mint, #6d5cf0);
+  background: color-mix(in srgb, var(--mint, #6d5cf0) 10%, var(--card, #fff));
+}
+
+/* kind chips */
+.ug-app-kinds { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 16px; }
+.ug-kind-chip {
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 13px;
+  border: 1.5px solid var(--border, rgba(0,0,0,.08));
+  background: var(--card, #fff); color: var(--text, #15182b); transition: .16s;
+}
+.ug-kind-chip.active { background: var(--mint, #6d5cf0); color: #fff; border-color: var(--mint, #6d5cf0); }
+
+/* product cards */
+.ug-app-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.ug-svc-card, .ug-num-card {
+  background: var(--card, #fff); border: 1.5px solid var(--border, rgba(0,0,0,.08));
+  border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+}
+.ug-svc-name, .ug-num-name { font-weight: 700; color: var(--text, #15182b); line-height: 1.5; }
+.ug-svc-price, .ug-num-price { font-weight: 800; color: var(--mint, #6d5cf0); }
+.ug-svc-limits { font-size: 12px; color: var(--muted, #667); }
+.ug-svc-form { display: flex; flex-direction: column; gap: 8px; }
+.ug-svc-target, .ug-svc-qty {
+  width: 100%; padding: 10px 12px; border-radius: 12px; font: inherit;
+  border: 1.5px solid var(--border, rgba(0,0,0,.1)); background: var(--bg, #f3f4fa); color: var(--text, #15182b);
+}
+.ug-svc-buy {
+  margin-top: auto; padding: 11px 16px; border: 0; border-radius: 12px; cursor: pointer;
+  font: inherit; font-weight: 700; color: #fff; background: var(--mint, #6d5cf0); transition: .16s;
+}
+.ug-svc-buy:hover { filter: brightness(1.06); }
+.ug-svc-buy.is-loading { opacity: .6; pointer-events: none; }
+.ug-svc-msg { font-size: 13px; padding: 6px 0; }
+.ug-svc-msg.is-error { color: #e5484d; }
+.ug-svc-msg.is-success { color: #30a46c; }

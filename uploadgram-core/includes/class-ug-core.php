@@ -68,6 +68,9 @@ class UG_Core {
         new UG_Cron( $this->dispatcher, $this->orders, $this->wallet );
         new UG_Panel( $this->wallet, $this->orders, $this->settings, $this->auth );
         new UG_Shortcodes();
+        new UG_Sync( $this->dispatcher, $this->settings );
+        new UG_App_Selector( $this->wallet );
+        new UG_Elementor();
 
         add_action( 'init', [ $this, 'load_textdomain' ] );
     }
