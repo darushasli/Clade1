@@ -29,7 +29,28 @@ class UG_WC_Integration {
         if ( 'yes' === $this->settings->get( 'disable_cart', 'yes' ) ) {
             add_filter( 'woocommerce_is_purchasable', '__return_false' );
             add_filter( 'woocommerce_add_to_cart_validation', '__return_false' );
+            // Replace the (now hidden) add-to-cart with our instant wallet order form.
+            remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
+            add_action( 'woocommerce_single_product_summary', [ $this, 'single_order_form' ], 30 );
         }
+    }
+
+    /**
+     * On a product's own page, show the instant wallet-order form for any
+     * product connected to a UploadGram service (or a fixed-price account).
+     */
+    public function single_order_form(): void {
+        global $product;
+        if ( ! $product instanceof WC_Product ) {
+            return;
+        }
+        $pid = $product->get_id();
+        $m   = self::meta( $pid );
+        // Only our products (has provider, or explicitly fixed like accounts).
+        if ( empty( $m['provider'] ) && ! $m['fixed'] && '' === $m['kind'] ) {
+            return;
+        }
+        echo do_shortcode( '[ug_order_form id="' . (int) $pid . '"]' );
     }
 
     /* ── Product meta helpers ──────────────── */

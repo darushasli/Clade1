@@ -135,6 +135,8 @@ class UG_Sync {
         $val  = $this->settings->get( $key );
         echo '<tr><th scope="row"><label>' . esc_html( $label ) . '</label></th><td>';
         if ( 'checkbox' === $type ) {
+            // Hidden default so unchecking actually clears the value (merge-safe sanitize).
+            echo '<input type="hidden" name="' . esc_attr( $name ) . '" value="">';
             echo '<label><input type="checkbox" name="' . esc_attr( $name ) . '" value="yes" ' . checked( 'yes', $val, false ) . '> ' . esc_html( $hint ) . '</label>';
         } else {
             echo '<input type="' . esc_attr( $type ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $val ) . '" class="regular-text">';

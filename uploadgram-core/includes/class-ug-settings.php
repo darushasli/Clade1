@@ -77,7 +77,12 @@ class UG_Settings {
     }
 
     public function sanitize( $input ): array {
-        $out = [];
+        // Merge over existing values: each admin tab submits only its own
+        // fields, so a partial save must NOT wipe the other tabs' settings.
+        $out = get_option( self::OPTION, [] );
+        if ( ! is_array( $out ) ) {
+            $out = [];
+        }
         foreach ( (array) $input as $k => $v ) {
             $out[ $k ] = is_string( $v ) ? sanitize_text_field( $v ) : $v;
         }
