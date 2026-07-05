@@ -37,7 +37,10 @@
 
 /* product cards */
 .ug-app { max-width: 100%; min-width: 0; }
-.ug-app-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 14px; min-width: 0; }
+.ug-app-products { min-width: 0; }
+.ug-app[data-mode="numbers"] .ug-app-products {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 14px;
+}
 .ug-svc-card, .ug-num-card { min-width: 0; }
 .ug-svc-name, .ug-num-name { overflow-wrap: anywhere; }
 .ug-svc-card, .ug-num-card {
@@ -61,3 +64,33 @@
 .ug-svc-msg { font-size: 13px; padding: 6px 0; }
 .ug-svc-msg.is-error { color: #e5484d; }
 .ug-svc-msg.is-success { color: #30a46c; }
+
+/* ── Buy mode: product dropdown + single order box ── */
+.ug-svc-select {
+  width: 100%; padding: 11px 14px; border-radius: 12px; font: inherit;
+  border: 1.5px solid var(--border, rgba(0,0,0,.12)); background: var(--card, #fff); color: var(--text, #15182b);
+}
+.ug-app-products { display: block; }           /* overridden below for showcase grid */
+.ug-svc-order {
+  margin-top: 14px; background: var(--card, #fff); border: 1.5px solid var(--border, rgba(0,0,0,.08));
+  border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-width: 460px;
+}
+.ug-svc-fields { display: flex; flex-direction: column; gap: 8px; }
+.ug-field > span { font-size: 13px; font-weight: 600; color: var(--muted, #667); display:block; margin-bottom:6px; }
+
+/* ── Showcase mode: tariff cards, no buying ── */
+.ug-app[data-view="showcase"] .ug-app-products {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%,200px),1fr)); gap: 14px;
+}
+.ug-tariff {
+  background: var(--card, #fff); border: 1.5px solid var(--border, rgba(0,0,0,.08));
+  border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+}
+.ug-tariff-kind { font-weight: 800; font-size: 15px; color: var(--text, #15182b); }
+.ug-tariff-from { color: var(--mint, #6d5cf0); font-weight: 700; font-size: 14px; }
+.ug-tariff-cta {
+  margin-top: 6px; padding: 9px 18px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 13px;
+  background: color-mix(in srgb, var(--mint,#6d5cf0) 12%, transparent); color: var(--mint, #6d5cf0);
+  border: 1.5px solid var(--mint, #6d5cf0); transition:.16s;
+}
+.ug-tariff-cta:hover { background: var(--mint, #6d5cf0); color: #fff; }

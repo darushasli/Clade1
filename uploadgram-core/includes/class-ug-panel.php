@@ -539,6 +539,22 @@ class UG_Panel {
                     </div>
                 </label>
                 <button type="submit" class="ug-btn ug-btn-primary">ادامه</button>
+                <button type="button" class="ug-auth-alt ug-email-login-link">ورود با ایمیل و رمز عبور</button>
+                <div class="ug-form-msg" style="display:none;"></div>
+            </form>
+
+            <!-- STEP 1b — login with email + password -->
+            <form class="ug-auth-form" data-step="login-email" style="display:none;">
+                <label class="ug-field">
+                    <span>ایمیل یا شماره موبایل</span>
+                    <input type="text" name="login" autocomplete="username" placeholder="example@mail.com">
+                </label>
+                <label class="ug-field">
+                    <span>رمز عبور</span>
+                    <input type="password" name="password" autocomplete="current-password" placeholder="رمز عبور شما">
+                </label>
+                <button type="submit" class="ug-btn ug-btn-primary">ورود</button>
+                <button type="button" class="ug-auth-alt ug-auth-edit">بازگشت به ورود با شماره</button>
                 <div class="ug-form-msg" style="display:none;"></div>
             </form>
 

@@ -28,10 +28,10 @@ get_header();
     </div>
   </div>
 
-  <!-- ══ APP-FIRST QUICK ORDER ══ -->
+  <!-- ══ SERVICES SHOWCASE (per-platform tariffs — buy happens in the panel) ══ -->
   <div class="section">
-    <?php ug_section_head( '⚡ سفارش سریع — اپلیکیشن و نوع خدمت را انتخاب کنید' ); ?>
-    <?php echo do_shortcode( '[ug_services_app]' ); ?>
+    <?php ug_section_head( 'خدمات مجازی ما — تعرفهٔ هر پلتفرم' ); ?>
+    <?php echo do_shortcode( '[ug_services_app view="showcase"]' ); ?>
   </div>
 
   <!-- ══ QUICK PICK — انواع پکیج ممبر ══ -->

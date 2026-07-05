@@ -36,6 +36,7 @@
     $card.find('[data-step="' + step + '"]').show();
     var subs = {
       'phone': 'ورود یا ثبت‌نام با شماره موبایل',
+      'login-email': 'ورود با ایمیل و رمز عبور',
       'choose': 'خوش آمدید! روش ورود را انتخاب کنید',
       'login-otp': 'کد پیامک‌شده را وارد کنید',
       'login-password': 'رمز عبور خود را وارد کنید',
@@ -43,7 +44,8 @@
     };
     $('#ug-auth-sub').text(subs[step] || '');
     $card.find('.ug-auth-phone').text(phone);
-    $card.find('input[name="login"]').val(phone);
+    // Only the phone-password step gets the phone pre-filled as login.
+    $card.find('[data-step="login-password"] input[name="login"]').val(phone);
   }
 
   function msg($form, text, type) {
@@ -131,6 +133,20 @@
 
   /* edit phone → back to step 1 */
   $card.on('click', '.ug-auth-edit', function () { showStep('phone'); });
+
+  /* Email + password login */
+  $card.on('click', '.ug-email-login-link', function () { showStep('login-email'); });
+  $card.on('submit', '[data-step="login-email"]', function (e) {
+    e.preventDefault();
+    var $form = $(this), $btn = $form.find('button[type="submit"]');
+    busy($btn, true);
+    post('ug_login', {
+      login: $form.find('input[name="login"]').val(),
+      password: $form.find('input[name="password"]').val()
+    })
+      .done(function (res) { if (!redirect(res)) { busy($btn, false); msg($form, res.data.message, 'is-error'); } })
+      .fail(function (x) { busy($btn, false); msg($form, errText(x), 'is-error'); });
+  });
 
   /* Step 2b: OTP login */
   $card.on('submit', '[data-step="login-otp"]', function (e) {

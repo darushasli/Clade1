@@ -73,10 +73,18 @@ if ( ! $ug_elementor_footer ) :
 </footer>
 <?php endif; // end Elementor footer fallback ?>
 
-<!-- Floating chat button -->
-<a class="float-chat" href="#" title="پشتیبانی تلگرام" aria-label="پشتیبانی تلگرام">
-  <svg viewBox="0 0 24 24" fill="none"><path d="M21 12L3 4l3 8-3 8 18-8z" fill="#fff"/></svg>
-</a>
+<?php
+/**
+ * Online support chat widget (auto-answers + escalate to ticket/Telegram).
+ * Rendered site-wide; content & behaviour in assets/js/chat.js.
+ */
+$ug_support_tg = function_exists( 'ug_support_telegram' ) ? ug_support_telegram() : '';
+?>
+<div id="ug-chat"
+     data-logged-in="<?php echo is_user_logged_in() ? '1' : '0'; ?>"
+     data-panel="<?php echo esc_url( home_url( '/panel/?section=tickets' ) ); ?>"
+     data-auth="<?php echo esc_url( home_url( '/auth/' ) ); ?>"
+     data-telegram="<?php echo esc_attr( $ug_support_tg ); ?>"></div>
 
 <?php wp_footer(); ?>
 </body>

@@ -182,12 +182,24 @@ function ug_enqueue_assets() {
     // Main JS
     wp_enqueue_script( 'ug-main', UG_URI . '/assets/js/main.js', [], $v, true );
 
+    // Support chat widget (site-wide)
+    wp_enqueue_style( 'ug-chat', UG_URI . '/assets/css/chat.css', [ 'ug-main' ], $v );
+    wp_enqueue_script( 'ug-chat', UG_URI . '/assets/js/chat.js', [], $v, true );
+
     // Localize script
     wp_localize_script( 'ug-main', 'ugData', [
         'ajaxUrl' => admin_url( 'admin-ajax.php' ),
         'nonce'   => wp_create_nonce( 'ug_nonce' ),
         'homeUrl' => home_url( '/' ),
     ] );
+}
+
+/**
+ * Support Telegram username for the chat widget / footer.
+ * Set via: add_option or Customizer option 'ug_support_telegram', or filter.
+ */
+function ug_support_telegram() {
+    return apply_filters( 'ug_support_telegram', get_option( 'ug_support_telegram', '' ) );
 }
 add_action( 'wp_enqueue_scripts', 'ug_enqueue_assets' );
 

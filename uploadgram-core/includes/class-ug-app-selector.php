@@ -117,9 +117,12 @@ class UG_App_Selector {
 
     /* ══════════════ [ug_services_app] ══════════════ */
 
-    public function services_app(): string {
+    public function services_app( $atts = [] ): string {
         wp_enqueue_style( 'ug-app' );
         wp_enqueue_script( 'ug-app' );
+
+        $a    = shortcode_atts( [ 'view' => 'buy' ], (array) $atts );
+        $view = ( 'showcase' === $a['view'] ) ? 'showcase' : 'buy';
 
         $data = $this->grouped( [ 'followeran', 'telegram' ] );
         if ( empty( $data ) ) {
@@ -127,7 +130,7 @@ class UG_App_Selector {
         }
 
         ob_start(); ?>
-        <div class="ug-app" data-mode="services">
+        <div class="ug-app" data-mode="services" data-view="<?php echo esc_attr( $view ); ?>">
           <div class="ug-app-apps">
             <?php $first = true; foreach ( $data as $platform => $kinds ) :
                 $meta = $this->apps[ $platform ] ?? $this->apps['other']; ?>
@@ -150,9 +153,11 @@ class UG_App_Selector {
         $enc = [];
         foreach ( $data as $platform => $kinds ) {
             foreach ( $kinds as $kind => $products ) {
+                $prices = array_filter( array_map( fn( $p ) => (float) ( $p['fixed'] ? $p['price'] : $p['rate'] ), $products ) );
                 $enc[ $platform ][] = [
                     'kind'     => $kind,
                     'label'    => $this->kinds[ $kind ] ?? $kind,
+                    'from'     => $prices ? $this->money( min( $prices ) ) : '',
                     'products' => array_map( function ( $p ) {
                         return [
                             'id'    => $p['id'],

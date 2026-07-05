@@ -167,3 +167,10 @@
 }
 .ug-country:focus { outline: none; border-color: #7C6CF5; }
 .ug-phone-row input[name="phone"] { flex: 1; direction: ltr; text-align: left; }
+
+/* Secondary text-link buttons on the auth card */
+.ug-auth-alt {
+  background: none; border: none; cursor: pointer; font: inherit; font-size: 13px;
+  color: var(--mint, #6d5cf0); padding: 4px; text-align: center; width: 100%;
+}
+.ug-auth-alt:hover { text-decoration: underline; }
