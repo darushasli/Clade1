@@ -3,8 +3,18 @@
    RTL Persian — Dark Theme
    ====================================================== */
 
-/* ── Google Fonts (Vazirmatn + Inter) ── */
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&family=Inter:wght@500;600;700;800;900&display=swap');
+/* ── Self-hosted fonts (no external CDN — works on Iran hosts) ── */
+@font-face { font-family:'Vazirmatn'; font-style:normal; font-weight:400; font-display:swap; src:url('../fonts/vazirmatn-400.woff2') format('woff2'); }
+@font-face { font-family:'Vazirmatn'; font-style:normal; font-weight:500; font-display:swap; src:url('../fonts/vazirmatn-500.woff2') format('woff2'); }
+@font-face { font-family:'Vazirmatn'; font-style:normal; font-weight:600; font-display:swap; src:url('../fonts/vazirmatn-500.woff2') format('woff2'); }
+@font-face { font-family:'Vazirmatn'; font-style:normal; font-weight:700; font-display:swap; src:url('../fonts/vazirmatn-700.woff2') format('woff2'); }
+@font-face { font-family:'Vazirmatn'; font-style:normal; font-weight:800; font-display:swap; src:url('../fonts/vazirmatn-800.woff2') format('woff2'); }
+@font-face { font-family:'Vazirmatn'; font-style:normal; font-weight:900; font-display:swap; src:url('../fonts/vazirmatn-800.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:500; font-display:swap; src:url('../fonts/inter-600.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:600; font-display:swap; src:url('../fonts/inter-600.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:700; font-display:swap; src:url('../fonts/inter-800.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:800; font-display:swap; src:url('../fonts/inter-800.woff2') format('woff2'); }
+@font-face { font-family:'Inter'; font-style:normal; font-weight:900; font-display:swap; src:url('../fonts/inter-800.woff2') format('woff2'); }
 
 /* ── CSS Variables ── */
 /* ─────────────────────────────────────────────
@@ -1659,3 +1669,12 @@ footer ul li a:hover { color: var(--mint); }
 /* Keep the logo wordmark accent calm (blue) */
 .logo-text span { color: #7db3ff; }
 .nav-link.active { color: var(--mint); background: var(--mint-glow); }
+
+/* ── Panel: hide the site's main menu (opens via header ☰) ── */
+body.ug-in-panel .main-nav { display: none; }
+body.ug-in-panel.ug-nav-open .main-nav { display: block; }
+
+/* ── Kill any stray back-to-top / scroll-to-top widgets ── */
+#scroll-to-top, .scroll-to-top, #back-to-top, .back-to-top,
+.backtotop, #backtotop, .scrolltotop, #scrolltotop,
+.cart-nav-item { display: none !important; }

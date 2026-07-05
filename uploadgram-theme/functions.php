@@ -5,7 +5,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'UG_VERSION', '1.1.0' );
+define( 'UG_VERSION', '1.2.0' );
 define( 'UG_DIR',     get_template_directory() );
 define( 'UG_URI',     get_template_directory_uri() );
 
@@ -429,15 +429,7 @@ if ( class_exists( 'WooCommerce' ) ) {
         return __( 'افزودن به سبد', 'uploadgram' );
     } );
 
-    // Cart count in header
-    add_filter( 'wp_nav_menu_items', 'ug_cart_nav_item', 10, 2 );
-    function ug_cart_nav_item( $items, $args ) {
-        if ( 'primary' === $args->theme_location ) {
-            $count = WC()->cart ? WC()->cart->get_cart_contents_count() : 0;
-            $items .= '<li class="cart-nav-item"><a href="' . wc_get_cart_url() . '">🛒 سبد خرید <span class="cart-badge num">' . $count . '</span></a></li>';
-        }
-        return $items;
-    }
+    // (Cart is disabled — wallet model only — so no cart item in the nav.)
 }
 
 /* ══════════════════════════════════════════
@@ -446,6 +438,9 @@ if ( class_exists( 'WooCommerce' ) ) {
 add_filter( 'body_class', function( $classes ) {
     $classes[] = 'ug-theme';
     if ( is_rtl() ) $classes[] = 'rtl';
+    if ( is_page_template( 'page-panel.php' ) ) {
+        $classes[] = 'ug-in-panel';
+    }
     return $classes;
 } );
 
@@ -461,3 +456,60 @@ add_action( 'wp_head', function() {
 ══════════════════════════════════════════ */
 add_filter( 'excerpt_length', fn() => 20 );
 add_filter( 'excerpt_more',   fn() => '...' );
+
+/* ══════════════════════════════════════════
+   Performance / speed (esp. Iran hosts)
+   The single biggest win: WordPress's emoji script fetches Twemoji from
+   s.w.org, which is blocked/throttled in Iran and makes the page loading
+   bar stall near the end. We remove it and other external/needless requests.
+══════════════════════════════════════════ */
+add_action( 'init', function () {
+    // 1) Kill wp-emoji (removes the blocked s.w.org request → no more stalled loading).
+    remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+    remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+    remove_action( 'wp_print_styles', 'print_emoji_styles' );
+    remove_action( 'admin_print_styles', 'print_emoji_styles' );
+    remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+    remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+    remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+    add_filter( 'emoji_svg_url', '__return_false' );
+    add_filter( 'tiny_mce_plugins', function ( $plugins ) {
+        return is_array( $plugins ) ? array_diff( $plugins, [ 'wpemoji' ] ) : $plugins;
+    } );
+
+    // 2) Trim wp_head bloat.
+    remove_action( 'wp_head', 'rsd_link' );
+    remove_action( 'wp_head', 'wlwmanifest_link' );
+    remove_action( 'wp_head', 'wp_generator' );
+    remove_action( 'wp_head', 'wp_shortlink_wp_head' );
+    remove_action( 'wp_head', 'adjacent_posts_rel_link_wp_head', 10 );
+
+    // 3) Disable oEmbed discovery + its front-end JS.
+    remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
+    remove_action( 'wp_head', 'wp_oembed_add_host_js' );
+    add_filter( 'embed_oembed_discover', '__return_false' );
+
+    // 4) Disable XML-RPC (attack surface + overhead).
+    add_filter( 'xmlrpc_enabled', '__return_false' );
+}, 20 );
+
+// 5) Throttle the Heartbeat API (eases admin-ajax load → snappier dashboard).
+add_filter( 'heartbeat_settings', function ( $s ) {
+    $s['interval'] = 60;
+    return $s;
+} );
+
+// 6) Remove the classic-theme inline styles + block library CSS on non-Woo,
+//    non-block front pages (smaller payload). Kept for WooCommerce pages.
+add_action( 'wp_enqueue_scripts', function () {
+    if ( is_admin() ) {
+        return;
+    }
+    $is_woo = function_exists( 'is_woocommerce' ) && ( is_woocommerce() || is_cart() || is_checkout() || is_account_page() );
+    if ( ! $is_woo ) {
+        wp_dequeue_style( 'wp-block-library' );
+        wp_dequeue_style( 'wp-block-library-theme' );
+        wp_dequeue_style( 'classic-theme-styles' );
+        wp_dequeue_style( 'global-styles' );
+    }
+}, 100 );

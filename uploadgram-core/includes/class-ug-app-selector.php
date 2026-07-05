@@ -138,10 +138,10 @@ class UG_App_Selector {
           </div>
           <div class="ug-app-kinds"></div>
           <div class="ug-app-products"></div>
+          <script type="application/json" class="ug-app-data"><?php
+              echo wp_json_encode( $this->encode_services( $data ) );
+          ?></script>
         </div>
-        <script type="application/json" class="ug-app-data"><?php
-            echo wp_json_encode( $this->encode_services( $data ) );
-        ?></script>
         <?php
         return ob_get_clean();
     }
@@ -193,22 +193,22 @@ class UG_App_Selector {
             <?php $first = false; endforeach; ?>
           </div>
           <div class="ug-app-products ug-numbers-list"></div>
+          <script type="application/json" class="ug-app-data"><?php
+              $enc = [];
+              foreach ( $data as $platform => $kinds ) {
+                  foreach ( $kinds as $kind => $products ) {
+                      foreach ( $products as $p ) {
+                          $enc[ $platform ][] = [
+                              'id'    => $p['id'],
+                              'name'  => $p['name'],
+                              'price' => $this->money( $p['price'] ),
+                          ];
+                      }
+                  }
+              }
+              echo wp_json_encode( $enc );
+          ?></script>
         </div>
-        <script type="application/json" class="ug-app-data"><?php
-            $enc = [];
-            foreach ( $data as $platform => $kinds ) {
-                foreach ( $kinds as $kind => $products ) {
-                    foreach ( $products as $p ) {
-                        $enc[ $platform ][] = [
-                            'id'    => $p['id'],
-                            'name'  => $p['name'],
-                            'price' => $this->money( $p['price'] ),
-                        ];
-                    }
-                }
-            }
-            echo wp_json_encode( $enc );
-        ?></script>
         <?php
         return ob_get_clean();
     }

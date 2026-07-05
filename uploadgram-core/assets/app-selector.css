@@ -36,7 +36,10 @@
 .ug-kind-chip.active { background: var(--mint, #6d5cf0); color: #fff; border-color: var(--mint, #6d5cf0); }
 
 /* product cards */
-.ug-app-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.ug-app { max-width: 100%; min-width: 0; }
+.ug-app-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); gap: 14px; min-width: 0; }
+.ug-svc-card, .ug-num-card { min-width: 0; }
+.ug-svc-name, .ug-num-name { overflow-wrap: anywhere; }
 .ug-svc-card, .ug-num-card {
   background: var(--card, #fff); border: 1.5px solid var(--border, rgba(0,0,0,.08));
   border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px;

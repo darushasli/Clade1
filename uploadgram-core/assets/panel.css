@@ -155,7 +155,8 @@
   color: #fff;
   border: 1px solid rgba(124,108,245,.28);
 }
-.ug-nav-icon { font-size: 18px; }
+.ug-nav-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; color: currentColor; opacity: .9; }
+.ug-nav-icon svg { width: 18px; height: 18px; }
 .ug-nav-logout { color: #fca5a5; margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 16px; border-radius: 0; }
 .ug-nav-logout:hover { background: rgba(239,68,68,.08); color: #fca5a5; }
 
@@ -166,7 +167,10 @@
   border-radius: 16px;
   padding: 26px;
   min-height: 400px;
+  min-width: 0;   /* critical: lets the 1fr grid column shrink instead of overflowing */
+  overflow-x: hidden;
 }
+.ug-panel-content > * { max-width: 100%; }
 .ug-panel-heading { font-size: 20px; font-weight: 800; color: var(--text); margin: 0 0 20px; }
 
 /* Dashboard blocks */

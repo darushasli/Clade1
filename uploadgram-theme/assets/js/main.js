@@ -183,6 +183,15 @@
     counters.forEach(function (c) { observer.observe(c); });
   }
 
+  /* ── Panel: toggle the (hidden) site menu ── */
+  function initPanelNavToggle() {
+    var btn = document.getElementById('ug-sitenav-toggle');
+    if (!btn) { return; }
+    btn.addEventListener('click', function () {
+      document.body.classList.toggle('ug-nav-open');
+    });
+  }
+
   /* ── Init all ── */
   document.addEventListener('DOMContentLoaded', function () {
     initTabs();
@@ -194,6 +203,7 @@
     initSmoothScroll();
     initMobileMenu();
     initAddToCart();
+    initPanelNavToggle();
     animateCounters();
   });
 })();

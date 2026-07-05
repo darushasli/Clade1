@@ -37,6 +37,12 @@ if ( function_exists( 'elementor_theme_do_location' ) && elementor_theme_do_loca
     </div>
 
     <div class="header-actions">
+      <?php if ( is_page_template( 'page-panel.php' ) ) : ?>
+        <!-- Panel: site menu is hidden by default; this reveals it -->
+        <button type="button" class="icon-btn" id="ug-sitenav-toggle" title="منوی سایت" aria-label="منوی سایت">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      <?php endif; ?>
       <?php
       $auth_url  = class_exists( 'UG_Guard' ) ? UG_Guard::auth_url() : wp_login_url();
       $panel_url = home_url( '/panel/' );

@@ -72,6 +72,26 @@ class UG_Panel {
         wp_enqueue_script( 'ug-panel' );
     }
 
+    /**
+     * Inline SVG icons for the panel nav (no emoji → renders everywhere,
+     * including Iran hosts where the emoji CDN is blocked).
+     */
+    public static function nav_icon( string $key ): string {
+        $p = [
+            'dashboard' => '<path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/>',
+            'services'  => '<path d="M13 2L3 14h7l-1 8 10-12h-7z"/>',
+            'numbers'   => '<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>',
+            'accounts'  => '<path d="M12 2l3 6 6 .5-4.5 4 1.5 6-6-3.5-6 3.5 1.5-6L3 8.5 9 8z"/>',
+            'orders'    => '<path d="M4 4h4l2 12h9"/><circle cx="10" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M8 8h13l-1.5 6H10"/>',
+            'wallet'    => '<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12h3"/><path d="M3 9h18"/>',
+            'tx'        => '<path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 4-6"/>',
+            'profile'   => '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+            'logout'    => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+        ];
+        $d = $p[ $key ] ?? $p['dashboard'];
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">' . $d . '</svg>';
+    }
+
     private function login_notice(): string {
         $url = UG_Guard::auth_url( get_permalink() );
         return '<div class="ug-notice">برای مشاهده این بخش ابتدا <a href="' . esc_url( $url ) . '">وارد شوید</a>.</div>';
@@ -370,12 +390,12 @@ class UG_Panel {
                         $url    = add_query_arg( 'section', $key, home_url( '/panel/' ) );
                         ?>
                         <a class="ug-nav-item<?php echo esc_attr( $active ); ?>" href="<?php echo esc_url( $url ); ?>">
-                            <span class="ug-nav-icon"><?php echo esc_html( $s['icon'] ); ?></span>
+                            <span class="ug-nav-icon"><?php echo self::nav_icon( $key ); ?></span>
                             <span><?php echo esc_html( $s['label'] ); ?></span>
                         </a>
                     <?php endforeach; ?>
                     <a class="ug-nav-item ug-nav-logout" href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>">
-                        <span class="ug-nav-icon">↩</span><span>خروج از حساب</span>
+                        <span class="ug-nav-icon"><?php echo self::nav_icon( 'logout' ); ?></span><span>خروج از حساب</span>
                     </a>
                 </nav>
             </aside>
