@@ -92,7 +92,7 @@ function ug_strings() {
         'panel'        => [ 'fa' => 'پنل', 'en' => 'Panel', 'ar' => 'اللوحة', 'tr' => 'Panel', 'ru' => 'Панель', 'es' => 'Panel' ],
         'wallet'       => [ 'fa' => 'کیف پول', 'en' => 'Wallet', 'ar' => 'المحفظة', 'tr' => 'Cüzdan', 'ru' => 'Кошелёк', 'es' => 'Cartera' ],
         'nav_home'     => [ 'fa' => 'خانه', 'en' => 'Home', 'ar' => 'الرئيسية', 'tr' => 'Anasayfa', 'ru' => 'Главная', 'es' => 'Inicio' ],
-        'nav_member'   => [ 'fa' => 'خرید ممبر', 'en' => 'Buy Members', 'ar' => 'شراء أعضاء', 'tr' => 'Üye Al', 'ru' => 'Купить подписчиков', 'es' => 'Comprar miembros' ],
+        'nav_member'   => [ 'fa' => 'خدمات مجازی', 'en' => 'Virtual Services', 'ar' => 'الخدمات الافتراضية', 'tr' => 'Sanal Hizmetler', 'ru' => 'Виртуальные услуги', 'es' => 'Servicios virtuales' ],
         'nav_account'  => [ 'fa' => 'اکانت پرمیوم', 'en' => 'Premium Accounts', 'ar' => 'حسابات بريميوم', 'tr' => 'Premium Hesap', 'ru' => 'Премиум аккаунты', 'es' => 'Cuentas premium' ],
         'nav_number'   => [ 'fa' => 'شماره مجازی', 'en' => 'Virtual Number', 'ar' => 'رقم افتراضي', 'tr' => 'Sanal Numara', 'ru' => 'Виртуальный номер', 'es' => 'Número virtual' ],
         'nav_stars'    => [ 'fa' => 'استارز', 'en' => 'Stars', 'ar' => 'ستارز', 'tr' => 'Stars', 'ru' => 'Stars', 'es' => 'Stars' ],
@@ -284,7 +284,7 @@ function ug_logo() {
 function ug_primary_nav( $active_page = '' ) {
     $links = [
         'خانه'        => home_url( '/' ),
-        'خرید ممبر'   => home_url( '/member/' ),
+        'خدمات مجازی'  => home_url( '/member/' ),
         'اکانت پرمیوم' => home_url( '/account/' ),
         'شماره مجازی'  => home_url( '/virtual-number/' ),
         'استارز'      => home_url( '/stars/' ),

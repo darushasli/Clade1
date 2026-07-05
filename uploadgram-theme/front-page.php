@@ -46,7 +46,7 @@ get_header();
     <a class="qcat" href="<?php echo esc_url( home_url( '/member/' ) ); ?>">
       <div class="qcat-icon"><img src="<?php echo esc_url( ug_asset( 'custom/icon-member-group.png' ) ); ?>" alt="خرید ممبر"></div>
       <div>
-        <div class="qcat-name">خرید ممبر</div>
+        <div class="qcat-name">خدمات مجازی</div>
         <div class="qcat-label">افزایش اعضا واقعی</div>
       </div>
     </a>
@@ -95,7 +95,7 @@ get_header();
       <div class="scat">
         <span class="scat-badge">ارسال فوری</span>
         <div class="scat-icon" style="background:linear-gradient(135deg,#3b5bdb,#5b4fe0);"><img src="<?php echo esc_url( ug_asset( 'custom/icon-member-group.png' ) ); ?>" alt="خرید ممبر"></div>
-        <div class="scat-name">خرید ممبر</div>
+        <div class="scat-name">خدمات مجازی</div>
         <div class="scat-desc">افزایش ممبر واقعی و فعال برای کانال و پیج شما در تمام پلتفرم‌ها، بدون ریزش</div>
         <div class="scat-tags">
           <span class="scat-tag">تلگرام</span>

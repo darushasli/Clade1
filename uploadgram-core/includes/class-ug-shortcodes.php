@@ -107,7 +107,7 @@ class UG_Shortcodes {
           <div class="scat">
             <span class="scat-badge">ارسال فوری</span>
             <div class="scat-icon" style="background:linear-gradient(135deg,#3b5bdb,#5b4fe0);"><img src="<?php echo esc_url( $this->asset( 'custom/icon-member-group.png' ) ); ?>" alt="خرید ممبر"></div>
-            <div class="scat-name">خرید ممبر</div>
+            <div class="scat-name">خدمات مجازی</div>
             <div class="scat-desc">افزایش ممبر واقعی و فعال برای کانال و پیج شما در تمام پلتفرم‌ها، بدون ریزش</div>
             <div class="scat-tags"><span class="scat-tag">تلگرام</span><span class="scat-tag">اینستاگرام</span><span class="scat-tag">یوتیوب</span></div>
             <a class="scat-link" href="<?php echo $this->home( '/member/' ); ?>">مشاهده پلن‌ها ←</a>
@@ -129,7 +129,7 @@ class UG_Shortcodes {
           </a>
           <a class="qcat" href="<?php echo $this->home( '/member/' ); ?>">
             <div class="qcat-icon"><img src="<?php echo esc_url( $this->asset( 'custom/icon-member-group.png' ) ); ?>" alt=""></div>
-            <div><div class="qcat-name">خرید ممبر</div><div class="qcat-label">افزایش اعضا واقعی</div></div>
+            <div><div class="qcat-name">خدمات مجازی</div><div class="qcat-label">افزایش اعضا واقعی</div></div>
           </a>
         </div>
         <?php return $this->wrap( ob_get_clean() );

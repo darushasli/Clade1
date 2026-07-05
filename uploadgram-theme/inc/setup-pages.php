@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'UG_SETUP_VERSION', '1.2.0' );
+define( 'UG_SETUP_VERSION', '1.3.0' );
 
 add_action( 'after_switch_theme', 'ug_activate_setup' );
 add_action( 'admin_init',         'ug_maybe_setup' );
@@ -42,7 +42,7 @@ function ug_activate_setup() {
             'content'  => '',
         ],
         'member' => [
-            'title'    => 'خرید ممبر',
+            'title'    => 'خدمات مجازی',
             'template' => 'page-member.php',
             'content'  => '',
         ],
@@ -79,6 +79,10 @@ function ug_activate_setup() {
         $existing = get_page_by_path( $slug );
         if ( $existing ) {
             $page_ids[ $slug ] = $existing->ID;
+            // Keep the title in sync when we rename a core page (e.g. member → خدمات مجازی).
+            if ( $existing->post_title !== $data['title'] ) {
+                wp_update_post( [ 'ID' => $existing->ID, 'post_title' => $data['title'] ] );
+            }
             continue;
         }
 
@@ -113,7 +117,7 @@ function ug_activate_setup() {
 
         $items = [
             [ 'title' => 'خانه',         'slug' => 'home' ],
-            [ 'title' => 'خرید ممبر',    'slug' => 'member' ],
+            [ 'title' => 'خدمات مجازی',  'slug' => 'member' ],
             [ 'title' => 'اکانت پرمیوم', 'slug' => 'account' ],
             [ 'title' => 'شماره مجازی',  'slug' => 'virtual-number' ],
             [ 'title' => 'استارز',       'slug' => '',  'url' => '#' ],

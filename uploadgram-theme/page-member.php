@@ -1,13 +1,13 @@
 <?php
 /**
- * Template Name: صفحه خرید ممبر
+ * Template Name: صفحه خدمات مجازی
  * مطابق تصویر نمای سایت (member)
  */
 get_header();
 ?>
 
 <div class="container">
-  <div class="breadcrumb"><a href="<?php echo esc_url( home_url( '/' ) ); ?>">خانه</a><span>/</span><span class="cur">خرید ممبر</span></div>
+  <div class="breadcrumb"><a href="<?php echo esc_url( home_url( '/' ) ); ?>">خانه</a><span>/</span><span class="cur">خدمات مجازی</span></div>
 
   <!-- ══ PAGE HERO ══ -->
   <div class="page-hero member">
