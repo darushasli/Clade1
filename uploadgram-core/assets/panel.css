@@ -276,3 +276,24 @@
 .ug-acc-info { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
 .ug-acc-title { font-weight: 700; font-size: 14px; line-height: 1.5; }
 .ug-acc-price { font-weight: 800; color: var(--mint, #6d5cf0); }
+
+/* ── Ticket system ── */
+.ug-btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+.ug-btn-secondary:hover { background: var(--card-hover); color: var(--text); }
+.ug-ticket-form, .ug-ticket-reply { max-width: 640px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
+.ug-ticket-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ug-field select, .ug-field textarea {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 9px; color: var(--text);
+  padding: 11px 14px; font-family: inherit; font-size: 14px; width: 100%;
+}
+.ug-field textarea { resize: vertical; }
+.ug-thread { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+.ug-tmsg { max-width: 85%; padding: 12px 15px; border-radius: 14px; font-size: 14px; line-height: 1.75; }
+.ug-tmsg-user  { align-self: flex-start; background: var(--bg3); }
+.ug-tmsg-admin { align-self: flex-end; background: linear-gradient(135deg, rgba(91,141,239,.16), rgba(124,108,245,.16)); border: 1px solid rgba(124,108,245,.28); }
+.ug-tmsg-who { font-weight: 800; font-size: 12px; color: var(--mint); margin-bottom: 4px; }
+.ug-tmsg-time { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+.ug-status-open, .ug-status-user_reply { background: rgba(244,183,64,.15); color: #fcd34d; }
+.ug-status-answered { background: rgba(52,211,153,.15); color: #6ee7b7; }
+.ug-status-closed { background: rgba(148,163,184,.15); color: #cbd5e1; }
+@media (max-width:600px){ .ug-ticket-row { grid-template-columns: 1fr; } }

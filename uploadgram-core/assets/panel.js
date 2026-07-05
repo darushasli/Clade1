@@ -177,4 +177,42 @@
       $btn.prop('disabled', false).removeClass('is-loading');
     });
   });
+
+  /* ── Ticket: create ── */
+  $(document).on('submit', '.ug-ticket-form', function (e) {
+    e.preventDefault();
+    var $form = $(this), $btn = $form.find('button[type="submit"]'), $msg = $form.find('.ug-form-msg');
+    $btn.prop('disabled', true).addClass('is-loading');
+    $.post(ugPanel.ajaxUrl, {
+      action: 'ug_ticket_create', nonce: ugPanel.nonce,
+      department: $form.find('[name="department"]').val(),
+      priority: $form.find('[name="priority"]').val(),
+      product_id: $form.find('[name="product_id"]').val(),
+      subject: $form.find('[name="subject"]').val(),
+      body: $form.find('[name="body"]').val()
+    }).done(function (res) {
+      if (res && res.success) { window.location.href = res.data.redirect; }
+      else { $msg.addClass('is-error').text((res.data && res.data.message) || 'خطا').show(); $btn.prop('disabled', false).removeClass('is-loading'); }
+    }).fail(function (x) {
+      var m = 'خطا'; try { m = JSON.parse(x.responseText).data.message; } catch(e){}
+      $msg.addClass('is-error').text(m).show(); $btn.prop('disabled', false).removeClass('is-loading');
+    });
+  });
+
+  /* ── Ticket: reply ── */
+  $(document).on('submit', '.ug-ticket-reply', function (e) {
+    e.preventDefault();
+    var $form = $(this), $btn = $form.find('button[type="submit"]'), $msg = $form.find('.ug-form-msg');
+    $btn.prop('disabled', true).addClass('is-loading');
+    $.post(ugPanel.ajaxUrl, {
+      action: 'ug_ticket_reply', nonce: ugPanel.nonce,
+      ticket_id: $form.data('ticket'), body: $form.find('[name="body"]').val()
+    }).done(function (res) {
+      if (res && res.success) { window.location.reload(); }
+      else { $msg.addClass('is-error').text((res.data && res.data.message) || 'خطا').show(); $btn.prop('disabled', false).removeClass('is-loading'); }
+    }).fail(function (x) {
+      var m = 'خطا'; try { m = JSON.parse(x.responseText).data.message; } catch(e){}
+      $msg.addClass('is-error').text(m).show(); $btn.prop('disabled', false).removeClass('is-loading');
+    });
+  });
 })(jQuery);

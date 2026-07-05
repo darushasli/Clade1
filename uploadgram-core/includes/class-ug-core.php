@@ -70,6 +70,8 @@ class UG_Core {
         new UG_Shortcodes();
         new UG_Sync( $this->dispatcher, $this->settings );
         new UG_App_Selector( $this->wallet );
+        new UG_Tickets();
+        new UG_Users_Admin( $this->wallet, $this->orders );
         new UG_Elementor();
 
         add_action( 'init', [ $this, 'load_textdomain' ] );

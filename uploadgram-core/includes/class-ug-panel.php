@@ -85,6 +85,7 @@ class UG_Panel {
             'orders'    => '<path d="M4 4h4l2 12h9"/><circle cx="10" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M8 8h13l-1.5 6H10"/>',
             'wallet'    => '<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12h3"/><path d="M3 9h18"/>',
             'tx'        => '<path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 4-6"/>',
+            'tickets'   => '<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12"/>',
             'profile'   => '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
             'logout'    => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
         ];
@@ -363,6 +364,7 @@ class UG_Panel {
             'orders'    => [ 'label' => 'سفارش‌ها',     'icon' => '📦' ],
             'wallet'    => [ 'label' => 'کیف پول',      'icon' => '💳' ],
             'tx'        => [ 'label' => 'تراکنش‌ها',    'icon' => '📊' ],
+            'tickets'   => [ 'label' => 'تیکت‌ها',      'icon' => '🎫' ],
             'profile'   => [ 'label' => 'پروفایل',     'icon' => '👤' ],
         ];
         if ( ! isset( $sections[ $section ] ) ) {
@@ -424,6 +426,8 @@ class UG_Panel {
                 return $this->sc_wallet() . $this->sc_topup_form();
             case 'tx':
                 return $this->sc_wallet_tx();
+            case 'tickets':
+                return do_shortcode( '[ug_tickets]' );
             case 'profile':
                 return $this->sc_profile();
             default:

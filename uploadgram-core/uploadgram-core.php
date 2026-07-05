@@ -50,6 +50,8 @@ require_once UGC_DIR . 'includes/class-ug-shortcodes.php';
 require_once UGC_DIR . 'includes/class-ug-account-seed.php';
 require_once UGC_DIR . 'includes/class-ug-sync.php';
 require_once UGC_DIR . 'includes/class-ug-app-selector.php';
+require_once UGC_DIR . 'includes/class-ug-tickets.php';
+require_once UGC_DIR . 'includes/class-ug-users-admin.php';
 require_once UGC_DIR . 'includes/class-ug-elementor.php';
 require_once UGC_DIR . 'includes/class-ug-core.php';
 
