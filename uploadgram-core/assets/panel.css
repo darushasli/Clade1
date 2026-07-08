@@ -311,3 +311,14 @@
 @media (max-width:600px){ .ug-ticket-row { grid-template-columns: 1fr; } }
 .ug-tmsg-file a { color: var(--mint); font-weight: 700; font-size: 13px; }
 .ug-field input[type="file"] { padding: 8px; background: var(--bg3); border: 1px dashed var(--border2); border-radius: 9px; color: var(--text-2); font-size: 13px; }
+
+/* ── Premium account brand icons + single product ── */
+.ug-acc-thumb { display:flex; align-items:center; justify-content:center; height:130px; background:var(--bg3); }
+.ug-acc-brand { width:64px; height:64px; object-fit:contain; }
+.ug-brand-figure { display:flex; align-items:center; justify-content:center; padding:40px; background:var(--bg3); border-radius:16px; }
+.ug-brand-figure img { width:120px; height:120px; object-fit:contain; }
+.ug-single-buy { display:flex; flex-direction:column; gap:16px; margin-top:10px; }
+.ug-feature-list { display:flex; flex-direction:column; gap:8px; margin:0; padding:0; }
+.ug-feature-list li { list-style:none; padding-inline-start:26px; position:relative; color:var(--text-2); font-size:14px; }
+.ug-feature-list li::before { content:"✓"; position:absolute; inset-inline-start:0; color:#30a46c; font-weight:900; }
+.ug-pay-online { justify-content:center; }

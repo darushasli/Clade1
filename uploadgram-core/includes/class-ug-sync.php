@@ -334,15 +334,18 @@ class UG_Sync {
         if ( ! class_exists( 'UG_Account_Seed' ) ) {
             return [ 'ok' => false, 'error' => 'فایل نمونه اکانت یافت نشد' ];
         }
-        $items = UG_Account_Seed::items();
+        $items  = UG_Account_Seed::items();
+        $groups = UG_Account_Seed::groups();
         $created = 0; $skipped = 0;
         foreach ( $items as $it ) {
+            $group_label = $groups[ $it['group'] ] ?? self::CAT_ACCOUNTS;
             $r = $this->upsert_product( [
                 'provider'    => '',              // manual — no API
                 'service_id'  => 'acc-' . $it['slug'],
                 'name'        => $it['name'],
                 'description' => $it['desc'],
-                'category'    => self::CAT_ACCOUNTS,
+                'category'    => $group_label,
+                'parent_cat'  => self::CAT_ACCOUNTS,
                 'platform'    => $it['platform'] ?? '',
                 'kind'        => 'account',
                 'price'       => $it['price'],
@@ -352,7 +355,9 @@ class UG_Sync {
                 'input_type'  => 'none',
                 'fixed'       => true,
                 'keep_desc'   => true,
-                'match_by'    => 'account_slug',
+                'icon'        => $it['icon'] ?? '',
+                'features'    => $it['features'] ?? [],
+                'allow_online'=> true,
             ] );
             $r === 'skipped' ? $skipped++ : $created++;
         }
@@ -395,9 +400,13 @@ class UG_Sync {
         $product_id = $product->save();
         if ( ! $product_id ) { return 'skipped'; }
 
-        $this->assign_category( $product_id, $a['category'] );
-        if ( ! empty( $a['platform'] ) ) {
-            $this->assign_category( $product_id, $this->platform_label( $a['platform'] ), $a['category'] );
+        if ( ! empty( $a['parent_cat'] ) ) {
+            $this->assign_category( $product_id, $a['category'], $a['parent_cat'] );
+        } else {
+            $this->assign_category( $product_id, $a['category'] );
+            if ( ! empty( $a['platform'] ) ) {
+                $this->assign_category( $product_id, $this->platform_label( $a['platform'] ), $a['category'] );
+            }
         }
         $this->write_meta( $product_id, $a );
         return 'created';
@@ -415,6 +424,15 @@ class UG_Sync {
         update_post_meta( $product_id, '_ug_kind', $a['kind'] ?? '' );
         if ( ! empty( $a['order_type'] ) ) {
             update_post_meta( $product_id, '_ug_order_type', $a['order_type'] );
+        }
+        if ( isset( $a['icon'] ) ) {
+            update_post_meta( $product_id, '_ug_icon', $a['icon'] );
+        }
+        if ( isset( $a['features'] ) && is_array( $a['features'] ) ) {
+            update_post_meta( $product_id, '_ug_features', wp_json_encode( array_values( $a['features'] ), JSON_UNESCAPED_UNICODE ) );
+        }
+        if ( ! empty( $a['allow_online'] ) ) {
+            update_post_meta( $product_id, '_ug_allow_online', 'yes' );
         }
     }
 

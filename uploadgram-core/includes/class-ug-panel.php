@@ -464,7 +464,12 @@ class UG_Panel {
             if ( ! $product ) {
                 continue;
             }
-            $img = $product->get_image( 'woocommerce_thumbnail' );
+            if ( has_post_thumbnail( $pid ) ) {
+                $img = $product->get_image( 'woocommerce_thumbnail' );
+            } else {
+                $icon = UG_WC_Integration::icon_url( $pid );
+                $img  = $icon ? '<img class="ug-acc-brand" src="' . esc_url( $icon ) . '" alt="' . esc_attr( $product->get_name() ) . '">' : '';
+            }
             printf(
                 '<a class="ug-acc-item" href="%s"><div class="ug-acc-thumb">%s</div><div class="ug-acc-info"><div class="ug-acc-title">%s</div><div class="ug-acc-price">%s</div></div></a>',
                 esc_url( get_permalink( $pid ) ),

@@ -25,14 +25,46 @@ class UG_WC_Integration {
         add_action( 'woocommerce_product_data_panels', [ $this, 'product_panel' ] );
         add_action( 'woocommerce_process_product_meta', [ $this, 'save_product' ] );
 
-        // Disable cart / checkout flow — everything is instant wallet order.
+        // Wallet-first model: disable the cart EXCEPT for products explicitly
+        // marked for online payment (accounts), which may go through the gateway.
         if ( 'yes' === $this->settings->get( 'disable_cart', 'yes' ) ) {
-            add_filter( 'woocommerce_is_purchasable', '__return_false' );
-            add_filter( 'woocommerce_add_to_cart_validation', '__return_false' );
-            // Replace the (now hidden) add-to-cart with our instant wallet order form.
+            add_filter( 'woocommerce_is_purchasable', [ $this, 'is_purchasable' ], 10, 2 );
+            // Replace the default add-to-cart with our instant wallet order form.
             remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
             add_action( 'woocommerce_single_product_summary', [ $this, 'single_order_form' ], 30 );
         }
+
+        // Show the brand icon in place of the product image when none is set.
+        add_filter( 'woocommerce_single_product_image_thumbnail_html', [ $this, 'brand_image' ], 10, 2 );
+        add_filter( 'post_thumbnail_html', [ $this, 'loop_brand_image' ], 10, 5 );
+    }
+
+    public function brand_image( $html, $post_id ) {
+        if ( has_post_thumbnail( $post_id ) ) {
+            return $html;
+        }
+        $icon = self::icon_url( (int) $post_id );
+        if ( ! $icon ) {
+            return $html;
+        }
+        return '<div class="ug-brand-figure"><img src="' . esc_url( $icon ) . '" alt="' . esc_attr( get_the_title( $post_id ) ) . '"></div>';
+    }
+
+    public function loop_brand_image( $html, $post_id, $thumb_id, $size, $attr ) {
+        if ( 'product' !== get_post_type( $post_id ) || $thumb_id ) {
+            return $html;
+        }
+        $icon = self::icon_url( (int) $post_id );
+        return $icon ? '<img class="ug-acc-brand" src="' . esc_url( $icon ) . '" alt="' . esc_attr( get_the_title( $post_id ) ) . '">' : $html;
+    }
+
+    /**
+     * Only products flagged for online payment stay purchasable via the cart;
+     * everything else uses the wallet order form.
+     */
+    public function is_purchasable( $purchasable, $product ) {
+        $pid = is_object( $product ) ? $product->get_id() : 0;
+        return $pid && 'yes' === get_post_meta( $pid, '_ug_allow_online', true );
     }
 
     /**
@@ -50,7 +82,42 @@ class UG_WC_Integration {
         if ( empty( $m['provider'] ) && ! $m['fixed'] && '' === $m['kind'] ) {
             return;
         }
+
+        echo '<div class="ug-single-buy">';
+
+        // Feature list (from _ug_features).
+        if ( ! empty( $m['features'] ) ) {
+            echo '<ul class="ug-feature-list">';
+            foreach ( $m['features'] as $f ) {
+                echo '<li>' . esc_html( $f ) . '</li>';
+            }
+            echo '</ul>';
+        }
+
+        // Wallet order form.
         echo do_shortcode( '[ug_order_form id="' . (int) $pid . '"]' );
+
+        // Online payment (gateway) for flagged products.
+        if ( ! empty( $m['allow_online'] ) && function_exists( 'wc_get_checkout_url' ) ) {
+            $url = esc_url( add_query_arg( 'add-to-cart', $pid, wc_get_checkout_url() ) );
+            echo '<a class="ug-btn ug-btn-secondary ug-pay-online" href="' . $url . '">💳 پرداخت آنلاین (بدون کیف پول)</a>';
+        }
+
+        echo '</div>';
+    }
+
+    /**
+     * Brand icon URL for a product (theme asset path stored in _ug_icon).
+     */
+    public static function icon_url( int $product_id ): string {
+        $icon = get_post_meta( $product_id, '_ug_icon', true );
+        if ( ! $icon ) {
+            return '';
+        }
+        if ( function_exists( 'ug_asset' ) ) {
+            return ug_asset( $icon );
+        }
+        return get_template_directory_uri() . '/assets/' . ltrim( $icon, '/' );
     }
 
     /* ── Product meta helpers ──────────────── */
@@ -67,6 +134,9 @@ class UG_WC_Integration {
             'order_type' => get_post_meta( $product_id, '_ug_order_type', true ) ?: 'ethical',
             'platform'   => get_post_meta( $product_id, '_ug_platform', true ),
             'kind'       => get_post_meta( $product_id, '_ug_kind', true ),
+            'icon'       => get_post_meta( $product_id, '_ug_icon', true ),
+            'features'   => array_values( (array) json_decode( (string) get_post_meta( $product_id, '_ug_features', true ), true ) ),
+            'allow_online' => 'yes' === get_post_meta( $product_id, '_ug_allow_online', true ),
         ];
     }
 

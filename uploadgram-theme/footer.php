@@ -44,9 +44,11 @@ if ( ! $ug_elementor_footer ) :
         <?php wp_nav_menu( [ 'theme_location' => 'footer-2', 'container' => false, 'items_wrap' => '<ul>%3$s</ul>', 'depth' => 1 ] ); ?>
       <?php else : ?>
         <ul>
-          <li><a href="#">نحوه سفارش</a></li>
-          <li><a href="#">سؤالات متداول</a></li>
-          <li><a href="#">قوانین سایت</a></li>
+          <li><a href="<?php echo esc_url( home_url( '/how-to-order/' ) ); ?>">نحوه سفارش</a></li>
+          <li><a href="<?php echo esc_url( home_url( '/faq/' ) ); ?>">سؤالات متداول</a></li>
+          <li><a href="<?php echo esc_url( home_url( '/terms/' ) ); ?>">قوانین سایت</a></li>
+          <li><a href="<?php echo esc_url( home_url( '/privacy/' ) ); ?>">حریم خصوصی</a></li>
+          <li><a href="<?php echo esc_url( home_url( '/about/' ) ); ?>">درباره ما</a></li>
           <li><a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>">تماس با ما</a></li>
         </ul>
       <?php endif; ?>
