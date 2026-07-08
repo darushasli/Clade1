@@ -94,6 +94,12 @@ class UG_Sync {
                 <button class="button ug-seed-acc"><?php esc_html_e( 'ساخت اکانت‌های پرمیوم نمونه', 'uploadgram-core' ); ?></button>
             </p>
 
+            <h2><?php esc_html_e( 'صفحه‌ساز المنتور', 'uploadgram-core' ); ?></h2>
+            <p class="description"><?php esc_html_e( 'یک صفحهٔ اصلیِ کاملاً قابل‌ویرایش با المنتور می‌سازد و آن را صفحهٔ نخست می‌کند. سپس هر متن، عکس و آیکن را مستقیم در المنتور ویرایش کنید (نیاز به المنتور فعال).', 'uploadgram-core' ); ?></p>
+            <p>
+                <button class="button button-primary ug-seed-elementor"><?php esc_html_e( 'ساخت صفحهٔ اصلی قابل‌ویرایش (المنتور)', 'uploadgram-core' ); ?></button>
+            </p>
+
             <pre id="ug-sync-out" style="background:#111;color:#0f0;padding:14px;border-radius:8px;max-height:360px;overflow:auto;display:none;"></pre>
 
             <h2><?php esc_html_e( 'قیمت‌گذاری و زمان‌بندی', 'uploadgram-core' ); ?></h2>
@@ -125,6 +131,17 @@ class UG_Sync {
             $('.ug-sync-btn').on('click', function(e){ e.preventDefault(); run('ug_sync_run', $(this).data('what')); });
             $('.ug-sync-bot').on('click', function(e){ e.preventDefault(); run('ug_sync_bot_products'); });
             $('.ug-seed-acc').on('click', function(e){ e.preventDefault(); run('ug_seed_accounts'); });
+            $('.ug-seed-elementor').on('click', function(e){
+                e.preventDefault();
+                var $out = $('#ug-sync-out').show().text('در حال ساخت صفحه…');
+                $.post(ajaxurl, { action: 'ug_seed_elementor', _wpnonce: nonce })
+                 .done(function(res){
+                    if (res && res.success) {
+                        $out.html(res.data.message + '<br><a href="'+res.data.edit+'" target="_blank">ویرایش در المنتور ↗</a> — <a href="'+res.data.view+'" target="_blank">مشاهدهٔ صفحه ↗</a>');
+                    } else { $out.text((res.data && res.data.message) || 'خطا'); }
+                 })
+                 .fail(function(x){ $out.text('خطا: ' + x.status + '\n' + (x.responseText||'')); });
+            });
         })(jQuery);
         </script>
         <?php
