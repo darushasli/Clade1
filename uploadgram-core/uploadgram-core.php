@@ -3,7 +3,7 @@
  * Plugin Name: UploadGram Core
  * Plugin URI:  https://uploadgram.ir
  * Description: هسته فروشگاه آپلودگرام — اتصال خدمات به API فالوران، نامبرلند و ربات تلگرام، کیف پول و پنل کاربری بدون سبد خرید.
- * Version:     1.9.0
+ * Version:     2.0.0
  * Author:      UploadGram Team
  * Text Domain: uploadgram-core
  * Domain Path: /languages
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'UGC_VERSION', '1.9.0' );
+define( 'UGC_VERSION', '2.0.0' );
 define( 'UGC_FILE', __FILE__ );
 define( 'UGC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UGC_URL', plugin_dir_url( __FILE__ ) );

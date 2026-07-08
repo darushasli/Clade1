@@ -88,6 +88,8 @@ abstract class UG_Dyn_Widget extends UG_Widget_Base {
 class UG_Elementor_Widgets {
     public static function classes(): array {
         return [
+            // Heroes
+            'UG_W_Hero', 'UG_W_Page_Hero',
             // Fully-editable marketing widgets
             'UG_W_Section_Heading', 'UG_W_Service_Cats', 'UG_W_Quick_Cats', 'UG_W_Stats',
             'UG_W_Featured', 'UG_W_Promo', 'UG_W_Why_Us', 'UG_W_Member_Types',
@@ -103,6 +105,91 @@ class UG_Elementor_Widgets {
 /* ═══════════════════════════════════════════════════════════
  * Editable widgets
  * ═══════════════════════════════════════════════════════════ */
+
+class UG_W_Hero extends UG_Widget_Base {
+    protected string $ug_title = 'هیرو صفحه اصلی';
+    protected string $ug_icon = 'eicon-slides';
+    public function get_name(): string { return 'ug-hero'; }
+    protected function register_controls(): void {
+        $this->start_controls_section( 's', [ 'label' => 'محتوای هیرو' ] );
+        $this->add_control( 'image', [ 'label' => 'تصویر' ] + $this->media_ctrl( 'hero/upload-hero-phone.png' ) );
+        $this->add_control( 'eyebrow', [ 'label' => 'متن بالای عنوان', 'type' => CM::TEXT, 'default' => '✦ بهترین خدمات دیجیتال در ایران' ] );
+        $this->add_control( 'title_hl', [ 'label' => 'عنوان (بخش رنگی)', 'type' => CM::TEXT, 'default' => 'خرید ممبر، اکانت و شماره مجازی' ] );
+        $this->add_control( 'title_rest', [ 'label' => 'عنوان (خط دوم)', 'type' => CM::TEXT, 'default' => 'با تحویل آنی و امن' ] );
+        $this->add_control( 'sub', [ 'label' => 'زیرعنوان', 'type' => CM::TEXTAREA, 'default' => 'ممبر واقعی، اکانت پرمیوم اصل و شماره مجازی از ۳۰+ کشور — سفارش می‌دهید، در همان لحظه تحویل می‌گیرید.' ] );
+        $this->add_control( 'cta1', [ 'label' => 'دکمهٔ اول', 'type' => CM::TEXT, 'default' => 'مشاهده همه خدمات ←' ] );
+        $this->add_control( 'cta1_link', [ 'label' => 'لینک دکمهٔ اول', 'type' => CM::URL, 'default' => [ 'url' => home_url( '/member/' ) ] ] );
+        $this->add_control( 'cta2', [ 'label' => 'دکمهٔ دوم', 'type' => CM::TEXT, 'default' => 'شروع در تلگرام' ] );
+        $this->add_control( 'cta2_link', [ 'label' => 'لینک دکمهٔ دوم', 'type' => CM::URL, 'default' => [ 'url' => '#' ] ] );
+        $r = new Repeater();
+        $r->add_control( 'val', [ 'label' => 'مقدار', 'type' => CM::TEXT, 'default' => '24/7' ] );
+        $r->add_control( 'label', [ 'label' => 'برچسب', 'type' => CM::TEXT, 'default' => 'پشتیبانی' ] );
+        $this->add_control( 'trust', [ 'type' => CM::REPEATER, 'fields' => $r->get_controls(), 'title_field' => '{{{ val }}}', 'default' => [
+            [ 'val' => '24/7', 'label' => 'پشتیبانی آنلاین' ],
+            [ 'val' => '۴.۹ ★', 'label' => 'امتیاز میانگین' ],
+            [ 'val' => '+12K', 'label' => 'مشتری راضی' ],
+        ] ] );
+        $this->end_controls_section();
+    }
+    protected function render(): void {
+        $s = $this->get_settings_for_display();
+        echo '<section class="hero">';
+        echo '<img class="hero-img" src="' . esc_url( $this->url( $s['image'] ?? '' ) ) . '" alt="">';
+        echo '<div class="hero-content">';
+        if ( ! empty( $s['eyebrow'] ) ) { echo '<div class="hero-eyebrow">' . esc_html( $s['eyebrow'] ) . '</div>'; }
+        echo '<h1><span>' . esc_html( $s['title_hl'] ?? '' ) . '</span><br>' . esc_html( $s['title_rest'] ?? '' ) . '</h1>';
+        echo '<p>' . esc_html( $s['sub'] ?? '' ) . '</p>';
+        echo '<div class="hero-ctas"><a href="' . esc_url( $s['cta1_link']['url'] ?? '#' ) . '" class="btn-hero">' . esc_html( $s['cta1'] ?? '' ) . '</a><a href="' . esc_url( $s['cta2_link']['url'] ?? '#' ) . '" class="btn-hero-outline">' . esc_html( $s['cta2'] ?? '' ) . '</a></div>';
+        echo '<div class="hero-trust">';
+        foreach ( (array) ( $s['trust'] ?? [] ) as $t ) {
+            echo '<div><span class="n num">' . esc_html( $t['val'] ?? '' ) . '</span><span class="l">' . esc_html( $t['label'] ?? '' ) . '</span></div>';
+        }
+        echo '</div></div></section>';
+    }
+}
+
+class UG_W_Page_Hero extends UG_Widget_Base {
+    protected string $ug_title = 'هیرو صفحه داخلی';
+    protected string $ug_icon = 'eicon-image-box';
+    public function get_name(): string { return 'ug-page-hero'; }
+    protected function register_controls(): void {
+        $this->start_controls_section( 's', [ 'label' => 'محتوا' ] );
+        $this->add_control( 'variant', [ 'label' => 'رنگ‌بندی', 'type' => CM::SELECT, 'default' => 'member', 'options' => [ 'member' => 'خدمات مجازی', 'account' => 'اکانت', 'virtual' => 'شماره مجازی' ] ] );
+        $this->add_control( 'image', [ 'label' => 'تصویر' ] + $this->media_ctrl( 'custom/icon-member-group.png' ) );
+        $this->add_control( 'eyebrow', [ 'label' => 'متن بالای عنوان', 'type' => CM::TEXT, 'default' => '👥 رشد واقعی شبکه‌های اجتماعی' ] );
+        $this->add_control( 'title', [ 'label' => 'عنوان', 'type' => CM::TEXT, 'default' => 'فروش خدمات مجازی' ] );
+        $this->add_control( 'title_hl', [ 'label' => 'عنوان (بخش رنگی)', 'type' => CM::TEXT, 'default' => 'واقعی و مطمئن' ] );
+        $this->add_control( 'sub', [ 'label' => 'زیرعنوان', 'type' => CM::TEXTAREA, 'default' => 'با بهترین کیفیت و قیمت، کانال و پیج خود را رشد دهید.' ] );
+        $this->add_control( 'cta1', [ 'label' => 'دکمهٔ اول', 'type' => CM::TEXT, 'default' => 'مشاهده پلن‌ها ←' ] );
+        $this->add_control( 'cta1_link', [ 'label' => 'لینک', 'type' => CM::URL, 'default' => [ 'url' => '#plans' ] ] );
+        $this->add_control( 'cta2', [ 'label' => 'دکمهٔ دوم', 'type' => CM::TEXT, 'default' => 'سفارش در تلگرام' ] );
+        $this->add_control( 'cta2_link', [ 'label' => 'لینک', 'type' => CM::URL, 'default' => [ 'url' => '#' ] ] );
+        $r = new Repeater();
+        $r->add_control( 'val', [ 'label' => 'مقدار', 'type' => CM::TEXT, 'default' => '+2M' ] );
+        $r->add_control( 'label', [ 'label' => 'برچسب', 'type' => CM::TEXT, 'default' => 'تحویل‌شده' ] );
+        $this->add_control( 'trust', [ 'type' => CM::REPEATER, 'fields' => $r->get_controls(), 'title_field' => '{{{ val }}}', 'default' => [
+            [ 'val' => '+2M', 'label' => 'سفارش موفق' ],
+            [ 'val' => '0%', 'label' => 'ریزش' ],
+            [ 'val' => '5', 'label' => 'پلتفرم' ],
+        ] ] );
+        $this->end_controls_section();
+    }
+    protected function render(): void {
+        $s = $this->get_settings_for_display();
+        echo '<div class="page-hero ' . esc_attr( $s['variant'] ?? 'member' ) . '">';
+        echo '<img class="page-hero-photo" style="max-width:180px;" src="' . esc_url( $this->url( $s['image'] ?? '' ) ) . '" alt="">';
+        echo '<div class="page-hero-content">';
+        if ( ! empty( $s['eyebrow'] ) ) { echo '<div class="hero-eyebrow">' . esc_html( $s['eyebrow'] ) . '</div>'; }
+        echo '<h1>' . esc_html( $s['title'] ?? '' ) . ' <span>' . esc_html( $s['title_hl'] ?? '' ) . '</span></h1>';
+        echo '<p>' . esc_html( $s['sub'] ?? '' ) . '</p>';
+        echo '<div class="hero-ctas"><a href="' . esc_url( $s['cta1_link']['url'] ?? '#' ) . '" class="btn-hero">' . esc_html( $s['cta1'] ?? '' ) . '</a><a href="' . esc_url( $s['cta2_link']['url'] ?? '#' ) . '" class="btn-hero-outline">' . esc_html( $s['cta2'] ?? '' ) . '</a></div>';
+        echo '<div class="hero-trust">';
+        foreach ( (array) ( $s['trust'] ?? [] ) as $t ) {
+            echo '<div><span class="n num">' . esc_html( $t['val'] ?? '' ) . '</span><span class="l">' . esc_html( $t['label'] ?? '' ) . '</span></div>';
+        }
+        echo '</div></div></div>';
+    }
+}
 
 class UG_W_Section_Heading extends UG_Widget_Base {
     protected string $ug_title = 'عنوان بخش';

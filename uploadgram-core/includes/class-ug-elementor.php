@@ -68,6 +68,8 @@ class UG_Elementor {
         }
 
         $data = [
+            $this->section( [ $this->widget( 'ug-hero' ) ] ),
+            $this->section( [ $this->widget( 'ug-quick-cats' ) ] ),
             $this->section( [ $this->widget( 'ug-section-heading', [ 'title' => 'دسته‌بندی خدمات آپلودگرام' ] ), $this->widget( 'ug-service-cats' ) ] ),
             $this->section( [ $this->widget( 'ug-stats' ) ] ),
             $this->section( [ $this->widget( 'ug-section-heading', [ 'title' => 'پیشنهادهای ویژه' ] ), $this->widget( 'ug-featured' ) ] ),
