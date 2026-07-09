@@ -110,6 +110,12 @@ class UG_Elementor {
             wp_send_json_error( [ 'message' => 'ابتدا افزونهٔ المنتور را نصب و فعال کنید.' ], 400 );
         }
 
+        // Clean up a stray home page created by an earlier version.
+        $stray = get_page_by_path( 'home-elementor' );
+        if ( $stray ) {
+            wp_delete_post( $stray->ID, true );
+        }
+
         $pages = [];
 
         // 1) Home — seed onto the real front page so it lives at the site root.
