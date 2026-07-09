@@ -274,6 +274,32 @@ abstract class UG_Dyn_Widget extends UG_Widget_Base {
         $s = $this->get_settings_for_display();
         echo do_shortcode( '[' . $this->ug_tag . $this->ug_atts( (array) $s ) . ']' );
     }
+
+    /**
+     * Style section for a dynamic (shortcode) widget built from a compact
+     * config. All controls are opt-in (empty default) so nothing changes and
+     * nothing conflicts with the panel's own responsive CSS/JS until the user
+     * actually sets a value. Keys: texts, boxes, btns, badges, layout.
+     */
+    protected function ug_dyn_style( array $cfg ): void {
+        $this->ug_style_start();
+        if ( ! empty( $cfg['texts'] ) ) { $this->ug_text_colors( $cfg['texts'] ); }
+        foreach ( (array) ( $cfg['boxes']  ?? [] ) as $b ) { $this->ug_box_style( $b[0], $b[1], $b[2] ); }
+        foreach ( (array) ( $cfg['btns']   ?? [] ) as $b ) { $this->ug_btn_style( $b[0], $b[1], $b[2] ); }
+        foreach ( (array) ( $cfg['badges'] ?? [] ) as $b ) { $this->ug_badge_style( $b[0], $b[1], $b[2] ); }
+        $this->ug_layout( $cfg['layout'] ?? '.ug-sc' );
+        $this->ug_style_end();
+    }
+
+    /** Default: no content controls, only the style section (subclasses may override). */
+    protected function register_controls(): void {
+        $this->ug_dyn_style( $this->ug_style_cfg() );
+    }
+
+    /** Per-widget style config; override to target the widget's own classes. */
+    protected function ug_style_cfg(): array {
+        return [];
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -906,6 +932,15 @@ class UG_W_Services_App extends UG_Dyn_Widget {
         $this->start_controls_section( 's', [ 'label' => 'حالت' ] );
         $this->add_control( 'view', [ 'label' => 'نمایش', 'type' => CM::SELECT, 'default' => 'buy', 'options' => [ 'buy' => 'خرید (پنل)', 'showcase' => 'نمایشی (تعرفه)' ] ] );
         $this->end_controls_section();
+        $this->ug_dyn_style( $this->ug_style_cfg() );
+    }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-app-chip', 'نام اپ‌ها' ], [ '.plan-price', 'قیمت' ], [ '.plan-features', 'ویژگی‌ها' ] ],
+            'boxes'  => [ [ '.ug-app', 'box', 'ظاهر باکس بخش' ], [ '.ug-app-chip', 'chip', 'ظاهر دکمهٔ اپ' ], [ '.plan-card', 'plan', 'ظاهر کارت پلن' ] ],
+            'btns'   => [ [ '.plan-btn', 'pbtn', 'دکمهٔ خرید پلن' ] ],
+            'layout' => '.ug-app',
+        ];
     }
     protected function ug_atts( array $s ): string { return ' view="' . esc_attr( $s['view'] ?? 'buy' ) . '"'; }
 }
@@ -915,6 +950,13 @@ class UG_W_Numbers_App extends UG_Dyn_Widget {
     protected string $ug_title = 'شماره مجازی (انتخاب اپ)';
     protected string $ug_icon = 'eicon-tel-field';
     public function get_name(): string { return 'ug-numbers-app'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-app-chip', 'نام اپ‌ها' ] ],
+            'boxes'  => [ [ '.ug-app', 'box', 'ظاهر باکس بخش' ], [ '.ug-app-chip', 'chip', 'ظاهر دکمهٔ اپ' ] ],
+            'layout' => '.ug-app',
+        ];
+    }
 }
 
 class UG_W_Member_Plans extends UG_Dyn_Widget {
@@ -922,6 +964,14 @@ class UG_W_Member_Plans extends UG_Dyn_Widget {
     protected string $ug_title = 'تب پلتفرم‌ها + پلن‌ها';
     protected string $ug_icon = 'eicon-price-table';
     public function get_name(): string { return 'ug-member-plans'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.tab-btn', 'تب‌ها' ], [ '.plan-price', 'قیمت' ], [ '.plan-features', 'ویژگی‌ها' ] ],
+            'boxes'  => [ [ '.plan-card', 'plan', 'ظاهر کارت پلن' ], [ '.platform-strip', 'strip', 'ظاهر نوار پلتفرم' ] ],
+            'btns'   => [ [ '.tab-btn', 'tab', 'دکمهٔ تب' ], [ '.plan-btn', 'pbtn', 'دکمهٔ خرید پلن' ] ],
+            'layout' => '.plans-grid',
+        ];
+    }
 }
 
 class UG_W_Account_Grid extends UG_Dyn_Widget {
@@ -933,6 +983,14 @@ class UG_W_Account_Grid extends UG_Dyn_Widget {
         $this->start_controls_section( 's', [ 'label' => 'دسته' ] );
         $this->add_control( 'cat', [ 'label' => 'دسته', 'type' => CM::SELECT, 'default' => 'ai', 'options' => [ 'ai' => 'هوش مصنوعی', 'music' => 'موزیک', 'video' => 'ویدیو', 'design' => 'طراحی', 'other' => 'سایر' ] ] );
         $this->end_controls_section();
+        $this->ug_dyn_style( $this->ug_style_cfg() );
+    }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.acc-name', 'نام اکانت' ], [ '.acc-sub', 'زیرنویس' ], [ '.acc-price', 'قیمت' ] ],
+            'boxes'  => [ [ '.acc-card', 'card', 'ظاهر باکس کارت' ], [ '.acc-icon', 'icon', 'ظاهر آیکن' ] ],
+            'layout' => '.accounts-grid',
+        ];
     }
     protected function ug_atts( array $s ): string { return ' cat="' . esc_attr( $s['cat'] ?? 'ai' ) . '"'; }
 }
@@ -940,32 +998,95 @@ class UG_W_Account_Grid extends UG_Dyn_Widget {
 class UG_W_Auth extends UG_Dyn_Widget {
     protected string $ug_tag = 'ug_auth'; protected string $ug_title = 'فرم ورود / ثبت‌نام'; protected string $ug_icon = 'eicon-lock-user';
     public function get_name(): string { return 'ug-auth'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-auth-head', 'عنوان' ], [ '.ug-auth-sub', 'زیرنویس' ] ],
+            'boxes'  => [ [ '.ug-auth-card', 'card', 'ظاهر کارت ورود' ] ],
+            'btns'   => [ [ '.ug-auth-card .ug-btn', 'btn', 'دکمه‌ها' ] ],
+            'layout' => '.ug-auth-card',
+        ];
+    }
 }
 class UG_W_Panel extends UG_Dyn_Widget {
     protected string $ug_tag = 'ug_panel'; protected string $ug_title = 'پنل کاربری'; protected string $ug_icon = 'eicon-dashboard';
     public function get_name(): string { return 'ug-panel'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-panel-heading', 'عنوان بخش' ], [ '.ug-panel-lead', 'توضیح بخش' ], [ '.ug-user-name', 'نام کاربر' ], [ '.ug-user-email', 'ایمیل کاربر' ], [ '.ug-nav-item', 'آیتم‌های منو' ] ],
+            'boxes'  => [ [ '.ug-panel-sidebar', 'side', 'ظاهر نوار کناری' ], [ '.ug-panel-content', 'content', 'ظاهر ناحیهٔ محتوا' ], [ '.ug-avatar', 'avatar', 'ظاهر آواتار' ] ],
+            'btns'   => [ [ '.ug-nav-item', 'nav', 'دکمه‌های منو' ] ],
+            'layout' => '.ug-panel',
+        ];
+    }
 }
 class UG_W_Dashboard extends UG_Dyn_Widget {
     protected string $ug_tag = 'ug_dashboard'; protected string $ug_title = 'داشبورد کاربر'; protected string $ug_icon = 'eicon-device-desktop';
     public function get_name(): string { return 'ug-dashboard'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-hello', 'خوش‌آمدگویی' ], [ '.ug-panel-title', 'عنوان‌ها' ] ],
+            'boxes'  => [ [ '.ug-dashboard', 'box', 'ظاهر داشبورد' ], [ '.ug-wallet-card', 'wallet', 'ظاهر کارت کیف پول' ] ],
+            'layout' => '.ug-dashboard',
+        ];
+    }
 }
 class UG_W_Wallet extends UG_Dyn_Widget {
     protected string $ug_tag = 'ug_wallet'; protected string $ug_title = 'کارت کیف پول'; protected string $ug_icon = 'eicon-price-list';
     public function get_name(): string { return 'ug-wallet'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-wallet-label', 'برچسب' ], [ '.ug-wallet-balance', 'موجودی' ] ],
+            'boxes'  => [ [ '.ug-wallet-card', 'card', 'ظاهر کارت کیف پول' ] ],
+            'btns'   => [ [ '.ug-wallet-card .ug-btn', 'btn', 'دکمه' ] ],
+            'layout' => '.ug-wallet-card',
+        ];
+    }
 }
 class UG_W_Topup extends UG_Dyn_Widget {
     protected string $ug_tag = 'ug_topup_form'; protected string $ug_title = 'فرم شارژ کیف پول'; protected string $ug_icon = 'eicon-cart-medium';
     public function get_name(): string { return 'ug-topup'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'boxes'  => [ [ '.ug-topup-form', 'box', 'ظاهر فرم' ] ],
+            'badges' => [ [ '.ug-chip', 'chip', 'مبالغ سریع' ] ],
+            'btns'   => [ [ '.ug-topup-form .ug-btn', 'btn', 'دکمهٔ شارژ' ] ],
+            'layout' => '.ug-topup-form',
+        ];
+    }
 }
 class UG_W_Wallet_Tx extends UG_Dyn_Widget {
     protected string $ug_tag = 'ug_wallet_tx'; protected string $ug_title = 'تراکنش‌های کیف پول'; protected string $ug_icon = 'eicon-table';
     public function get_name(): string { return 'ug-wallet-tx'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-orders-table th', 'سرستون‌ها' ], [ '.ug-orders-table td', 'متن ردیف‌ها' ] ],
+            'boxes'  => [ [ '.ug-tx-wrap', 'box', 'ظاهر جدول' ] ],
+            'badges' => [ [ '.ug-status', 'status', 'وضعیت‌ها' ] ],
+            'layout' => '.ug-tx-wrap',
+        ];
+    }
 }
 class UG_W_My_Orders extends UG_Dyn_Widget {
     protected string $ug_tag = 'ug_my_orders'; protected string $ug_title = 'سفارش‌های من'; protected string $ug_icon = 'eicon-bullet-list';
     public function get_name(): string { return 'ug-my-orders'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-orders-table th', 'سرستون‌ها' ], [ '.ug-orders-table td', 'متن ردیف‌ها' ] ],
+            'boxes'  => [ [ '.ug-orders', 'box', 'ظاهر بخش' ], [ '.ug-orders-table', 'table', 'ظاهر جدول' ] ],
+            'badges' => [ [ '.ug-status', 'status', 'وضعیت‌ها' ] ],
+            'layout' => '.ug-orders',
+        ];
+    }
 }
 class UG_W_Profile extends UG_Dyn_Widget {
     protected string $ug_tag = 'ug_profile'; protected string $ug_title = 'ویرایش پروفایل'; protected string $ug_icon = 'eicon-user-circle-o';
     public function get_name(): string { return 'ug-profile'; }
+    protected function ug_style_cfg(): array {
+        return [
+            'texts'  => [ [ '.ug-profile-form label', 'برچسب فیلدها' ] ],
+            'boxes'  => [ [ '.ug-profile-form', 'box', 'ظاهر فرم' ] ],
+            'btns'   => [ [ '.ug-profile-form .ug-btn', 'btn', 'دکمهٔ ذخیره' ] ],
+            'layout' => '.ug-profile-form',
+        ];
+    }
 }
