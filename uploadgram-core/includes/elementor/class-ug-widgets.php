@@ -19,6 +19,7 @@ use Elementor\Controls_Manager as CM;
 use Elementor\Repeater;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
+use Elementor\Group_Control_Typography;
 
 /* ═══════════════════════════════════════════════════════════
  * Base classes
@@ -138,6 +139,28 @@ abstract class UG_Widget_Base extends \Elementor\Widget_Base {
     }
 
     /**
+     * A row of text controls: for every item both a COLOUR picker AND a full
+     * typography group (font family, size, weight, line-height, letter-spacing,
+     * transform…) targeting the same selector. $items = [ [ selector, label ], … ].
+     */
+    protected function ug_text_colors( array $items ): void {
+        $this->add_control( 'ug_text_head', [ 'label' => 'رنگ و فونت متن‌ها', 'type' => CM::HEADING, 'separator' => 'before' ] );
+        foreach ( $items as $i => $it ) {
+            $sel = '{{WRAPPER}} ' . $it[0];
+            $this->add_control( 'ug_txt_' . $i, [
+                'label'     => 'رنگ: ' . $it[1],
+                'type'      => CM::COLOR,
+                'selectors' => [ $sel => 'color:{{VALUE}};' ],
+            ] );
+            $this->add_group_control( Group_Control_Typography::get_type(), [
+                'name'     => 'ug_typo_' . $i,
+                'label'    => 'فونت: ' . $it[1],
+                'selector' => $sel,
+            ] );
+        }
+    }
+
+    /**
      * Full appearance controls for a box element: background (color that
      * overrides the theme gradient + image + size), border, radius, shadow.
      * The `background-image:none` on the colour control is what lets a solid
@@ -174,6 +197,70 @@ abstract class UG_Widget_Base extends \Elementor\Widget_Base {
             'selectors'  => [ $wrap => 'border-radius:{{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};overflow:hidden;' ],
         ] );
         $this->add_group_control( Group_Control_Box_Shadow::get_type(), [ 'name' => $prefix . '_shadow', 'selector' => $wrap ] );
+    }
+
+    /**
+     * Full BUTTON appearance: background (overrides gradient), text colour,
+     * border, radius, padding, plus hover background + hover text colour.
+     */
+    protected function ug_btn_style( string $selector, string $prefix, string $heading ): void {
+        $wrap  = '{{WRAPPER}} ' . $selector;
+        $hover = '{{WRAPPER}} ' . $selector . ':hover';
+
+        $this->add_control( $prefix . '_head', [ 'label' => $heading, 'type' => CM::HEADING, 'separator' => 'before' ] );
+        $this->add_control( $prefix . '_ease', [ 'type' => CM::HIDDEN, 'default' => 'y', 'selectors' => [ $wrap => 'transition:all .2s ease;' ] ] );
+        $this->add_control( $prefix . '_bg', [ 'label' => 'رنگ پس‌زمینه', 'type' => CM::COLOR, 'selectors' => [ $wrap => 'background-color:{{VALUE}};background-image:none;' ] ] );
+        $this->add_control( $prefix . '_fg', [ 'label' => 'رنگ متن', 'type' => CM::COLOR, 'selectors' => [ $wrap => 'color:{{VALUE}};' ] ] );
+        $this->add_group_control( Group_Control_Typography::get_type(), [ 'name' => $prefix . '_typo', 'label' => 'فونت دکمه', 'selector' => $wrap ] );
+        $this->add_group_control( Group_Control_Border::get_type(), [ 'name' => $prefix . '_border', 'selector' => $wrap ] );
+        $this->add_responsive_control( $prefix . '_radius', [ 'label' => 'گردی گوشه‌ها', 'type' => CM::DIMENSIONS, 'size_units' => [ 'px', '%' ], 'selectors' => [ $wrap => 'border-radius:{{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
+        $this->add_responsive_control( $prefix . '_pad', [ 'label' => 'فاصلهٔ داخلی', 'type' => CM::DIMENSIONS, 'size_units' => [ 'px' ], 'selectors' => [ $wrap => 'padding:{{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ] ] );
+        $this->add_control( $prefix . '_hbg', [ 'label' => 'رنگ پس‌زمینه هنگام هاور', 'type' => CM::COLOR, 'selectors' => [ $hover => 'background-color:{{VALUE}};background-image:none;' ] ] );
+        $this->add_control( $prefix . '_hfg', [ 'label' => 'رنگ متن هنگام هاور', 'type' => CM::COLOR, 'selectors' => [ $hover => 'color:{{VALUE}};' ] ] );
+    }
+
+    /** Hover effect for a card: lift (translateY) + a hover box-shadow. */
+    protected function ug_hover_fx( string $selector, string $prefix ): void {
+        $wrap  = '{{WRAPPER}} ' . $selector;
+        $hover = '{{WRAPPER}} ' . $selector . ':hover';
+        $this->add_control( $prefix . '_hhead', [ 'label' => 'افکت هاور کارت', 'type' => CM::HEADING, 'separator' => 'before' ] );
+        $this->add_responsive_control( $prefix . '_lift', [
+            'label'      => 'بالا آمدن هنگام هاور',
+            'type'       => CM::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [ 'px' => [ 'min' => 0, 'max' => 30 ] ],
+            'selectors'  => [
+                $wrap  => 'transition:transform .25s ease, box-shadow .25s ease;',
+                $hover => 'transform:translateY(-{{SIZE}}{{UNIT}});',
+            ],
+        ] );
+        $this->add_group_control( Group_Control_Box_Shadow::get_type(), [ 'name' => $prefix . '_hshadow', 'label' => 'سایهٔ هنگام هاور', 'selector' => $hover ] );
+    }
+
+    /** Section-level layout: outer margin/spacing + text alignment. */
+    protected function ug_layout( string $selector = '.ug-sc' ): void {
+        $wrap = '{{WRAPPER}} ' . $selector;
+        $this->add_control( 'ug_layout_head', [ 'label' => 'فاصله و چیدمان بخش', 'type' => CM::HEADING, 'separator' => 'before' ] );
+        $this->add_responsive_control( 'ug_margin', [
+            'label'      => 'فاصلهٔ بیرونی بخش',
+            'type'       => CM::DIMENSIONS,
+            'size_units' => [ 'px' ],
+            'selectors'  => [ $wrap => 'margin:{{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ],
+        ] );
+        $this->add_responsive_control( 'ug_align', [
+            'label'     => 'ترازبندی متن',
+            'type'      => CM::SELECT,
+            'default'   => '',
+            'options'   => [ '' => 'پیش‌فرض', 'right' => 'راست', 'center' => 'وسط', 'left' => 'چپ' ],
+            'selectors' => [ $wrap => 'text-align:{{VALUE}};' ],
+        ] );
+    }
+
+    /** Background + text colour for a small badge/tag/pill element. */
+    protected function ug_badge_style( string $selector, string $prefix, string $label ): void {
+        $wrap = '{{WRAPPER}} ' . $selector;
+        $this->add_control( $prefix . '_bbg', [ 'label' => 'رنگ پس‌زمینهٔ ' . $label, 'type' => CM::COLOR, 'selectors' => [ $wrap => 'background-color:{{VALUE}};background-image:none;' ] ] );
+        $this->add_control( $prefix . '_bfg', [ 'label' => 'رنگ متن ' . $label, 'type' => CM::COLOR, 'selectors' => [ $wrap => 'color:{{VALUE}};' ] ] );
     }
 }
 
@@ -239,8 +326,12 @@ class UG_W_Hero extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.hero-eyebrow', 'متن بالای عنوان' ], [ '.hero h1', 'عنوان' ], [ '.hero h1 span', 'عنوان (بخش رنگی)' ], [ '.hero p', 'زیرعنوان' ], [ '.hero-trust .n', 'عدد اعتماد' ], [ '.hero-trust .l', 'برچسب اعتماد' ] ] );
         $this->ug_ctrl_width( '.hero-img', 340, 700, 'ug_hero_img' );
         $this->ug_box_style( '.hero', 'box', 'ظاهر باکس هدر' );
+        $this->ug_btn_style( '.btn-hero', 'btn1', 'دکمهٔ اول' );
+        $this->ug_btn_style( '.btn-hero-outline', 'btn2', 'دکمهٔ دوم' );
+        $this->ug_layout( '.hero' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -286,8 +377,12 @@ class UG_W_Page_Hero extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.page-hero .hero-eyebrow', 'متن بالای عنوان' ], [ '.page-hero h1', 'عنوان' ], [ '.page-hero h1 span', 'عنوان (بخش رنگی)' ], [ '.page-hero p', 'زیرعنوان' ], [ '.page-hero .hero-trust .n', 'عدد اعتماد' ], [ '.page-hero .hero-trust .l', 'برچسب اعتماد' ] ] );
         $this->ug_ctrl_width( '.page-hero-photo', 180, 400, 'ug_ph_img' );
         $this->ug_box_style( '.page-hero', 'box', 'ظاهر باکس' );
+        $this->ug_btn_style( '.page-hero .btn-hero', 'btn1', 'دکمهٔ اول' );
+        $this->ug_btn_style( '.page-hero .btn-hero-outline', 'btn2', 'دکمهٔ دوم' );
+        $this->ug_layout( '.page-hero' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -315,6 +410,11 @@ class UG_W_Section_Heading extends UG_Widget_Base {
         $this->start_controls_section( 's', [ 'label' => 'محتوا' ] );
         $this->add_control( 'title', [ 'label' => 'عنوان', 'type' => CM::TEXT, 'default' => 'عنوان بخش' ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.section-heading', 'عنوان' ] ] );
+        $this->add_control( 'ug_dot', [ 'label' => 'رنگ نقطهٔ کنار عنوان', 'type' => CM::COLOR, 'selectors' => [ '{{WRAPPER}} .section-dot' => 'background:{{VALUE}};' ] ] );
+        $this->ug_layout( '.section-head' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -352,12 +452,18 @@ class UG_W_Service_Cats extends UG_Widget_Base {
         $this->end_controls_section();
 
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.scat-name', 'رنگ عنوان' ], [ '.scat-desc', 'رنگ توضیح' ], [ '.scat-badge', 'رنگ برچسب' ], [ '.scat-link', 'رنگ لینک' ] ] );
         $this->ug_ctrl_cols( '.service-cats-grid' );
         $this->ug_ctrl_gap( '.service-cats-grid' );
         $this->ug_ctrl_img( '.scat-icon img', 40 );
         $this->ug_ctrl_pad( '.scat' );
         $this->ug_box_style( '.scat', 'card', 'ظاهر باکس کارت' );
         $this->ug_box_style( '.scat-icon', 'icon', 'ظاهر آیکن (رنگ هر آیکن از تنظیم همان کارت هم قابل تغییر است)' );
+        $this->ug_badge_style( '.scat-badge', 'badge', 'برچسب' );
+        $this->ug_badge_style( '.scat-tag', 'tag', 'تگ‌ها' );
+        $this->ug_btn_style( '.scat-link', 'btn', 'دکمهٔ لینک' );
+        $this->ug_hover_fx( '.scat', 'card' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
 
@@ -403,11 +509,14 @@ class UG_W_Quick_Cats extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.qcat-name', 'رنگ عنوان' ], [ '.qcat-label', 'رنگ زیرعنوان' ] ] );
         $this->ug_ctrl_cols( '.quick-cats' );
         $this->ug_ctrl_gap( '.quick-cats' );
         $this->ug_ctrl_img( '.qcat-icon img', 40 );
         $this->ug_box_style( '.qcat', 'card', 'ظاهر باکس' );
         $this->ug_box_style( '.qcat-icon', 'icon', 'ظاهر آیکن' );
+        $this->ug_hover_fx( '.qcat', 'card' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -436,10 +545,13 @@ class UG_W_Stats extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.stat-val', 'رنگ عدد' ], [ '.stat-label', 'رنگ برچسب' ] ] );
         $this->ug_ctrl_cols( '.stats-row' );
         $this->ug_ctrl_gap( '.stats-row' );
         $this->ug_ctrl_pad( '.stat-card' );
         $this->ug_box_style( '.stat-card', 'card', 'ظاهر باکس' );
+        $this->ug_hover_fx( '.stat-card', 'card' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -472,12 +584,15 @@ class UG_W_Featured extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.feat-card-title', 'رنگ عنوان' ], [ '.feat-card-link', 'رنگ لینک' ] ] );
         $this->ug_ctrl_cols( '.featured-grid' );
         $this->ug_ctrl_gap( '.featured-grid' );
         $this->ug_ctrl_img( '.feat-icon img', 40 );
         $this->ug_ctrl_pad( '.feat-card' );
         $this->ug_box_style( '.feat-card', 'card', 'ظاهر باکس' );
         $this->ug_box_style( '.feat-icon', 'icon', 'ظاهر آیکن' );
+        $this->ug_hover_fx( '.feat-card', 'card' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -502,8 +617,10 @@ class UG_W_Promo extends UG_Widget_Base {
         $this->add_control( 'image', [ 'label' => 'تصویر' ] + $this->media_ctrl( 'hero/support-chat.png' ) );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.promo-eyebrow', 'متن کوچک' ], [ '.promo-title', 'عنوان' ], [ '.promo-desc', 'توضیح' ] ] );
         $this->ug_ctrl_width( '.promo-img', 220, 500, 'ug_promo_img' );
         $this->ug_box_style( '.promo-banner', 'box', 'ظاهر بنر' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -531,11 +648,14 @@ class UG_W_Why_Us extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.why-title', 'رنگ عنوان' ], [ '.why-desc', 'رنگ توضیح' ] ] );
         $this->ug_ctrl_cols( '.why-grid' );
         $this->ug_ctrl_gap( '.why-grid' );
         $this->ug_ctrl_pad( '.why-card' );
         $this->ug_box_style( '.why-card', 'card', 'ظاهر باکس' );
         $this->ug_box_style( '.why-icon', 'icon', 'ظاهر آیکن' );
+        $this->ug_hover_fx( '.why-card', 'card' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -567,12 +687,16 @@ class UG_W_Member_Types extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.mtc-name', 'رنگ عنوان' ], [ '.mtc-price', 'رنگ قیمت' ] ] );
         $this->ug_ctrl_cols( '.member-types-grid' );
         $this->ug_ctrl_gap( '.member-types-grid' );
         $this->ug_ctrl_img( '.mtc-img img', 54 );
         $this->ug_ctrl_pad( '.member-type-card' );
         $this->ug_box_style( '.member-type-card', 'card', 'ظاهر باکس' );
         $this->ug_box_style( '.mtc-img', 'icon', 'ظاهر آیکن' );
+        $this->ug_btn_style( '.mtc-btn', 'btn', 'دکمهٔ خرید' );
+        $this->ug_hover_fx( '.member-type-card', 'card' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -606,10 +730,13 @@ class UG_W_Steps extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.step-title', 'رنگ عنوان' ], [ '.step-desc', 'رنگ توضیح' ], [ '.step-num', 'رنگ شماره' ] ] );
         $this->ug_ctrl_cols( '.steps-row' );
         $this->ug_ctrl_gap( '.steps-row' );
         $this->ug_ctrl_pad( '.step-card' );
         $this->ug_box_style( '.step-card', 'card', 'ظاهر باکس' );
+        $this->ug_hover_fx( '.step-card', 'card' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -631,6 +758,7 @@ class UG_W_Service_Icons extends UG_Widget_Base {
         $r = new Repeater();
         $r->add_control( 'image', [ 'label' => 'آیکن' ] + $this->media_ctrl( 'iconpack/telegram.svg' ) );
         $r->add_control( 'name', [ 'label' => 'نام', 'type' => CM::TEXT, 'default' => 'سرویس' ] );
+        $r->add_control( 'link', [ 'label' => 'لینک (با کلیک به این صفحه می‌رود)', 'type' => CM::URL, 'placeholder' => 'https://…', 'default' => [ 'url' => '' ] ] );
         $defaults = [
             [ 'iconpack/telegram.svg', 'تلگرام' ], [ 'iconpack/instagram.svg', 'اینستاگرام' ], [ 'iconpack/whatsapp.svg', 'واتساپ' ],
             [ 'ai/chatgpt.svg', 'ChatGPT' ], [ 'iconpack/spotify.svg', 'اسپاتیفای' ], [ 'iconpack/youtube.svg', 'یوتیوب' ],
@@ -640,19 +768,26 @@ class UG_W_Service_Icons extends UG_Widget_Base {
         $this->add_control( 'items', [ 'type' => CM::REPEATER, 'fields' => $r->get_controls(), 'title_field' => '{{{ name }}}', 'default' => $def ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.acc-name', 'رنگ نام' ] ] );
         $this->ug_ctrl_cols( '.accounts-grid' );
         $this->ug_ctrl_gap( '.accounts-grid' );
         $this->ug_ctrl_img( '.acc-icon img', 40 );
         $this->ug_ctrl_pad( '.acc-card' );
         $this->ug_box_style( '.acc-card', 'card', 'ظاهر باکس' );
         $this->ug_box_style( '.acc-icon', 'icon', 'ظاهر آیکن' );
+        $this->ug_hover_fx( '.acc-card', 'card' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
         echo '<div class="ug-sc"><div class="accounts-grid">';
         foreach ( (array) ( $s['items'] ?? [] ) as $c ) {
-            echo '<div class="acc-card"><div class="acc-icon"><img loading="lazy" src="' . esc_url( $this->url( $c['image'] ?? '' ) ) . '" alt=""></div><div class="acc-name">' . esc_html( $c['name'] ?? '' ) . '</div></div>';
+            $url  = $c['link']['url'] ?? '';
+            $tag  = $url ? 'a' : 'div';
+            $href = $url ? ' href="' . esc_url( $url ) . '"' : '';
+            $tgt  = ! empty( $c['link']['is_external'] ) ? ' target="_blank" rel="noopener"' : '';
+            echo '<' . $tag . ' class="acc-card"' . $href . $tgt . '><div class="acc-icon"><img loading="lazy" src="' . esc_url( $this->url( $c['image'] ?? '' ) ) . '" alt=""></div><div class="acc-name">' . esc_html( $c['name'] ?? '' ) . '</div></' . $tag . '>';
         }
         echo '</div></div>';
     }
@@ -670,18 +805,32 @@ class UG_W_Price_Table extends UG_Widget_Base {
         $r->add_control( 'code', [ 'label' => 'پیش‌شماره', 'type' => CM::TEXT, 'default' => '+7' ] );
         $r->add_control( 'service', [ 'label' => 'سرویس', 'type' => CM::TEXT, 'default' => 'تلگرام' ] );
         $r->add_control( 'price', [ 'label' => 'قیمت', 'type' => CM::TEXT, 'default' => '۵,۵۰۰' ] );
+        $r->add_control( 'link', [ 'label' => 'لینک دکمهٔ خرید (خالی = هدایت به ورود/خرید)', 'type' => CM::URL, 'placeholder' => 'https://…', 'default' => [ 'url' => '' ] ] );
         $this->add_control( 'items', [ 'type' => CM::REPEATER, 'fields' => $r->get_controls(), 'title_field' => '{{{ country }}}', 'default' => [
             [ 'flag' => '🇷🇺', 'country' => 'روسیه', 'code' => '+7', 'service' => 'تلگرام', 'price' => '۵,۵۰۰' ],
             [ 'flag' => '🇺🇸', 'country' => 'آمریکا', 'code' => '+1', 'service' => 'ChatGPT', 'price' => '۸,۵۰۰' ],
             [ 'flag' => '🇬🇧', 'country' => 'انگلستان', 'code' => '+44', 'service' => 'اینستاگرام', 'price' => '۱۱,۰۰۰' ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.price-table th', 'سرستون‌ها' ], [ '.price-table td', 'متن ردیف‌ها' ], [ '.country-name', 'نام کشور' ], [ '.price-val', 'قیمت' ] ] );
+        $this->ug_box_style( '.price-table-wrap', 'box', 'ظاهر جدول' );
+        $this->ug_btn_style( '.buy-btn', 'btn', 'دکمهٔ خرید' );
+        $this->ug_layout();
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
         echo '<div class="ug-sc"><div class="price-table-wrap"><table class="price-table"><thead><tr><th>کشور</th><th>پیش‌شماره</th><th>سرویس</th><th>قیمت</th><th>خرید</th></tr></thead><tbody>';
         foreach ( (array) ( $s['items'] ?? [] ) as $c ) {
-            echo '<tr><td><span class="flag">' . esc_html( $c['flag'] ?? '' ) . '</span><span class="country-name">' . esc_html( $c['country'] ?? '' ) . '</span></td><td class="num">' . esc_html( $c['code'] ?? '' ) . '</td><td>' . esc_html( $c['service'] ?? '' ) . '</td><td class="price-val num">' . esc_html( $c['price'] ?? '' ) . ' تومان</td><td>' . apply_filters( 'ug_purchase_button', '<button class="buy-btn">خرید</button>', 0, [ 'label' => 'ورود', 'class' => 'buy-btn' ] ) . '</td></tr>';
+            $lurl = $c['link']['url'] ?? '';
+            if ( $lurl ) {
+                $tgt = ! empty( $c['link']['is_external'] ) ? ' target="_blank" rel="noopener"' : '';
+                $buy = '<a class="buy-btn" href="' . esc_url( $lurl ) . '"' . $tgt . '>خرید</a>';
+            } else {
+                $buy = apply_filters( 'ug_purchase_button', '<button class="buy-btn">خرید</button>', 0, [ 'label' => 'ورود', 'class' => 'buy-btn' ] );
+            }
+            echo '<tr><td><span class="flag">' . esc_html( $c['flag'] ?? '' ) . '</span><span class="country-name">' . esc_html( $c['country'] ?? '' ) . '</span></td><td class="num">' . esc_html( $c['code'] ?? '' ) . '</td><td>' . esc_html( $c['service'] ?? '' ) . '</td><td class="price-val num">' . esc_html( $c['price'] ?? '' ) . ' تومان</td><td>' . $buy . '</td></tr>';
         }
         echo '</tbody></table></div></div>';
     }
@@ -698,7 +847,9 @@ class UG_W_Trust_Banner extends UG_Widget_Base {
         $this->add_control( 'text', [ 'label' => 'متن', 'type' => CM::TEXTAREA, 'default' => 'تمام اکانت‌های پرمیوم ما اصل و اختصاصی تحویل داده می‌شوند. پشتیبانی ۲۴/۷ و جایگزینی رایگان در صورت مشکل.' ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.trust-banner-title', 'عنوان' ], [ '.trust-banner-desc', 'توضیح' ] ] );
         $this->ug_box_style( '.trust-banner', 'box', 'ظاهر بنر' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -724,8 +875,11 @@ class UG_W_Faq extends UG_Widget_Base {
         ] ] );
         $this->end_controls_section();
         $this->ug_style_start();
+        $this->ug_text_colors( [ [ '.faq-section .section-heading', 'عنوان بخش' ], [ '.faq-q', 'متن سوال' ], [ '.faq-a', 'متن پاسخ' ] ] );
         $this->ug_ctrl_gap( '.faq-section', 10 );
         $this->ug_box_style( '.faq-item', 'box', 'ظاهر باکس سوال' );
+        $this->ug_hover_fx( '.faq-item', 'box' );
+        $this->ug_layout();
         $this->ug_style_end();
     }
     protected function render(): void {
