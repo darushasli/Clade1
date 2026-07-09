@@ -17,6 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Elementor\Controls_Manager as CM;
 use Elementor\Repeater;
+use Elementor\Group_Control_Border;
+use Elementor\Group_Control_Box_Shadow;
 
 /* ═══════════════════════════════════════════════════════════
  * Base classes
@@ -134,6 +136,45 @@ abstract class UG_Widget_Base extends \Elementor\Widget_Base {
             'selectors'  => [ '{{WRAPPER}} ' . $selector => 'padding:{{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ],
         ] );
     }
+
+    /**
+     * Full appearance controls for a box element: background (color that
+     * overrides the theme gradient + image + size), border, radius, shadow.
+     * The `background-image:none` on the colour control is what lets a solid
+     * colour override the theme's built-in gradient (e.g. the navy hero).
+     */
+    protected function ug_box_style( string $selector, string $prefix, string $heading ): void {
+        $wrap = '{{WRAPPER}} ' . $selector;
+
+        $this->add_control( $prefix . '_head', [ 'label' => $heading, 'type' => CM::HEADING, 'separator' => 'before' ] );
+
+        $this->add_control( $prefix . '_bg', [
+            'label'     => 'رنگ پس‌زمینه',
+            'type'      => CM::COLOR,
+            'selectors' => [ $wrap => 'background-color:{{VALUE}};background-image:none;' ],
+        ] );
+        $this->add_control( $prefix . '_bgimg', [
+            'label'     => 'تصویر پس‌زمینه',
+            'type'      => CM::MEDIA,
+            'selectors' => [ $wrap => 'background-image:url({{URL}});background-repeat:no-repeat;background-position:center;' ],
+        ] );
+        $this->add_responsive_control( $prefix . '_bgsize', [
+            'label'     => 'اندازهٔ تصویر پس‌زمینه',
+            'type'      => CM::SELECT,
+            'default'   => 'cover',
+            'options'   => [ 'cover' => 'پوشش کامل', 'contain' => 'جای‌گیری کامل', 'auto' => 'اندازهٔ اصلی', '100% 100%' => 'کشیده' ],
+            'selectors' => [ $wrap => 'background-size:{{VALUE}};' ],
+            'condition' => [ $prefix . '_bgimg[url]!' => '' ],
+        ] );
+        $this->add_group_control( Group_Control_Border::get_type(), [ 'name' => $prefix . '_border', 'selector' => $wrap ] );
+        $this->add_responsive_control( $prefix . '_radius', [
+            'label'      => 'گردی گوشه‌ها',
+            'type'       => CM::DIMENSIONS,
+            'size_units' => [ 'px', '%' ],
+            'selectors'  => [ $wrap => 'border-radius:{{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};overflow:hidden;' ],
+        ] );
+        $this->add_group_control( Group_Control_Box_Shadow::get_type(), [ 'name' => $prefix . '_shadow', 'selector' => $wrap ] );
+    }
 }
 
 /**
@@ -199,6 +240,7 @@ class UG_W_Hero extends UG_Widget_Base {
         $this->end_controls_section();
         $this->ug_style_start();
         $this->ug_ctrl_width( '.hero-img', 340, 700, 'ug_hero_img' );
+        $this->ug_box_style( '.hero', 'box', 'ظاهر باکس هدر' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -245,6 +287,7 @@ class UG_W_Page_Hero extends UG_Widget_Base {
         $this->end_controls_section();
         $this->ug_style_start();
         $this->ug_ctrl_width( '.page-hero-photo', 180, 400, 'ug_ph_img' );
+        $this->ug_box_style( '.page-hero', 'box', 'ظاهر باکس' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -289,7 +332,7 @@ class UG_W_Service_Cats extends UG_Widget_Base {
         $r = new Repeater();
         $r->add_control( 'badge', [ 'label' => 'برچسب', 'type' => CM::TEXT, 'default' => 'پرفروش' ] );
         $r->add_control( 'image', [ 'label' => 'آیکن' ] + $this->media_ctrl( 'custom/icon-sim.png' ) );
-        $r->add_control( 'icon_bg', [ 'label' => 'رنگ پس‌زمینه آیکن', 'type' => CM::TEXT, 'default' => 'linear-gradient(135deg,#f97316,#c2410c)' ] );
+        $r->add_control( 'icon_bg', [ 'label' => 'رنگ پس‌زمینه آیکن', 'type' => CM::COLOR, 'default' => '#f97316' ] );
         $r->add_control( 'name', [ 'label' => 'عنوان', 'type' => CM::TEXT, 'default' => 'شماره مجازی' ] );
         $r->add_control( 'desc', [ 'label' => 'توضیح', 'type' => CM::TEXTAREA, 'default' => 'توضیح کوتاه این دسته' ] );
         $r->add_control( 'tags', [ 'label' => 'برچسب‌ها (با , جدا کنید)', 'type' => CM::TEXT, 'default' => 'گزینه ۱, گزینه ۲' ] );
@@ -301,9 +344,9 @@ class UG_W_Service_Cats extends UG_Widget_Base {
             'fields'      => $r->get_controls(),
             'title_field' => '{{{ name }}}',
             'default'     => [
-                [ 'badge' => '۳۰+ کشور', 'name' => 'شماره مجازی', 'icon_bg' => 'linear-gradient(135deg,#f97316,#c2410c)', 'desc' => 'شماره مجازی از بیش از ۳۰ کشور برای دریافت کد و ثبت‌نام', 'tags' => '🇺🇸 آمریکا, 🇬🇧 انگلیس, 🇩🇪 آلمان', 'linktext' => 'خرید شماره ←', 'image' => [ 'url' => $this->asset( 'custom/icon-sim.png' ) ], 'link' => [ 'url' => home_url( '/virtual-number/' ) ] ],
-                [ 'badge' => 'پرفروش', 'name' => 'اکانت پرمیوم', 'icon_bg' => 'linear-gradient(135deg,#0099dd,#0066aa)', 'desc' => 'اکانت پرمیوم اصل تمام سرویس‌های بین‌المللی با قیمت استثنایی', 'tags' => 'اسپاتیفای, ChatGPT, ۸۰+ سرویس', 'linktext' => 'مشاهده اکانت‌ها ←', 'image' => [ 'url' => $this->asset( 'custom/icon-lock-3d.png' ) ], 'link' => [ 'url' => home_url( '/account/' ) ] ],
-                [ 'badge' => 'ارسال فوری', 'name' => 'خدمات مجازی', 'icon_bg' => 'linear-gradient(135deg,#3b5bdb,#5b4fe0)', 'desc' => 'افزایش ممبر و فالوور واقعی برای تمام پلتفرم‌ها بدون ریزش', 'tags' => 'تلگرام, اینستاگرام, یوتیوب', 'linktext' => 'مشاهده ←', 'image' => [ 'url' => $this->asset( 'custom/icon-member-group.png' ) ], 'link' => [ 'url' => home_url( '/member/' ) ] ],
+                [ 'badge' => '۳۰+ کشور', 'name' => 'شماره مجازی', 'icon_bg' => '#f97316', 'desc' => 'شماره مجازی از بیش از ۳۰ کشور برای دریافت کد و ثبت‌نام', 'tags' => '🇺🇸 آمریکا, 🇬🇧 انگلیس, 🇩🇪 آلمان', 'linktext' => 'خرید شماره ←', 'image' => [ 'url' => $this->asset( 'custom/icon-sim.png' ) ], 'link' => [ 'url' => home_url( '/virtual-number/' ) ] ],
+                [ 'badge' => 'پرفروش', 'name' => 'اکانت پرمیوم', 'icon_bg' => '#0099dd', 'desc' => 'اکانت پرمیوم اصل تمام سرویس‌های بین‌المللی با قیمت استثنایی', 'tags' => 'اسپاتیفای, ChatGPT, ۸۰+ سرویس', 'linktext' => 'مشاهده اکانت‌ها ←', 'image' => [ 'url' => $this->asset( 'custom/icon-lock-3d.png' ) ], 'link' => [ 'url' => home_url( '/account/' ) ] ],
+                [ 'badge' => 'ارسال فوری', 'name' => 'خدمات مجازی', 'icon_bg' => '#5b4fe0', 'desc' => 'افزایش ممبر و فالوور واقعی برای تمام پلتفرم‌ها بدون ریزش', 'tags' => 'تلگرام, اینستاگرام, یوتیوب', 'linktext' => 'مشاهده ←', 'image' => [ 'url' => $this->asset( 'custom/icon-member-group.png' ) ], 'link' => [ 'url' => home_url( '/member/' ) ] ],
             ],
         ] );
         $this->end_controls_section();
@@ -313,6 +356,8 @@ class UG_W_Service_Cats extends UG_Widget_Base {
         $this->ug_ctrl_gap( '.service-cats-grid' );
         $this->ug_ctrl_img( '.scat-icon img', 40 );
         $this->ug_ctrl_pad( '.scat' );
+        $this->ug_box_style( '.scat', 'card', 'ظاهر باکس کارت' );
+        $this->ug_box_style( '.scat-icon', 'icon', 'ظاهر آیکن (رنگ هر آیکن از تنظیم همان کارت هم قابل تغییر است)' );
         $this->ug_style_end();
     }
 
@@ -323,7 +368,8 @@ class UG_W_Service_Cats extends UG_Widget_Base {
             $tags = array_filter( array_map( 'trim', explode( ',', (string) ( $c['tags'] ?? '' ) ) ) );
             echo '<div class="scat">';
             if ( ! empty( $c['badge'] ) ) { echo '<span class="scat-badge">' . esc_html( $c['badge'] ) . '</span>'; }
-            echo '<div class="scat-icon" style="background:' . esc_attr( $c['icon_bg'] ?? '' ) . ';"><img src="' . esc_url( $this->url( $c['image'] ?? '' ) ) . '" alt=""></div>';
+            $ibg = $c['icon_bg'] ?? '';
+            echo '<div class="scat-icon"' . ( $ibg ? ' style="background-color:' . esc_attr( $ibg ) . ';"' : '' ) . '><img src="' . esc_url( $this->url( $c['image'] ?? '' ) ) . '" alt=""></div>';
             echo '<div class="scat-name">' . esc_html( $c['name'] ?? '' ) . '</div>';
             echo '<div class="scat-desc">' . esc_html( $c['desc'] ?? '' ) . '</div>';
             if ( $tags ) {
@@ -360,6 +406,8 @@ class UG_W_Quick_Cats extends UG_Widget_Base {
         $this->ug_ctrl_cols( '.quick-cats' );
         $this->ug_ctrl_gap( '.quick-cats' );
         $this->ug_ctrl_img( '.qcat-icon img', 40 );
+        $this->ug_box_style( '.qcat', 'card', 'ظاهر باکس' );
+        $this->ug_box_style( '.qcat-icon', 'icon', 'ظاهر آیکن' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -391,6 +439,7 @@ class UG_W_Stats extends UG_Widget_Base {
         $this->ug_ctrl_cols( '.stats-row' );
         $this->ug_ctrl_gap( '.stats-row' );
         $this->ug_ctrl_pad( '.stat-card' );
+        $this->ug_box_style( '.stat-card', 'card', 'ظاهر باکس' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -427,6 +476,8 @@ class UG_W_Featured extends UG_Widget_Base {
         $this->ug_ctrl_gap( '.featured-grid' );
         $this->ug_ctrl_img( '.feat-icon img', 40 );
         $this->ug_ctrl_pad( '.feat-card' );
+        $this->ug_box_style( '.feat-card', 'card', 'ظاهر باکس' );
+        $this->ug_box_style( '.feat-icon', 'icon', 'ظاهر آیکن' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -450,6 +501,10 @@ class UG_W_Promo extends UG_Widget_Base {
         $this->add_control( 'desc', [ 'label' => 'توضیح', 'type' => CM::TEXTAREA, 'default' => 'پشتیبانی ۲۴/۷ در تلگرام، تحویل فوری، ضمانت بازگشت وجه' ] );
         $this->add_control( 'image', [ 'label' => 'تصویر' ] + $this->media_ctrl( 'hero/support-chat.png' ) );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_width( '.promo-img', 220, 500, 'ug_promo_img' );
+        $this->ug_box_style( '.promo-banner', 'box', 'ظاهر بنر' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -479,6 +534,8 @@ class UG_W_Why_Us extends UG_Widget_Base {
         $this->ug_ctrl_cols( '.why-grid' );
         $this->ug_ctrl_gap( '.why-grid' );
         $this->ug_ctrl_pad( '.why-card' );
+        $this->ug_box_style( '.why-card', 'card', 'ظاهر باکس' );
+        $this->ug_box_style( '.why-icon', 'icon', 'ظاهر آیکن' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -514,6 +571,8 @@ class UG_W_Member_Types extends UG_Widget_Base {
         $this->ug_ctrl_gap( '.member-types-grid' );
         $this->ug_ctrl_img( '.mtc-img img', 54 );
         $this->ug_ctrl_pad( '.member-type-card' );
+        $this->ug_box_style( '.member-type-card', 'card', 'ظاهر باکس' );
+        $this->ug_box_style( '.mtc-img', 'icon', 'ظاهر آیکن' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -550,6 +609,7 @@ class UG_W_Steps extends UG_Widget_Base {
         $this->ug_ctrl_cols( '.steps-row' );
         $this->ug_ctrl_gap( '.steps-row' );
         $this->ug_ctrl_pad( '.step-card' );
+        $this->ug_box_style( '.step-card', 'card', 'ظاهر باکس' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -584,6 +644,8 @@ class UG_W_Service_Icons extends UG_Widget_Base {
         $this->ug_ctrl_gap( '.accounts-grid' );
         $this->ug_ctrl_img( '.acc-icon img', 40 );
         $this->ug_ctrl_pad( '.acc-card' );
+        $this->ug_box_style( '.acc-card', 'card', 'ظاهر باکس' );
+        $this->ug_box_style( '.acc-icon', 'icon', 'ظاهر آیکن' );
         $this->ug_style_end();
     }
     protected function render(): void {
@@ -635,6 +697,9 @@ class UG_W_Trust_Banner extends UG_Widget_Base {
         $this->add_control( 'title', [ 'label' => 'عنوان', 'type' => CM::TEXT, 'default' => 'اصالت اکانت‌ها، تضمین آپلودگرام' ] );
         $this->add_control( 'text', [ 'label' => 'متن', 'type' => CM::TEXTAREA, 'default' => 'تمام اکانت‌های پرمیوم ما اصل و اختصاصی تحویل داده می‌شوند. پشتیبانی ۲۴/۷ و جایگزینی رایگان در صورت مشکل.' ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_box_style( '.trust-banner', 'box', 'ظاهر بنر' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -658,6 +723,10 @@ class UG_W_Faq extends UG_Widget_Base {
             [ 'q' => 'چطور سفارش دهم؟', 'a' => 'محصول را انتخاب و از کیف پول یا درگاه پرداخت کنید.' ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_gap( '.faq-section', 10 );
+        $this->ug_box_style( '.faq-item', 'box', 'ظاهر باکس سوال' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
