@@ -95,9 +95,9 @@ class UG_Sync {
             </p>
 
             <h2><?php esc_html_e( 'صفحه‌ساز المنتور', 'uploadgram-core' ); ?></h2>
-            <p class="description"><?php esc_html_e( 'یک صفحهٔ اصلیِ کاملاً قابل‌ویرایش با المنتور می‌سازد و آن را صفحهٔ نخست می‌کند. سپس هر متن، عکس و آیکن را مستقیم در المنتور ویرایش کنید (نیاز به المنتور فعال).', 'uploadgram-core' ); ?></p>
+            <p class="description"><?php esc_html_e( 'همهٔ صفحات اصلی (خانه، خدمات مجازی، اکانت پرمیوم، شماره مجازی) را با ویجت‌های آماده برای ویرایش با المنتور آماده می‌کند. امن است: صفحه‌ای که از قبل با المنتور ساخته شده باشد دست‌نخورده می‌ماند. نیاز به المنتور فعال.', 'uploadgram-core' ); ?></p>
             <p>
-                <button class="button button-primary ug-seed-elementor"><?php esc_html_e( 'ساخت صفحهٔ اصلی قابل‌ویرایش (المنتور)', 'uploadgram-core' ); ?></button>
+                <button class="button button-primary ug-seed-elementor"><?php esc_html_e( 'آماده‌سازی همهٔ صفحات برای ویرایش با المنتور', 'uploadgram-core' ); ?></button>
             </p>
 
             <pre id="ug-sync-out" style="background:#111;color:#0f0;padding:14px;border-radius:8px;max-height:360px;overflow:auto;display:none;"></pre>
@@ -137,7 +137,11 @@ class UG_Sync {
                 $.post(ajaxurl, { action: 'ug_seed_elementor', _wpnonce: nonce })
                  .done(function(res){
                     if (res && res.success) {
-                        $out.html(res.data.message + '<br><a href="'+res.data.edit+'" target="_blank">ویرایش در المنتور ↗</a> — <a href="'+res.data.view+'" target="_blank">مشاهدهٔ صفحه ↗</a>');
+                        var html = res.data.message + '<br><br>';
+                        (res.data.pages || []).forEach(function(p){
+                            html += '<b>'+p.title+'</b> — <a href="'+p.edit+'" target="_blank">ویرایش در المنتور ↗</a> · <a href="'+p.view+'" target="_blank">مشاهده ↗</a><br>';
+                        });
+                        $out.html(html);
                     } else { $out.text((res.data && res.data.message) || 'خطا'); }
                  })
                  .fail(function(x){ $out.text('خطا: ' + x.status + '\n' + (x.responseText||'')); });
