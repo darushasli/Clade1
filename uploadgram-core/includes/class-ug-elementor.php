@@ -112,8 +112,8 @@ class UG_Elementor {
 
         $pages = [];
 
-        // 1) Home
-        $pages[] = $this->seed_page( 'home-elementor', 'صفحه اصلی', [
+        // 1) Home — seed onto the real front page so it lives at the site root.
+        $pages[] = $this->seed_page( 'home', 'صفحه اصلی', [
             $this->section( [ $this->widget( 'ug-hero' ) ] ),
             $this->section( [ $this->widget( 'ug-quick-cats' ) ] ),
             $this->section( [ $this->widget( 'ug-section-heading', [ 'title' => 'دسته‌بندی خدمات آپلودگرام' ] ), $this->widget( 'ug-service-cats' ) ] ),
@@ -153,6 +153,16 @@ class UG_Elementor {
             $this->section( [ $this->widget( 'ug-section-heading', [ 'title' => 'سرویس‌های پشتیبانی‌شده' ] ), $this->widget( 'ug-service-icons' ) ] ),
             $this->section( [ $this->widget( 'ug-section-heading', [ 'title' => 'جدول قیمت شماره' ] ), $this->widget( 'ug-price-table' ) ] ),
             $this->section( [ $this->widget( 'ug-faq' ) ] ),
+        ] );
+
+        // 5) ورود / ثبت‌نام
+        $pages[] = $this->seed_page( 'auth', 'ورود / ثبت‌نام', [
+            $this->section( [ $this->widget( 'ug-auth' ) ] ),
+        ] );
+
+        // 6) پنل کاربری
+        $pages[] = $this->seed_page( 'panel', 'پنل کاربری', [
+            $this->section( [ $this->widget( 'ug-panel' ) ] ),
         ] );
 
         $pages = array_values( array_filter( $pages ) );

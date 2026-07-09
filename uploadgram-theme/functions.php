@@ -5,7 +5,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'UG_VERSION', '1.5.0' );
+define( 'UG_VERSION', '1.6.0' );
 define( 'UG_DIR',     get_template_directory() );
 define( 'UG_URI',     get_template_directory_uri() );
 
@@ -14,6 +14,21 @@ require_once UG_DIR . '/inc/setup-pages.php';
 
 /* Professional SEO layer (meta, OpenGraph, JSON-LD) */
 require_once UG_DIR . '/inc/seo.php';
+
+/**
+ * Is a given page built with Elementor? (used so front-page.php can defer to
+ * an Elementor-designed home page instead of the hardcoded layout).
+ */
+function ug_is_elementor_built( $post_id ) {
+    $post_id = (int) $post_id;
+    if ( ! $post_id ) {
+        return false;
+    }
+    if ( class_exists( '\Elementor\Plugin' ) && method_exists( \Elementor\Plugin::instance()->db, 'is_built_with_elementor' ) ) {
+        return \Elementor\Plugin::instance()->db->is_built_with_elementor( $post_id );
+    }
+    return 'builder' === get_post_meta( $post_id, '_elementor_edit_mode', true );
+}
 
 /**
  * FAQ questions used on the /faq/ page AND for FAQPage rich-result schema.

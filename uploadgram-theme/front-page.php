@@ -4,6 +4,20 @@
  * مطابق چیدمان تصویر نمای سایت
  */
 get_header();
+
+/**
+ * If the front page is built with Elementor (via آپلودگرام › صفحه‌ساز),
+ * render that content at the site root so home is fully editable in Elementor.
+ * Otherwise fall back to the built-in layout below.
+ */
+if ( function_exists( 'ug_is_elementor_built' ) && ug_is_elementor_built( get_queried_object_id() ) ) {
+    while ( have_posts() ) {
+        the_post();
+        the_content();
+    }
+    get_footer();
+    return;
+}
 ?>
 
 <div class="container">

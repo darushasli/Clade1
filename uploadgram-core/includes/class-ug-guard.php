@@ -17,6 +17,18 @@ class UG_Guard {
 
     public function __construct() {
         add_filter( 'ug_purchase_button', [ $this, 'filter_button' ], 10, 3 );
+        add_action( 'template_redirect', [ $this, 'guard_panel' ] );
+    }
+
+    /**
+     * Bounce guests away from the panel page (works even when the page has been
+     * converted to an Elementor page, i.e. no page-panel.php guard).
+     */
+    public function guard_panel(): void {
+        if ( is_page( 'panel' ) && ! is_user_logged_in() ) {
+            wp_safe_redirect( self::auth_url( home_url( '/panel/' ) ) );
+            exit;
+        }
     }
 
     /**
