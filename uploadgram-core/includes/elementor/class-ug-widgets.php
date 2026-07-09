@@ -67,6 +67,73 @@ abstract class UG_Widget_Base extends \Elementor\Widget_Base {
         }
         return '<div class="section-head"><div class="section-title-wrap"><div class="section-dot"></div><div class="section-heading">' . esc_html( $title ) . '</div></div></div>';
     }
+
+    /* ── Reusable STYLE controls (live, via Elementor selectors) ── */
+
+    /** Open a Style tab section. */
+    protected function ug_style_start( string $id = 'ug_style', string $label = 'استایل و اندازه‌ها' ): void {
+        $this->start_controls_section( $id, [ 'label' => $label, 'tab' => CM::TAB_STYLE ] );
+    }
+    protected function ug_style_end(): void {
+        $this->end_controls_section();
+    }
+
+    /** Image/icon size slider targeting one or more selectors. */
+    protected function ug_ctrl_img( string $selector, int $default = 44, int $max = 220, string $id = 'ug_img' ): void {
+        $this->add_responsive_control( $id, [
+            'label'      => 'اندازهٔ عکس/آیکن',
+            'type'       => CM::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [ 'px' => [ 'min' => 16, 'max' => $max ] ],
+            'default'    => [ 'unit' => 'px', 'size' => $default ],
+            'selectors'  => [ '{{WRAPPER}} ' . $selector => 'width:{{SIZE}}{{UNIT}};height:{{SIZE}}{{UNIT}};object-fit:contain;' ],
+        ] );
+    }
+
+    /** Gap between grid/flex items. */
+    protected function ug_ctrl_gap( string $selector, int $default = 16, string $id = 'ug_gap' ): void {
+        $this->add_responsive_control( $id, [
+            'label'      => 'فاصلهٔ بین آیتم‌ها',
+            'type'       => CM::SLIDER,
+            'size_units' => [ 'px' ],
+            'range'      => [ 'px' => [ 'min' => 0, 'max' => 60 ] ],
+            'default'    => [ 'unit' => 'px', 'size' => $default ],
+            'selectors'  => [ '{{WRAPPER}} ' . $selector => 'gap:{{SIZE}}{{UNIT}};' ],
+        ] );
+    }
+
+    /** Number of columns for a grid container. */
+    protected function ug_ctrl_cols( string $selector, string $id = 'ug_cols' ): void {
+        $this->add_responsive_control( $id, [
+            'label'     => 'تعداد ستون',
+            'type'      => CM::SELECT,
+            'options'   => [ '' => 'خودکار', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶' ],
+            'default'   => '',
+            'selectors' => [ '{{WRAPPER}} ' . $selector => 'display:grid;grid-template-columns:repeat({{VALUE}},minmax(0,1fr));' ],
+        ] );
+    }
+
+    /** Max-width for a large image (keeps aspect ratio). */
+    protected function ug_ctrl_width( string $selector, int $default = 340, int $max = 700, string $id = 'ug_w' ): void {
+        $this->add_responsive_control( $id, [
+            'label'      => 'اندازهٔ تصویر',
+            'type'       => CM::SLIDER,
+            'size_units' => [ 'px', '%' ],
+            'range'      => [ 'px' => [ 'min' => 80, 'max' => $max ], '%' => [ 'min' => 10, 'max' => 100 ] ],
+            'default'    => [ 'unit' => 'px', 'size' => $default ],
+            'selectors'  => [ '{{WRAPPER}} ' . $selector => 'width:{{SIZE}}{{UNIT}};max-width:100%;height:auto;' ],
+        ] );
+    }
+
+    /** Padding for the inner cards. */
+    protected function ug_ctrl_pad( string $selector, string $id = 'ug_pad' ): void {
+        $this->add_responsive_control( $id, [
+            'label'      => 'فاصلهٔ داخلی باکس',
+            'type'       => CM::DIMENSIONS,
+            'size_units' => [ 'px' ],
+            'selectors'  => [ '{{WRAPPER}} ' . $selector => 'padding:{{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};' ],
+        ] );
+    }
 }
 
 /**
@@ -130,6 +197,9 @@ class UG_W_Hero extends UG_Widget_Base {
             [ 'val' => '+12K', 'label' => 'مشتری راضی' ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_width( '.hero-img', 340, 700, 'ug_hero_img' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -173,11 +243,14 @@ class UG_W_Page_Hero extends UG_Widget_Base {
             [ 'val' => '5', 'label' => 'پلتفرم' ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_width( '.page-hero-photo', 180, 400, 'ug_ph_img' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
         echo '<div class="page-hero ' . esc_attr( $s['variant'] ?? 'member' ) . '">';
-        echo '<img class="page-hero-photo" style="max-width:180px;" src="' . esc_url( $this->url( $s['image'] ?? '' ) ) . '" alt="">';
+        echo '<img class="page-hero-photo" src="' . esc_url( $this->url( $s['image'] ?? '' ) ) . '" alt="">';
         echo '<div class="page-hero-content">';
         if ( ! empty( $s['eyebrow'] ) ) { echo '<div class="hero-eyebrow">' . esc_html( $s['eyebrow'] ) . '</div>'; }
         echo '<h1>' . esc_html( $s['title'] ?? '' ) . ' <span>' . esc_html( $s['title_hl'] ?? '' ) . '</span></h1>';
@@ -234,6 +307,13 @@ class UG_W_Service_Cats extends UG_Widget_Base {
             ],
         ] );
         $this->end_controls_section();
+
+        $this->ug_style_start();
+        $this->ug_ctrl_cols( '.service-cats-grid' );
+        $this->ug_ctrl_gap( '.service-cats-grid' );
+        $this->ug_ctrl_img( '.scat-icon img', 40 );
+        $this->ug_ctrl_pad( '.scat' );
+        $this->ug_style_end();
     }
 
     protected function render(): void {
@@ -276,6 +356,11 @@ class UG_W_Quick_Cats extends UG_Widget_Base {
             [ 'name' => 'خدمات مجازی', 'label' => 'افزایش اعضا واقعی', 'image' => [ 'url' => $this->asset( 'custom/icon-member-group.png' ) ], 'link' => [ 'url' => home_url( '/member/' ) ] ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_cols( '.quick-cats' );
+        $this->ug_ctrl_gap( '.quick-cats' );
+        $this->ug_ctrl_img( '.qcat-icon img', 40 );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -302,6 +387,11 @@ class UG_W_Stats extends UG_Widget_Base {
             [ 'val' => '+12K', 'label' => 'مشتری راضی' ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_cols( '.stats-row' );
+        $this->ug_ctrl_gap( '.stats-row' );
+        $this->ug_ctrl_pad( '.stat-card' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -332,6 +422,12 @@ class UG_W_Featured extends UG_Widget_Base {
             [ 'title' => 'یوتیوب پرمیوم', 'linktext' => 'خرید اشتراک ←', 'color' => 'rgba(255,0,0,.18)', 'image' => [ 'url' => $this->asset( 'iconpack/youtube.svg' ) ], 'link' => [ 'url' => home_url( '/account/' ) ] ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_cols( '.featured-grid' );
+        $this->ug_ctrl_gap( '.featured-grid' );
+        $this->ug_ctrl_img( '.feat-icon img', 40 );
+        $this->ug_ctrl_pad( '.feat-card' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -379,6 +475,11 @@ class UG_W_Why_Us extends UG_Widget_Base {
             [ 'emoji' => '💎', 'color' => 'p', 'title' => 'کمترین قیمت', 'desc' => 'خرید مستقیم از منبع' ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_cols( '.why-grid' );
+        $this->ug_ctrl_gap( '.why-grid' );
+        $this->ug_ctrl_pad( '.why-card' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -408,6 +509,12 @@ class UG_W_Member_Types extends UG_Widget_Base {
             [ 'name' => 'بستهٔ VIP', 'price' => '۱۹۵,۰۰۰', 'image' => [ 'url' => $this->asset( 'custom/icon-vip10k.png' ) ] ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_cols( '.member-types-grid' );
+        $this->ug_ctrl_gap( '.member-types-grid' );
+        $this->ug_ctrl_img( '.mtc-img img', 54 );
+        $this->ug_ctrl_pad( '.member-type-card' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -439,6 +546,11 @@ class UG_W_Steps extends UG_Widget_Base {
             [ 'num' => '4', 'emoji' => '✅', 'title' => 'تکمیل', 'desc' => 'نتیجه را در لحظه دریافت کنید' ],
         ] ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_cols( '.steps-row' );
+        $this->ug_ctrl_gap( '.steps-row' );
+        $this->ug_ctrl_pad( '.step-card' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
@@ -467,6 +579,12 @@ class UG_W_Service_Icons extends UG_Widget_Base {
         foreach ( $defaults as $d ) { $def[] = [ 'name' => $d[1], 'image' => [ 'url' => $this->asset( $d[0] ) ] ]; }
         $this->add_control( 'items', [ 'type' => CM::REPEATER, 'fields' => $r->get_controls(), 'title_field' => '{{{ name }}}', 'default' => $def ] );
         $this->end_controls_section();
+        $this->ug_style_start();
+        $this->ug_ctrl_cols( '.accounts-grid' );
+        $this->ug_ctrl_gap( '.accounts-grid' );
+        $this->ug_ctrl_img( '.acc-icon img', 40 );
+        $this->ug_ctrl_pad( '.acc-card' );
+        $this->ug_style_end();
     }
     protected function render(): void {
         $s = $this->get_settings_for_display();
