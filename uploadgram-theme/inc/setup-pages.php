@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'UG_SETUP_VERSION', '1.4.0' );
+define( 'UG_SETUP_VERSION', '1.5.0' );
 
 add_action( 'after_switch_theme', 'ug_activate_setup' );
 add_action( 'admin_init',         'ug_maybe_setup' );
@@ -130,7 +130,11 @@ function ug_activate_setup() {
     /* ── 2) Static front page ── */
     if ( isset( $page_ids['home'] ) ) {
         update_option( 'show_on_front', 'page' );
-        update_option( 'page_on_front', $page_ids['home'] );
+        update_option( 'page_on_front', (int) $page_ids['home'] );
+        // Make sure the home page isn't also acting as the blog posts page.
+        if ( (int) get_option( 'page_for_posts' ) === (int) $page_ids['home'] ) {
+            update_option( 'page_for_posts', 0 );
+        }
     }
 
     /* ── 3) Primary menu ── */
