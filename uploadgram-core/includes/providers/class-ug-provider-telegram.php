@@ -27,10 +27,12 @@ class UG_Provider_Telegram implements UG_Provider_Interface {
 
     private string $endpoint;
     private string $secret;
+    private string $proxy;
 
     public function __construct( array $config ) {
-        $this->endpoint = $config['endpoint'] ?? '';
-        $this->secret   = $config['api_key'] ?? ''; // "توکن امنیتی" = bridge secret
+        $this->endpoint = trim( (string) ( $config['endpoint'] ?? '' ) );
+        $this->secret   = trim( (string) ( $config['api_key'] ?? '' ) ); // "توکن امنیتی" = bridge secret
+        $this->proxy    = trim( (string) ( $config['proxy'] ?? '' ) );
     }
 
     public function name(): string {
@@ -153,13 +155,20 @@ class UG_Provider_Telegram implements UG_Provider_Interface {
             return [ 'ok' => false, 'data' => null, 'error' => 'آدرس پل یا توکن امنیتی ربات تنظیم نشده است' ];
         }
 
-        $payload['secret'] = $this->secret;
+        if ( '' !== $this->proxy && ! UG_Proxy::is_dialable( $this->proxy ) ) {
+            return [ 'ok' => false, 'data' => null, 'error' => UG_Proxy::warning( $this->proxy ) ];
+        }
 
-        $response = wp_remote_post( $this->endpoint, [
-            'timeout' => 30,
-            'headers' => [ 'Content-Type' => 'application/json' ],
-            'body'    => wp_json_encode( $payload ),
-        ] );
+        $payload['secret'] = $this->secret;
+        $endpoint          = $this->endpoint;
+
+        $response = UG_Proxy::with( $this->proxy, static function () use ( $endpoint, $payload ) {
+            return wp_remote_post( $endpoint, [
+                'timeout' => 30,
+                'headers' => [ 'Content-Type' => 'application/json' ],
+                'body'    => wp_json_encode( $payload ),
+            ] );
+        } );
 
         if ( is_wp_error( $response ) ) {
             UG_Logger::error( 'Telegram bridge request failed', [ 'err' => $response->get_error_message() ] );

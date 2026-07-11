@@ -23,13 +23,15 @@ class UG_Provider_Followeran implements UG_Provider_Interface {
     private string $endpoint;
     private string $fallback;
     private string $key;
+    private string $proxy;
 
     public function __construct( array $config ) {
-        $this->endpoint = $config['endpoint'] ?? 'https://my.followeran.ir/api/v2';
+        $this->endpoint = trim( (string) ( $config['endpoint'] ?? '' ) ) ?: 'https://my.followeran.ir/api/v2';
         // Followeran also serves the same API here; used if the primary host is
         // unreachable (DNS/connection error).
-        $this->fallback = $config['fallback'] ?? 'https://panel.smmflw.com/api/iran';
-        $this->key      = $config['api_key'] ?? '';
+        $this->fallback = trim( (string) ( $config['fallback'] ?? '' ) ) ?: 'https://panel.smmflw.com/api/iran';
+        $this->key      = trim( (string) ( $config['api_key'] ?? '' ) );
+        $this->proxy    = trim( (string) ( $config['proxy'] ?? '' ) );
     }
 
     public function name(): string {
@@ -129,21 +131,21 @@ class UG_Provider_Followeran implements UG_Provider_Interface {
             return [ 'ok' => false, 'data' => null, 'error' => 'کلید API فالوران تنظیم نشده است' ];
         }
 
+        if ( '' !== $this->proxy && ! UG_Proxy::is_dialable( $this->proxy ) ) {
+            return [ 'ok' => false, 'data' => null, 'error' => UG_Proxy::warning( $this->proxy ) ];
+        }
+
         $params['key'] = $this->key;
 
-        $response = wp_remote_post( $this->endpoint, [
-            'timeout' => 30,
-            'body'    => $params,
-        ] );
-
-        // On a connection-level failure, retry once against the fallback host.
-        if ( is_wp_error( $response ) && $this->fallback && $this->fallback !== $this->endpoint ) {
-            UG_Logger::error( 'Followeran primary failed, trying fallback', [ 'err' => $response->get_error_message() ] );
-            $response = wp_remote_post( $this->fallback, [
-                'timeout' => 30,
-                'body'    => $params,
-            ] );
-        }
+        $response = UG_Proxy::with( $this->proxy, function () use ( $params ) {
+            $r = wp_remote_post( $this->endpoint, [ 'timeout' => 30, 'body' => $params ] );
+            // On a connection-level failure, retry once against the fallback host.
+            if ( is_wp_error( $r ) && $this->fallback && $this->fallback !== $this->endpoint ) {
+                UG_Logger::error( 'Followeran primary failed, trying fallback', [ 'err' => $r->get_error_message() ] );
+                $r = wp_remote_post( $this->fallback, [ 'timeout' => 30, 'body' => $params ] );
+            }
+            return $r;
+        } );
 
         if ( is_wp_error( $response ) ) {
             UG_Logger::error( 'Followeran request failed', [ 'err' => $response->get_error_message() ] );

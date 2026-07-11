@@ -3,7 +3,7 @@
  * Plugin Name: UploadGram Core
  * Plugin URI:  https://uploadgram.ir
  * Description: هسته فروشگاه آپلودگرام — اتصال خدمات به API فالوران، نامبرلند و ربات تلگرام، کیف پول و پنل کاربری بدون سبد خرید.
- * Version:     2.8.1
+ * Version:     2.9.0
  * Author:      UploadGram Team
  * Text Domain: uploadgram-core
  * Domain Path: /languages
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'UGC_VERSION', '2.8.1' );
+define( 'UGC_VERSION', '2.9.0' );
 define( 'UGC_FILE', __FILE__ );
 define( 'UGC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UGC_URL', plugin_dir_url( __FILE__ ) );
@@ -30,6 +30,7 @@ define( 'UGC_BASENAME', plugin_basename( __FILE__ ) );
 require_once UGC_DIR . 'includes/class-ug-install.php';
 require_once UGC_DIR . 'includes/class-ug-logger.php';
 require_once UGC_DIR . 'includes/class-ug-settings.php';
+require_once UGC_DIR . 'includes/class-ug-proxy.php';
 require_once UGC_DIR . 'includes/providers/interface-ug-provider.php';
 require_once UGC_DIR . 'includes/providers/class-ug-provider-followeran.php';
 require_once UGC_DIR . 'includes/providers/class-ug-provider-numberland.php';

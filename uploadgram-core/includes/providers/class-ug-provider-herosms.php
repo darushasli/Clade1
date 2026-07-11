@@ -318,43 +318,28 @@ class UG_Provider_HeroSMS implements UG_Provider_Interface {
             return [ 'ok' => false, 'data' => null, 'error' => 'آدرس API نامعتبر است (باید با https:// شروع شود). در تنظیمات تب هیرو‌اس‌ام‌اس آدرس را درست کنید یا خالی بگذارید تا مقدار پیش‌فرض استفاده شود.', 'error_code' => 'BAD_URL' ];
         }
 
+        // A configured-but-undialable proxy (e.g. VLESS) can't be used directly.
+        if ( '' !== $this->proxy && ! UG_Proxy::is_dialable( $this->proxy ) ) {
+            return [ 'ok' => false, 'data' => null, 'error' => UG_Proxy::warning( $this->proxy ), 'error_code' => 'BAD_PROXY' ];
+        }
+
         $params = [ 'api_key' => $this->key ] + $params;
         $url    = $this->endpoint . '?' . http_build_query( $params );
 
         // Optional proxy (useful when hero-sms.com is filtered on an Iran host).
-        // Applied only to THIS request via a scoped http_api_curl hook.
-        $proxy_cb = null;
-        if ( '' !== $this->proxy ) {
-            $proxy    = $this->proxy;
-            $proxy_cb = static function ( $handle ) use ( $proxy ) {
-                if ( 0 === stripos( $proxy, 'socks5://' ) ) {
-                    curl_setopt( $handle, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5_HOSTNAME );
-                    $proxy = substr( $proxy, strlen( 'socks5://' ) );
-                } elseif ( 0 === stripos( $proxy, 'socks4://' ) ) {
-                    curl_setopt( $handle, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS4 );
-                    $proxy = substr( $proxy, strlen( 'socks4://' ) );
-                }
-                $proxy = preg_replace( '#^https?://#i', '', $proxy );
-                curl_setopt( $handle, CURLOPT_PROXY, $proxy );
-                curl_setopt( $handle, CURLOPT_HTTPPROXYTUNNEL, true );
-            };
-            add_action( 'http_api_curl', $proxy_cb, 10, 1 );
-        }
-
-        $response = wp_remote_get( $url, [
-            'timeout'     => 30,
-            'sslverify'   => true,
-            'headers'     => [ 'Accept' => 'application/json' ],
-            'user-agent'  => 'UploadGram/' . ( defined( 'UGC_VERSION' ) ? UGC_VERSION : '1' ),
-        ] );
-
-        if ( $proxy_cb ) {
-            remove_action( 'http_api_curl', $proxy_cb, 10 );
-        }
+        $response = UG_Proxy::with( $this->proxy, static function () use ( $url ) {
+            return wp_remote_get( $url, [
+                'timeout'    => 30,
+                'sslverify'  => true,
+                'headers'    => [ 'Accept' => 'application/json' ],
+                'user-agent' => 'UploadGram/' . ( defined( 'UGC_VERSION' ) ? UGC_VERSION : '1' ),
+            ] );
+        } );
 
         if ( is_wp_error( $response ) ) {
             UG_Logger::error( 'HeroSMS request failed', [ 'err' => $response->get_error_message() ] );
-            return [ 'ok' => false, 'data' => null, 'error' => 'خطای اتصال: ' . $response->get_error_message() . ' (اگر سایت هیرو‌اس‌ام‌اس روی هاست شما فیلتر است، در تنظیمات یک «پروکسی» وارد کنید).', 'error_code' => 'NETWORK' ];
+            $hint = '' === $this->proxy ? ' (اگر سایت هیرو‌اس‌ام‌اس روی هاست شما فیلتر است، در تنظیمات یک «پروکسی» وارد کنید).' : ' (اتصال از طریق پروکسی هم ناموفق بود؛ درستی پروکسی را بررسی کنید).';
+            return [ 'ok' => false, 'data' => null, 'error' => 'خطای اتصال: ' . $response->get_error_message() . $hint, 'error_code' => 'NETWORK' ];
         }
 
         $code = (int) wp_remote_retrieve_response_code( $response );

@@ -268,10 +268,11 @@ class UG_Panel {
                         $product = wc_get_product( $o['product_id'] );
                         $otp     = $o['extra']['otp'] ?? ( $o['extra']['code'] ?? '' );
                         $number  = $o['extra']['number'] ?? '';
+                        $svc_name = $product ? $product->get_name() : ( $o['extra']['label'] ?? ( 'herosms' === ( $o['provider'] ?? '' ) ? 'شماره مجازی' : '—' ) );
                         ?>
                         <tr data-order="<?php echo esc_attr( $o['id'] ); ?>" data-status="<?php echo esc_attr( $o['status'] ); ?>">
                             <td><?php echo (int) $o['id']; ?></td>
-                            <td><?php echo esc_html( $product ? $product->get_name() : '—' ); ?></td>
+                            <td><?php echo esc_html( $svc_name ); ?></td>
                             <td class="num"><?php echo esc_html( number_format_i18n( $o['quantity'] ) ); ?></td>
                             <td class="num"><?php echo wp_kses_post( wc_price( $o['amount'] ) ); ?></td>
                             <td><span class="ug-status ug-status-<?php echo esc_attr( $o['status'] ); ?>"><?php echo esc_html( UG_Orders::status_label( $o['status'] ) ); ?></span></td>

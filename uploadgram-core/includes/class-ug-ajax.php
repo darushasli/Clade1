@@ -32,6 +32,7 @@ class UG_Ajax {
         add_action( 'wp_ajax_ug_order_status', [ $this, 'order_status' ] );
         add_action( 'wp_ajax_ug_test_provider', [ $this, 'test_provider' ] );
         add_action( 'wp_ajax_ug_test_sms', [ $this, 'test_sms' ] );
+        add_action( 'wp_ajax_ug_vless_xray', [ $this, 'vless_xray' ] );
         add_action( 'wp_ajax_ug_topup', [ $this, 'topup' ] );
         add_action( 'wp_ajax_ug_update_profile', [ $this, 'update_profile' ] );
         add_action( 'wp_ajax_nopriv_ug_register', [ $this, 'register' ] );
@@ -499,6 +500,24 @@ class UG_Ajax {
         check_ajax_referer( 'ug_test', '_wpnonce' );
         $provider = isset( $_POST['provider'] ) ? sanitize_key( $_POST['provider'] ) : '';
         wp_send_json( $this->dispatcher->test( $provider ) );
+    }
+
+    /* ── Admin: turn a vless:// link into a ready Xray client config ── */
+
+    public function vless_xray(): void {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( [ 'message' => 'دسترسی مجاز نیست.' ], 403 );
+        }
+        check_ajax_referer( 'ug_test', '_wpnonce' );
+        $link   = isset( $_POST['link'] ) ? trim( (string) wp_unslash( $_POST['link'] ) ) : '';
+        $config = UG_Proxy::vless_to_xray( $link );
+        if ( null === $config ) {
+            wp_send_json_error( [ 'message' => 'لینک VLESS نامعتبر است. باید با vless:// شروع شود.' ], 400 );
+        }
+        wp_send_json_success( [
+            'hint'   => 'این را در فایل config.json کلاینت Xray بگذارید و اجرا کنید؛ سپس در فیلد «پروکسی» بنویسید: socks5://127.0.0.1:10808',
+            'config' => wp_json_encode( $config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
+        ] );
     }
 
     /**
