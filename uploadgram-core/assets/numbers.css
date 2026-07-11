@@ -34,13 +34,21 @@
 	padding:18px; text-align:center; color:var(--ug-mut);
 	border:1px dashed var(--ug-b); border-radius:12px; background:var(--ug-card);
 }
-.ug-nums-svc-title { font-weight:700; margin:6px 0 12px; color:var(--ug-txt); }
+.ug-nums-svc-title { font-weight:700; color:var(--ug-txt); }
+.ug-nums-toolbar2 { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:6px 0 14px; flex-wrap:wrap; }
+.ug-nums-sort-wrap { font-size:13px; color:var(--ug-mut); display:flex; align-items:center; gap:6px; }
+.ug-nums-sort {
+	padding:7px 10px; border:1px solid var(--ug-b); border-radius:10px;
+	background:var(--ug-card); color:var(--ug-txt); font-family:inherit; font-size:13px;
+}
+.ug-nums-sort:focus { outline:none; border-color:var(--ug-accent); }
 .ug-nums-country-list { display:flex; flex-direction:column; gap:8px; }
 .ug-num-country {
-	display:grid; grid-template-columns:auto 1fr auto auto auto; align-items:center;
+	display:grid; grid-template-columns:auto auto 1fr auto auto auto; align-items:center;
 	gap:12px; padding:12px 14px; border:1px solid var(--ug-b);
 	border-radius:12px; background:var(--ug-card);
 }
+.ug-num-rank { font-size:12px; color:var(--ug-mut); min-width:20px; text-align:center; font-family:monospace; }
 .ug-num-flag { font-size:22px; }
 .ug-num-cname { font-weight:600; color:var(--ug-txt); min-width:0; overflow:hidden; text-overflow:ellipsis; }
 .ug-num-stock { font-size:12px; color:var(--ug-mut); white-space:nowrap; }
@@ -79,8 +87,21 @@
 }
 .ug-num-cancel:hover { background:#e0574f; color:#fff; }
 
+/* pager */
+.ug-nums-pager { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; align-items:center; margin-top:16px; }
+.ug-page-btn {
+	min-width:38px; padding:7px 12px; border:1px solid var(--ug-b); border-radius:9px;
+	background:var(--ug-card); color:var(--ug-txt); cursor:pointer; font-family:inherit; font-size:13px;
+}
+.ug-page-btn:hover:not(:disabled) { border-color:var(--ug-accent); }
+.ug-page-btn.active { background:var(--ug-accent); color:#fff; border-color:var(--ug-accent); }
+.ug-page-btn:disabled { opacity:.45; cursor:default; }
+.ug-page-dots { color:var(--ug-mut); padding:0 4px; }
+
 @media (max-width:560px) {
-	.ug-num-country { grid-template-columns:auto 1fr auto; grid-row-gap:6px; }
-	.ug-num-stock { grid-column:2 / 4; }
-	.ug-num-buy { grid-column:1 / 4; text-align:center; }
+	.ug-num-country { grid-template-columns:auto auto 1fr auto; grid-row-gap:6px; }
+	.ug-num-rank { display:none; }
+	.ug-num-stock { grid-column:2 / 5; }
+	.ug-num-price { grid-column:1 / 3; }
+	.ug-num-buy { grid-column:1 / 5; text-align:center; }
 }

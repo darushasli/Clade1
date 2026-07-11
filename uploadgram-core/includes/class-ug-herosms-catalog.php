@@ -69,7 +69,8 @@ class UG_HeroSMS_Catalog {
             return [];
         }
 
-        $out = [];
+        $out  = [];
+        $seen = [];
         foreach ( $res['data'] as $svc ) {
             $code = (string) ( $svc['code'] ?? '' );
             $name = (string) ( $svc['name'] ?? $code );
@@ -77,21 +78,28 @@ class UG_HeroSMS_Catalog {
                 continue;
             }
             [ $fa, $icon, $platform, $featured ] = $this->match_service( $name, $code );
+            // Only the recognised (featured) apps are offered, and each brand is
+            // shown once — collapse duplicate service codes that map to the same
+            // Persian name (e.g. several Google/WhatsApp codes → one card).
+            if ( ! $featured ) {
+                continue;
+            }
+            if ( isset( $seen[ $fa ] ) ) {
+                continue;
+            }
+            $seen[ $fa ] = true;
             $out[] = [
                 'code'     => $code,
                 'name'     => $name,
                 'fa'       => $fa,
                 'icon'     => $icon,
                 'platform' => $platform,
-                'featured' => $featured,
+                'featured' => true,
             ];
         }
 
-        // Featured (known) services first, then alphabetical.
+        // Alphabetical by Persian name.
         usort( $out, function ( $a, $b ) {
-            if ( $a['featured'] !== $b['featured'] ) {
-                return $a['featured'] ? -1 : 1;
-            }
             return strcasecmp( $a['fa'] ?: $a['name'], $b['fa'] ?: $b['name'] );
         } );
 
@@ -126,7 +134,7 @@ class UG_HeroSMS_Catalog {
             }
             $eng = (string) ( $c['eng'] ?? $c['rus'] ?? ( 'کشور ' . $id ) );
             [ $fa, $flag ] = $this->match_country( $eng );
-            $out[ $id ] = [ 'id' => $id, 'name' => $eng, 'fa' => $fa, 'flag' => $flag ];
+            $out[ $id ] = [ 'id' => $id, 'name' => $eng, 'fa' => $fa, 'flag' => $flag, 'pop' => $this->country_pop( $eng ) ];
         }
 
         set_transient( self::T_COUNTRIES, $out, self::TTL );
@@ -169,7 +177,7 @@ class UG_HeroSMS_Catalog {
             if ( '' === $cid || $count <= 0 || $cost <= 0 ) {
                 continue;
             }
-            $meta  = $countries[ $cid ] ?? [ 'fa' => 'کشور ' . $cid, 'flag' => '🌐', 'name' => $cid ];
+            $meta  = $countries[ $cid ] ?? [ 'fa' => 'کشور ' . $cid, 'flag' => '🌐', 'name' => $cid, 'pop' => 999 ];
             $price = $this->sale_price( $cost );
             $rows[] = [
                 'id'        => $cid,
@@ -179,15 +187,16 @@ class UG_HeroSMS_Catalog {
                 'price'     => $price,
                 'price_fmt' => number_format( $price ) . ' تومان',
                 'count'     => $count,
+                'pop'       => (int) ( $meta['pop'] ?? 999 ),
             ];
         }
 
-        // Available first (most stock), then cheapest.
+        // Default order: popularity, then most stock.
         usort( $rows, function ( $a, $b ) {
-            if ( $a['count'] === $b['count'] ) {
-                return $a['price'] <=> $b['price'];
+            if ( $a['pop'] === $b['pop'] ) {
+                return $b['count'] <=> $a['count'];
             }
-            return $b['count'] <=> $a['count'];
+            return $a['pop'] <=> $b['pop'];
         } );
 
         set_transient( $tk, $rows, self::TTL );
@@ -279,6 +288,23 @@ class UG_HeroSMS_Catalog {
             }
         }
         return [ $name, 'custom/icon-sim.png', 'other', false ];
+    }
+
+    /** Popularity rank for a country (lower = more popular). Used for sorting. */
+    private function country_pop( string $eng ): int {
+        $n     = mb_strtolower( trim( $eng ) );
+        $order = [
+            'united states', 'usa', 'united kingdom', 'england', 'russia', 'germany',
+            'france', 'canada', 'netherlands', 'ukraine', 'india', 'indonesia',
+            'kazakhstan', 'turkey', 'poland', 'spain', 'italy', 'brazil',
+            'philippines', 'vietnam', 'malaysia', 'united arab', 'saudi',
+        ];
+        foreach ( $order as $i => $kw ) {
+            if ( false !== mb_strpos( $n, $kw ) ) {
+                return $i + 1;
+            }
+        }
+        return 999;
     }
 
     /**

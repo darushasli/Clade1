@@ -478,12 +478,37 @@ if ( class_exists( 'WooCommerce' ) ) {
 }
 
 /* ══════════════════════════════════════════
+   Panel detection (robust: template OR slug OR panel content)
+   — works even when the panel page is built with Elementor (its template
+     becomes page-elementor-full.php, so a template-only check would miss it).
+══════════════════════════════════════════ */
+function ug_is_panel_page(): bool {
+    if ( is_admin() ) {
+        return false;
+    }
+    if ( is_page_template( 'page-panel.php' ) ) {
+        return true;
+    }
+    if ( is_page( 'panel' ) ) {
+        return true;
+    }
+    $id = get_queried_object_id();
+    if ( $id ) {
+        $content = (string) get_post_field( 'post_content', $id );
+        if ( '' !== $content && ( has_shortcode( $content, 'ug_panel' ) || false !== strpos( $content, 'ug-panel' ) ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* ══════════════════════════════════════════
    Body Classes
 ══════════════════════════════════════════ */
 add_filter( 'body_class', function( $classes ) {
     $classes[] = 'ug-theme';
     if ( is_rtl() ) $classes[] = 'rtl';
-    if ( is_page_template( 'page-panel.php' ) ) {
+    if ( ug_is_panel_page() ) {
         $classes[] = 'ug-in-panel';
     }
     return $classes;
