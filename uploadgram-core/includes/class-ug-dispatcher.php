@@ -40,6 +40,9 @@ class UG_Dispatcher {
             case 'numberland':
                 $obj = new UG_Provider_Numberland( $config );
                 break;
+            case 'herosms':
+                $obj = new UG_Provider_HeroSMS( $config );
+                break;
             case 'telegram':
                 $obj = new UG_Provider_Telegram( $config );
                 break;
@@ -55,7 +58,7 @@ class UG_Dispatcher {
      * Available provider machine names.
      */
     public function providers(): array {
-        return [ 'followeran', 'numberland', 'telegram' ];
+        return [ 'followeran', 'numberland', 'herosms', 'telegram' ];
     }
 
     /**

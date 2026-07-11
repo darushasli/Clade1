@@ -3,7 +3,7 @@
  * Plugin Name: UploadGram Core
  * Plugin URI:  https://uploadgram.ir
  * Description: هسته فروشگاه آپلودگرام — اتصال خدمات به API فالوران، نامبرلند و ربات تلگرام، کیف پول و پنل کاربری بدون سبد خرید.
- * Version:     2.7.0
+ * Version:     2.8.0
  * Author:      UploadGram Team
  * Text Domain: uploadgram-core
  * Domain Path: /languages
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'UGC_VERSION', '2.7.0' );
+define( 'UGC_VERSION', '2.8.0' );
 define( 'UGC_FILE', __FILE__ );
 define( 'UGC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UGC_URL', plugin_dir_url( __FILE__ ) );
@@ -33,6 +33,7 @@ require_once UGC_DIR . 'includes/class-ug-settings.php';
 require_once UGC_DIR . 'includes/providers/interface-ug-provider.php';
 require_once UGC_DIR . 'includes/providers/class-ug-provider-followeran.php';
 require_once UGC_DIR . 'includes/providers/class-ug-provider-numberland.php';
+require_once UGC_DIR . 'includes/providers/class-ug-provider-herosms.php';
 require_once UGC_DIR . 'includes/providers/class-ug-provider-telegram.php';
 require_once UGC_DIR . 'includes/class-ug-dispatcher.php';
 require_once UGC_DIR . 'includes/class-ug-wallet.php';
@@ -49,7 +50,9 @@ require_once UGC_DIR . 'includes/class-ug-panel.php';
 require_once UGC_DIR . 'includes/class-ug-shortcodes.php';
 require_once UGC_DIR . 'includes/class-ug-account-seed.php';
 require_once UGC_DIR . 'includes/class-ug-sync.php';
+require_once UGC_DIR . 'includes/class-ug-herosms-catalog.php';
 require_once UGC_DIR . 'includes/class-ug-app-selector.php';
+require_once UGC_DIR . 'includes/class-ug-numbers.php';
 require_once UGC_DIR . 'includes/class-ug-tickets.php';
 require_once UGC_DIR . 'includes/class-ug-users-admin.php';
 require_once UGC_DIR . 'includes/class-ug-elementor.php';

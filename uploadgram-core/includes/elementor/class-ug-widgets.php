@@ -952,9 +952,10 @@ class UG_W_Numbers_App extends UG_Dyn_Widget {
     public function get_name(): string { return 'ug-numbers-app'; }
     protected function ug_style_cfg(): array {
         return [
-            'texts'  => [ [ '.ug-app-chip', 'نام اپ‌ها' ] ],
-            'boxes'  => [ [ '.ug-app', 'box', 'ظاهر باکس بخش' ], [ '.ug-app-chip', 'chip', 'ظاهر دکمهٔ اپ' ] ],
-            'layout' => '.ug-app',
+            'texts'  => [ [ '.ug-nums-svc span', 'نام سرویس‌ها' ], [ '.ug-num-cname', 'نام کشور' ], [ '.ug-num-price', 'قیمت' ] ],
+            'boxes'  => [ [ '.ug-nums-svc', 'chip', 'ظاهر دکمهٔ سرویس' ], [ '.ug-num-country', 'row', 'ظاهر ردیف کشور' ] ],
+            'btns'   => [ [ '.ug-num-buy', 'btn', 'دکمهٔ خرید' ] ],
+            'layout' => '.ug-nums',
         ];
     }
 }

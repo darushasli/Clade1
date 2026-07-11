@@ -19,6 +19,7 @@ class UG_Sync {
 
     private UG_Dispatcher $dispatcher;
     private UG_Settings $settings;
+    private ?UG_HeroSMS_Catalog $catalog;
 
     const CRON_HOOK = 'ug_sync_catalog';
 
@@ -27,14 +28,16 @@ class UG_Sync {
     const CAT_NUMBERS  = 'شماره مجازی';
     const CAT_ACCOUNTS = 'اکانت پرمیوم';
 
-    public function __construct( UG_Dispatcher $dispatcher, UG_Settings $settings ) {
+    public function __construct( UG_Dispatcher $dispatcher, UG_Settings $settings, ?UG_HeroSMS_Catalog $catalog = null ) {
         $this->dispatcher = $dispatcher;
         $this->settings   = $settings;
+        $this->catalog    = $catalog;
 
         add_action( 'admin_menu', [ $this, 'menu' ], 20 );
         add_action( 'wp_ajax_ug_sync_run', [ $this, 'ajax_run' ] );
         add_action( 'wp_ajax_ug_sync_bot_products', [ $this, 'ajax_bot_products' ] );
         add_action( 'wp_ajax_ug_seed_accounts', [ $this, 'ajax_seed_accounts' ] );
+        add_action( 'wp_ajax_ug_hero_refresh', [ $this, 'ajax_hero_refresh' ] );
 
         add_action( self::CRON_HOOK, [ $this, 'run_all' ] );
         add_action( 'init', [ $this, 'maybe_schedule' ] );
@@ -68,20 +71,20 @@ class UG_Sync {
     public function render(): void {
         $counts = [
             'followeran' => $this->count_products( 'followeran' ),
-            'numberland' => $this->count_products( 'numberland' ),
             'telegram'   => $this->count_products( 'telegram' ),
         ];
+        $hero_services = $this->catalog ? count( $this->catalog->services() ) : 0;
         ?>
         <div class="wrap">
             <h1><?php esc_html_e( 'همگام‌سازی سرویس‌ها', 'uploadgram-core' ); ?></h1>
             <p class="description">
-                <?php esc_html_e( 'کاتالوگ فالوران و نامبرلند را به محصولات ووکامرس تبدیل می‌کند. محصولات به‌صورت منتشرشده ساخته می‌شوند و بعداً قابل ویرایش دستی‌اند. اجرای دوباره فقط قیمت/حداقل/حداکثر را تازه می‌کند و عنوان دستی را خراب نمی‌کند.', 'uploadgram-core' ); ?>
+                <?php esc_html_e( 'کاتالوگ فالوران را به محصولات ووکامرس تبدیل می‌کند. شماره‌های مجازی هیرو‌اس‌ام‌اس محصول ساخته نمی‌شوند (به دلیل تعداد بسیار زیاد سرویس×کشور)؛ فهرست آن‌ها کش می‌شود و شماره هنگام خرید به‌صورت زنده رزرو می‌شود. برای تازه‌کردن فهرست، «به‌روزرسانی فهرست شماره‌ها» را بزنید.', 'uploadgram-core' ); ?>
             </p>
 
             <table class="widefat" style="max-width:520px;margin:16px 0;">
                 <tbody>
                     <tr><td>محصولات فالوران (SMM)</td><td><b><?php echo (int) $counts['followeran']; ?></b></td></tr>
-                    <tr><td>محصولات نامبرلند (شماره)</td><td><b><?php echo (int) $counts['numberland']; ?></b></td></tr>
+                    <tr><td>سرویس‌های شماره مجازی هیرو‌اس‌ام‌اس (کش‌شده)</td><td><b><?php echo (int) $hero_services; ?></b></td></tr>
                     <tr><td>محصولات ممبر آپلودری (تلگرام)</td><td><b><?php echo (int) $counts['telegram']; ?></b></td></tr>
                 </tbody>
             </table>
@@ -89,7 +92,7 @@ class UG_Sync {
             <p>
                 <button class="button button-primary ug-sync-btn" data-what="all"><?php esc_html_e( 'همگام‌سازی همه', 'uploadgram-core' ); ?></button>
                 <button class="button ug-sync-btn" data-what="followeran"><?php esc_html_e( 'فقط فالوران', 'uploadgram-core' ); ?></button>
-                <button class="button ug-sync-btn" data-what="numberland"><?php esc_html_e( 'فقط نامبرلند', 'uploadgram-core' ); ?></button>
+                <button class="button ug-hero-refresh"><?php esc_html_e( 'به‌روزرسانی فهرست شماره‌ها (هیرو‌اس‌ام‌اس)', 'uploadgram-core' ); ?></button>
                 <button class="button ug-sync-bot"><?php esc_html_e( 'ساخت محصولات ممبر آپلودری', 'uploadgram-core' ); ?></button>
                 <button class="button ug-seed-acc"><?php esc_html_e( 'ساخت اکانت‌های پرمیوم نمونه', 'uploadgram-core' ); ?></button>
             </p>
@@ -110,7 +113,6 @@ class UG_Sync {
                     <?php
                     $this->opt_field( 'sync_markup_percent', 'درصد سود روی قیمت خام API', 'number', 'مثلاً 25 → قیمت فروش = قیمت خام × ۱٫۲۵' );
                     $this->opt_field( 'followeran_price_multiplier', 'ضریب قیمت فالوران', 'number', 'اگر نرخ فالوران تومان است 1 بگذارید؛ اگر دلار/واحد دیگر است ضریب تبدیل به تومان' );
-                    $this->opt_field( 'numberland_price_multiplier', 'ضریب قیمت نامبرلند', 'number', 'معمولاً 1 (نامبرلند تومان است)' );
                     $this->opt_field( 'sync_daily', 'همگام‌سازی خودکار روزانه؟', 'checkbox', 'یک‌بار در روز کاتالوگ را تازه می‌کند' );
                     ?>
                 </table>
@@ -122,13 +124,14 @@ class UG_Sync {
             var nonce = '<?php echo esc_js( wp_create_nonce( 'ug_sync' ) ); ?>';
             function run(action, what, $b){
                 var $out = $('#ug-sync-out').show().text('در حال اجرا…');
-                $('.ug-sync-btn,.ug-sync-bot,.ug-seed-acc').prop('disabled', true);
+                $('.ug-sync-btn,.ug-sync-bot,.ug-seed-acc,.ug-hero-refresh').prop('disabled', true);
                 $.post(ajaxurl, { action: action, what: what, _wpnonce: nonce })
                  .done(function(res){ $out.text(JSON.stringify(res.data || res, null, 2)); })
                  .fail(function(x){ $out.text('خطا: ' + x.status + '\n' + (x.responseText||'')); })
-                 .always(function(){ $('.ug-sync-btn,.ug-sync-bot,.ug-seed-acc').prop('disabled', false); });
+                 .always(function(){ $('.ug-sync-btn,.ug-sync-bot,.ug-seed-acc,.ug-hero-refresh').prop('disabled', false); });
             }
             $('.ug-sync-btn').on('click', function(e){ e.preventDefault(); run('ug_sync_run', $(this).data('what')); });
+            $('.ug-hero-refresh').on('click', function(e){ e.preventDefault(); run('ug_hero_refresh'); });
             $('.ug-sync-bot').on('click', function(e){ e.preventDefault(); run('ug_sync_bot_products'); });
             $('.ug-seed-acc').on('click', function(e){ e.preventDefault(); run('ug_seed_accounts'); });
             $('.ug-seed-elementor').on('click', function(e){
@@ -175,13 +178,26 @@ class UG_Sync {
         if ( 'all' === $what || 'followeran' === $what ) {
             $res['followeran'] = $this->sync_followeran();
         }
-        if ( 'all' === $what || 'numberland' === $what ) {
-            $res['numberland'] = $this->sync_numberland();
+        if ( 'all' === $what || 'herosms' === $what ) {
+            $res['herosms'] = $this->refresh_hero();
         }
         if ( 'all' === $what ) {
             $res['telegram'] = $this->ensure_bot_products();
         }
         wp_send_json_success( $res );
+    }
+
+    public function ajax_hero_refresh(): void {
+        $this->guard();
+        wp_send_json_success( [ 'herosms' => $this->refresh_hero() ] );
+    }
+
+    /** Refresh the HeroSMS virtual-number catalogue (services/countries/prices cache). */
+    public function refresh_hero(): array {
+        if ( ! $this->catalog ) {
+            return [ 'ok' => false, 'error' => 'کاتالوگ هیرو‌اس‌ام‌اس در دسترس نیست' ];
+        }
+        return $this->catalog->refresh();
     }
 
     public function ajax_bot_products(): void {
@@ -206,7 +222,7 @@ class UG_Sync {
     public function run_all(): array {
         return [
             'followeran' => $this->sync_followeran(),
-            'numberland' => $this->sync_numberland(),
+            'herosms'    => $this->refresh_hero(),
             'telegram'   => $this->ensure_bot_products(),
         ];
     }

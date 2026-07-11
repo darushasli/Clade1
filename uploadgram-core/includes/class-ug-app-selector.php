@@ -55,7 +55,7 @@ class UG_App_Selector {
     public function __construct( UG_Wallet $wallet ) {
         $this->wallet = $wallet;
         add_shortcode( 'ug_services_app', [ $this, 'services_app' ] );
-        add_shortcode( 'ug_numbers_app', [ $this, 'numbers_app' ] );
+        // ug_numbers_app is now handled by UG_Numbers (dynamic HeroSMS catalogue).
         add_action( 'wp_enqueue_scripts', [ $this, 'assets' ] );
     }
 

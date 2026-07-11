@@ -165,7 +165,7 @@ class UG_WC_Integration {
                 'options' => [
                     ''           => __( '— بدون اتصال (دستی) —', 'uploadgram-core' ),
                     'followeran' => 'فالوران (SMM)',
-                    'numberland' => 'نامبرلند (شماره مجازی)',
+                    'herosms'    => 'هیرو‌اس‌ام‌اس (شماره مجازی — شناسه: سرویس|کشور)',
                     'telegram'   => 'ربات تلگرام (ممبر آپلودی)',
                 ],
                 'desc_tip' => true,

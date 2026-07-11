@@ -45,6 +45,11 @@ class UG_Settings {
                     'endpoint' => $this->get( 'numberland_endpoint', 'https://api.numberland.ir/v2.php' ),
                     'api_key'  => $this->get( 'numberland_key' ),
                 ];
+            case 'herosms':
+                return [
+                    'endpoint' => $this->get( 'herosms_endpoint', 'https://hero-sms.com/stubs/handler_api.php' ),
+                    'api_key'  => $this->get( 'herosms_key' ),
+                ];
             case 'telegram':
                 return [
                     'endpoint' => $this->get( 'telegram_endpoint' ),
@@ -97,7 +102,7 @@ class UG_Settings {
             'general'    => 'عمومی',
             'auth'       => 'ورود و ثبت‌نام',
             'followeran' => 'فالوران (SMM)',
-            'numberland' => 'نامبرلند (شماره مجازی)',
+            'herosms'    => 'هیرو‌اس‌ام‌اس (شماره مجازی)',
             'telegram'   => 'ربات تلگرام',
             'tools'      => 'ابزار و تست',
         ];
@@ -162,9 +167,12 @@ class UG_Settings {
                 $this->field( 'followeran_key', 'کلید API', 'text', 'از پنل فالوران › بخش API دریافت کنید' );
                 break;
 
-            case 'numberland':
-                $this->field( 'numberland_endpoint', 'آدرس API', 'text', 'آدرس endpoint نامبرلند طبق مستندات', 'https://api.numberland.ir/v2.php' );
-                $this->field( 'numberland_key', 'کلید API', 'text', 'کلید API نامبرلند' );
+            case 'herosms':
+                echo '<tr><td colspan="2"><p class="description">هیرو‌اس‌ام‌اس با پروتکل SMS-Activate کار می‌کند. کلید API را از حساب hero-sms.com دریافت کنید. پس از ذخیره، از تب «ابزار و تست» دکمهٔ «تست هیرو‌اس‌ام‌اس» و از پیشخوان › آپلودگرام › همگام‌سازی، دکمهٔ «به‌روزرسانی فهرست شماره‌ها» را بزنید.</p></td></tr>';
+                $this->field( 'herosms_key', 'کلید API', 'text', 'کلید API حساب هیرو‌اس‌ام‌اس شما' );
+                $this->field( 'herosms_endpoint', 'آدرس API', 'text', 'پیش‌فرض درست است؛ فقط در صورت تغییر دامنه ویرایش کنید', 'https://hero-sms.com/stubs/handler_api.php' );
+                $this->field( 'herosms_usd_rate', 'نرخ تبدیل هر واحد قیمت به تومان', 'number', 'قیمت هیرو‌اس‌ام‌اس بر حسب دلار است؛ نرخ دلار به تومان (خالی = همان نرخ عمومی)', '70000' );
+                $this->field( 'herosms_markup', 'درصد سود روی قیمت شماره', 'number', 'درصدی که روی قیمت خام اضافه می‌شود (خالی = درصد سود همگام‌سازی)', '25' );
                 break;
 
             case 'telegram':
@@ -195,7 +203,7 @@ class UG_Settings {
         <p class="description"><?php esc_html_e( 'تست اتصال به هر سرویس. نتیجه موجودی/سرویس‌ها را برمی‌گرداند.', 'uploadgram-core' ); ?></p>
         <p>
             <button class="button button-secondary ug-test" data-provider="followeran"><?php esc_html_e( 'تست فالوران', 'uploadgram-core' ); ?></button>
-            <button class="button button-secondary ug-test" data-provider="numberland"><?php esc_html_e( 'تست نامبرلند', 'uploadgram-core' ); ?></button>
+            <button class="button button-secondary ug-test" data-provider="herosms"><?php esc_html_e( 'تست هیرو‌اس‌ام‌اس', 'uploadgram-core' ); ?></button>
             <button class="button button-secondary ug-test" data-provider="telegram"><?php esc_html_e( 'تست ربات', 'uploadgram-core' ); ?></button>
         </p>
         <h2><?php esc_html_e( 'تست ارسال پیامک', 'uploadgram-core' ); ?></h2>

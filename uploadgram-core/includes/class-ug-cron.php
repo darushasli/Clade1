@@ -59,20 +59,20 @@ class UG_Cron {
                 continue;
             }
 
-            $update = [
-                'status' => $new_status,
-                'extra'  => array_merge( $order['extra'], $res['data'] ?? [] ),
-            ];
-            $this->orders->update( (int) $order['id'], $update );
+            $extra = array_merge( $order['extra'], $res['data'] ?? [] );
 
-            // Auto-refund on terminal failure/cancel.
-            if ( in_array( $new_status, [ 'canceled', 'failed', 'refunded' ], true ) ) {
+            // Auto-refund on terminal failure/cancel — but only once (the
+            // buy-flow AJAX paths may have already refunded and set _refunded).
+            if ( in_array( $new_status, [ 'canceled', 'failed', 'refunded' ], true ) && empty( $extra['_refunded'] ) ) {
                 $this->wallet->credit(
                     (int) $order['user_id'],
                     (float) $order['amount'],
                     sprintf( 'بازگشت وجه سفارش #%d (%s)', $order['id'], UG_Orders::status_label( $new_status ) )
                 );
+                $extra['_refunded'] = 1;
             }
+
+            $this->orders->update( (int) $order['id'], [ 'status' => $new_status, 'extra' => $extra ] );
         }
     }
 }
