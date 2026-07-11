@@ -49,6 +49,7 @@ class UG_Settings {
                 return [
                     'endpoint' => $this->get( 'herosms_endpoint', 'https://hero-sms.com/stubs/handler_api.php' ),
                     'api_key'  => $this->get( 'herosms_key' ),
+                    'proxy'    => $this->get( 'herosms_proxy' ),
                 ];
             case 'telegram':
                 return [
@@ -170,7 +171,9 @@ class UG_Settings {
             case 'herosms':
                 echo '<tr><td colspan="2"><p class="description">هیرو‌اس‌ام‌اس با پروتکل SMS-Activate کار می‌کند. کلید API را از حساب hero-sms.com دریافت کنید. پس از ذخیره، از تب «ابزار و تست» دکمهٔ «تست هیرو‌اس‌ام‌اس» و از پیشخوان › آپلودگرام › همگام‌سازی، دکمهٔ «به‌روزرسانی فهرست شماره‌ها» را بزنید.</p></td></tr>';
                 $this->field( 'herosms_key', 'کلید API', 'text', 'کلید API حساب هیرو‌اس‌ام‌اس شما' );
-                $this->field( 'herosms_endpoint', 'آدرس API', 'text', 'پیش‌فرض درست است؛ فقط در صورت تغییر دامنه ویرایش کنید', 'https://hero-sms.com/stubs/handler_api.php' );
+                $this->field( 'herosms_endpoint', 'آدرس API', 'text', 'خالی بگذارید تا مقدار پیش‌فرض استفاده شود (این فیلد را خالی نگذارید ≠ نامعتبر؛ اگر ننویسید خودکار پیش‌فرض می‌شود)', 'https://hero-sms.com/stubs/handler_api.php' );
+                echo '<tr><td colspan="2"><p class="description" style="color:#a00;"><strong>اگر هاست شما ایران است و hero-sms.com فیلتر است</strong>، در فیلد زیر یک پروکسی وارد کنید تا درخواست‌ها از طریق آن ارسال شوند. نمونه‌ها: <code>http://user:pass@1.2.3.4:8080</code> یا <code>socks5://1.2.3.4:1080</code>. خالی بگذارید تا مستقیم وصل شود.</p></td></tr>';
+                $this->field( 'herosms_proxy', 'پروکسی (اختیاری)', 'text', 'برای عبور از فیلترینگ؛ http(s):// یا socks5:// پشتیبانی می‌شود', 'socks5://1.2.3.4:1080' );
                 $this->field( 'herosms_usd_rate', 'نرخ تبدیل هر واحد قیمت به تومان', 'number', 'قیمت هیرو‌اس‌ام‌اس بر حسب دلار است؛ نرخ دلار به تومان (خالی = همان نرخ عمومی)', '70000' );
                 $this->field( 'herosms_markup', 'درصد سود روی قیمت شماره', 'number', 'درصدی که روی قیمت خام اضافه می‌شود (خالی = درصد سود همگام‌سازی)', '25' );
                 break;
