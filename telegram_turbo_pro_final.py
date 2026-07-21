@@ -24,7 +24,6 @@ import sqlite3
 import sys
 import threading
 from contextlib import contextmanager
-from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -36,7 +35,7 @@ from telegram.ext import (
     Application, ContextTypes, CommandHandler, MessageHandler,
     CallbackQueryHandler, filters
 )
-from telegram.constants import ChatAction
+from telegram.error import BadRequest
 
 # ===== بارگذاری متغیرهای محیطی =====
 _DOTENV_LOADED = False
@@ -239,6 +238,17 @@ def valid_channel(name: str) -> bool:
 
 def valid_proxy(url: str) -> bool:
     return bool(_PROXY_RE.match(url.strip()))
+
+
+def normalize_proxy(url: str) -> str:
+    """
+    افزودن scheme پیش‌فرض اگر کاربر فقط host:port داده باشد.
+    httpx برای پروکسی حتماً scheme می‌خواهد، وگرنه هنگام build کرش می‌کند.
+    """
+    url = url.strip()
+    if "://" not in url:
+        return "http://" + url
+    return url
 
 
 # ===== Keyboards =====
@@ -481,6 +491,16 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.warning(f"⚠️ callback ناشناخته: {data}")
             await query.answer("دستور ناشناخته", show_alert=True)
 
+    except BadRequest as e:
+        # ویرایش پیام به محتوای یکسان (مثلاً کلیک دوباره روی همان صفحه) خطا نیست.
+        if "not modified" in str(e).lower():
+            return
+        logger.exception(f"❌ خطا در callback: {e}")
+        context.user_data.pop("awaiting", None)
+        try:
+            await query.edit_message_text(f"❌ خطا: {str(e)[:80]}")
+        except Exception:  # noqa: BLE001
+            pass
     except Exception as e:  # noqa: BLE001
         logger.exception(f"❌ خطا در callback: {e}")
         context.user_data.pop("awaiting", None)
@@ -590,21 +610,31 @@ def main():
         logger.error(f"❌ دیتابیس راه‌اندازی نشد: {e}")
         sys.exit(1)
 
-    # post_init/post_shutdown از طریق builder ثبت می‌شوند تا run_polling آن‌ها را صدا بزند.
-    builder = (
-        Application.builder()
-        .token(TOKEN)
-        .post_init(post_init)
-        .post_shutdown(post_shutdown)
-    )
-
     # اگر پروکسی‌ای ثبت شده باشد، اتصالِ خودِ ربات به تلگرام از آن عبور می‌کند.
-    proxy = db.get_first_proxy()
-    if proxy:
-        logger.info(f"🌐 استفاده از پروکسی برای اتصال ربات: {proxy}")
-        builder = builder.proxy(proxy).get_updates_proxy(proxy)
+    raw_proxy = db.get_first_proxy()
+    proxy = normalize_proxy(raw_proxy) if raw_proxy else None
 
-    app = builder.build()
+    def _build(with_proxy: Optional[str]) -> Application:
+        # post_init/post_shutdown از طریق builder ثبت می‌شوند تا run_polling آن‌ها را صدا بزند.
+        b = (
+            Application.builder()
+            .token(TOKEN)
+            .post_init(post_init)
+            .post_shutdown(post_shutdown)
+        )
+        if with_proxy:
+            b = b.proxy(with_proxy).get_updates_proxy(with_proxy)
+        return b.build()
+
+    try:
+        app = _build(proxy)
+        if proxy:
+            logger.info(f"🌐 استفاده از پروکسی برای اتصال ربات: {proxy}")
+    except Exception as e:  # noqa: BLE001 - پروکسی نامعتبر نباید مانع راه‌اندازی شود
+        logger.error(f"❌ پروکسی نامعتبر بود ({e})؛ اتصال مستقیم استفاده می‌شود")
+        proxy = None
+        app = _build(None)
+
     app.bot_data["db"] = db
 
     # فقط چت خصوصی؛ ربات در گروه‌ها پاسخ نمی‌دهد.

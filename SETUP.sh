@@ -35,17 +35,16 @@ echo ""
 
 # بررسی فایل .env
 echo -e "${BLUE}⚙️  بررسی تنظیمات...${NC}"
-if grep -q "8710855081" .env; then
+if [ -f .env ] && grep -q "^TELEGRAM_BOT_TOKEN=..*" .env && ! grep -q "your_token_here" .env; then
     echo -e "${GREEN}✅ توکن بات: تنظیم شده${NC}"
 else
-    echo -e "${YELLOW}⚠️  توکن بات: نیاز به تنظیم${NC}"
+    echo -e "${YELLOW}⚠️  توکن بات: نیاز به تنظیم در فایل .env${NC}"
 fi
-echo -e "${GREEN}✅ فایل config.json: موجود${NC}"
 echo ""
 
 # بررسی فایل‌های اصلی
 echo -e "${BLUE}📋 بررسی فایل‌ها...${NC}"
-files=("telegram_turbo_pro_final.py" "test_bot.py" ".env" "config.json" "requirements.txt")
+files=("telegram_turbo_pro_final.py" "test_bot.py" ".env" "requirements.txt")
 for file in "${files[@]}"; do
     if [ -f "$file" ]; then
         echo -e "${GREEN}✅ $file${NC}"
@@ -63,10 +62,6 @@ echo ""
 
 echo -e "${BLUE}📁 موقعیت فایل‌ها:${NC}"
 echo "   $(pwd)"
-echo ""
-
-echo -e "${BLUE}🤖 توکن بات:${NC}"
-echo "   $(grep TELEGRAM_BOT_TOKEN .env | cut -d= -f2)"
 echo ""
 
 echo -e "${BLUE}🚀 برای شروع ربات:${NC}"
