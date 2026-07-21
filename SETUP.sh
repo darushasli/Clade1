@@ -25,7 +25,7 @@ echo ""
 
 # نصب وابستگی‌ها
 echo -e "${BLUE}📦 نصب وابستگی‌ها...${NC}"
-pip install -q pyTelegramBotAPI aiohttp requests beautifulsoup4 python-dotenv 2>/dev/null
+pip install -q python-telegram-bot==21.0.1 aiohttp requests python-dotenv 2>/dev/null
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ وابستگی‌ها نصب شدند${NC}"
 else

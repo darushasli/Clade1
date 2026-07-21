@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-🚀 TELEGRAM TURBO BOT Pro v3.1 - Professional Edition
+🚀 TELEGRAM TURBO BOT Pro v3.2 - Professional Edition
 ربات سین‌زن تلگرام حرفه‌ای
 
 ساختار:
 - Application base (telegram.ext) - بهتر از telebot
-- Thread-safe database
+- Thread-safe database with proper error handling
 - Async/await programming
 - Global error handling
 - Modular design
@@ -60,8 +60,7 @@ BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "data.db"
 DB_PATH.parent.mkdir(exist_ok=True)
 
-# Thread-safe database
-_db_lock = threading.Lock()
+ITEMS_PER_PAGE = 10
 
 # ===== Database Setup =====
 class Database:
@@ -75,30 +74,33 @@ class Database:
     def _init_db(self):
         """اولین‌بار تنظیمات دیتابیس"""
         with self.lock:
-            conn = sqlite3.connect(self.db_path)
-            conn.execute("PRAGMA journal_mode=WAL")
-            cursor = conn.cursor()
+            try:
+                conn = sqlite3.connect(self.db_path)
+                conn.execute("PRAGMA journal_mode=WAL")
+                cursor = conn.cursor()
 
-            # جدول کانال‌ها
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS channels (
-                    id INTEGER PRIMARY KEY,
-                    username TEXT UNIQUE NOT NULL,
-                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS channels (
+                        id INTEGER PRIMARY KEY,
+                        username TEXT UNIQUE NOT NULL,
+                        added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
 
-            # جدول پروکسی‌ها
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS proxies (
-                    id INTEGER PRIMARY KEY,
-                    proxy_url TEXT UNIQUE NOT NULL,
-                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS proxies (
+                        id INTEGER PRIMARY KEY,
+                        proxy_url TEXT UNIQUE NOT NULL,
+                        added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
 
-            conn.commit()
-            conn.close()
+                conn.commit()
+                conn.close()
+                logger.info("✅ دیتابیس آماده است")
+            except Exception as e:
+                logger.error(f"❌ خطا در اولیه‌سازی دیتابیس: {e}")
+                raise
 
     def add_channel(self, username: str) -> bool:
         """افزودن کانال"""
@@ -112,30 +114,42 @@ class Database:
                 logger.info(f"✅ کانال اضافه شد: {username}")
                 return True
             except sqlite3.IntegrityError:
+                logger.warning(f"⚠️ کانال تکراری: {username}")
+                return False
+            except Exception as e:
+                logger.error(f"❌ خطا در افزودن کانال: {e}")
                 return False
 
     def remove_channel(self, username: str) -> bool:
         """حذف کانال"""
         with self.lock:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM channels WHERE username = ?", (username.lstrip('@'),))
-            conn.commit()
-            success = cursor.rowcount > 0
-            conn.close()
-            if success:
-                logger.info(f"✅ کانال حذف شد: {username}")
-            return success
+            try:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM channels WHERE username = ?", (username.lstrip('@'),))
+                conn.commit()
+                success = cursor.rowcount > 0
+                conn.close()
+                if success:
+                    logger.info(f"✅ کانال حذف شد: {username}")
+                return success
+            except Exception as e:
+                logger.error(f"❌ خطا در حذف کانال: {e}")
+                return False
 
     def get_channels(self) -> list[str]:
         """دریافت لیست کانال‌ها"""
         with self.lock:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute("SELECT username FROM channels ORDER BY added_at DESC")
-            channels = [row[0] for row in cursor.fetchall()]
-            conn.close()
-            return channels
+            try:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT username FROM channels ORDER BY added_at DESC")
+                channels = [row[0] for row in cursor.fetchall()]
+                conn.close()
+                return channels
+            except Exception as e:
+                logger.error(f"❌ خطا در خواندن کانال‌ها: {e}")
+                return []
 
     def add_proxy(self, proxy: str) -> bool:
         """افزودن پروکسی"""
@@ -149,28 +163,42 @@ class Database:
                 logger.info(f"✅ پروکسی اضافه شد: {proxy}")
                 return True
             except sqlite3.IntegrityError:
+                logger.warning(f"⚠️ پروکسی تکراری: {proxy}")
+                return False
+            except Exception as e:
+                logger.error(f"❌ خطا در افزودن پروکسی: {e}")
                 return False
 
     def remove_proxy(self, proxy_id: int) -> bool:
         """حذف پروکسی"""
         with self.lock:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM proxies WHERE id = ?", (proxy_id,))
-            conn.commit()
-            success = cursor.rowcount > 0
-            conn.close()
-            return success
+            try:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM proxies WHERE id = ?", (proxy_id,))
+                conn.commit()
+                success = cursor.rowcount > 0
+                conn.close()
+                if success:
+                    logger.info(f"✅ پروکسی حذف شد (ID: {proxy_id})")
+                return success
+            except Exception as e:
+                logger.error(f"❌ خطا در حذف پروکسی: {e}")
+                return False
 
     def get_proxies(self) -> list[tuple[int, str]]:
         """دریافت لیست پروکسی‌ها"""
         with self.lock:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, proxy_url FROM proxies ORDER BY added_at DESC")
-            proxies = cursor.fetchall()
-            conn.close()
-            return proxies
+            try:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT id, proxy_url FROM proxies ORDER BY added_at DESC")
+                proxies = cursor.fetchall()
+                conn.close()
+                return proxies
+            except Exception as e:
+                logger.error(f"❌ خطا در خواندن پروکسی‌ها: {e}")
+                return []
 
 # ===== Keyboards =====
 def _btn(text: str, data: str) -> InlineKeyboardButton:
@@ -198,12 +226,39 @@ def proxies_menu() -> InlineKeyboardMarkup:
         [_btn("❌ حذف", "pr:remove"), _btn("« برگشت", "start")]
     ])
 
+def make_delete_keyboard(items: list[tuple], callback_prefix: str, back_callback: str, page: int = 1) -> InlineKeyboardMarkup:
+    """ساخت صفحه‌بندی برای منوی حذف"""
+    start = (page - 1) * ITEMS_PER_PAGE
+    end = start + ITEMS_PER_PAGE
+    page_items = items[start:end]
+
+    buttons = []
+    for item_id, item_name in page_items:
+        if callback_prefix == "ch:del":
+            buttons.append([_btn(f"❌ @{item_name}", f"{callback_prefix}:{item_name}")])
+        else:
+            buttons.append([_btn(f"❌ {item_name}", f"{callback_prefix}:{item_id}")])
+
+    nav_buttons = []
+    if page > 1:
+        nav_buttons.append(_btn("◀️ قبلی", f"{callback_prefix}:page:{page-1}"))
+    if end < len(items):
+        nav_buttons.append(_btn("بعدی ▶️", f"{callback_prefix}:page:{page+1}"))
+
+    if nav_buttons:
+        buttons.append(nav_buttons)
+
+    buttons.append([_btn("« برگشت", back_callback)])
+
+    return InlineKeyboardMarkup(buttons)
+
 # ===== Handlers =====
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """دستور /start"""
     await context.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
+    context.user_data.pop("awaiting", None)
     await update.message.reply_text(
-        "🚀 <b>ربات سین‌زن TURBO Pro v3.1</b>\n\n"
+        "🚀 <b>ربات سین‌زن TURBO Pro v3.2</b>\n\n"
         "⚡ سرعت: +1000 سین/ثانیه\n"
         "🔄 پردازش: 150 همزمان\n"
         "🛡️ پایداری: 100% تضمینی\n\n"
@@ -221,8 +276,13 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = query.from_user.id
     db = context.bot_data.get("db")
 
+    if not db:
+        await query.edit_message_text("❌ خطا: دیتابیس در دسترس نیست")
+        return
+
     try:
         if data == "start":
+            context.user_data.pop("awaiting", None)
             await query.edit_message_text(
                 "🚀 <b>ربات سین‌زن TURBO Pro</b>\n\n"
                 "⚡ سرعت: +1000 سین/ثانیه\n"
@@ -234,6 +294,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # ===== کانال‌ها =====
         elif data == "menu:channels":
+            context.user_data.pop("awaiting", None)
             await query.edit_message_text(
                 "📋 <b>مدیریت کانال‌ها</b>",
                 reply_markup=channels_menu(),
@@ -241,14 +302,15 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
         elif data == "ch:add":
-            msg = await context.bot.send_message(
-                user_id,
-                "نام کانال را وارد کنید:\nمثال: @mychannel"
-            )
             context.user_data["awaiting"] = "channel_name"
+            await context.bot.send_message(
+                user_id,
+                "نام کانال را وارد کنید:\nمثال: @mychannel\n\nبرای لغو، /start را بفرستید"
+            )
 
         elif data == "ch:list":
             channels = db.get_channels()
+            context.user_data.pop("awaiting", None)
             if channels:
                 text = "📋 <b>کانال‌های فعال:</b>\n\n"
                 for ch in channels:
@@ -264,24 +326,38 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         elif data == "ch:remove":
             channels = db.get_channels()
+            context.user_data.pop("awaiting", None)
             if not channels:
-                await context.bot.send_message(user_id, "❌ هیچ کانالی برای حذف نیست")
+                await query.edit_message_text("❌ هیچ کانالی برای حذف نیست", reply_markup=channels_menu())
                 return
 
-            kb = InlineKeyboardMarkup([
-                [_btn(f"❌ @{ch}", f"ch:del:{ch}")] for ch in channels
-            ] + [[_btn("« برگشت", "menu:channels")]])
-
-            await context.bot.send_message(user_id, "کانال را انتخاب کنید:", reply_markup=kb)
+            kb = make_delete_keyboard(
+                [(ch, ch) for ch in channels],
+                "ch:del",
+                "menu:channels"
+            )
+            await query.edit_message_text("کانال را انتخاب کنید:", reply_markup=kb)
 
         elif data.startswith("ch:del:"):
             ch = data.replace("ch:del:", "")
             db.remove_channel(ch)
-            await context.bot.send_message(user_id, f"✅ کانال @{ch} حذف شد")
+            await query.edit_message_text(f"✅ کانال @{ch} حذف شد")
+
+        elif data.startswith("ch:del:page:"):
+            page = int(data.replace("ch:del:page:", ""))
+            channels = db.get_channels()
+            kb = make_delete_keyboard(
+                [(ch, ch) for ch in channels],
+                "ch:del",
+                "menu:channels",
+                page
+            )
+            await query.edit_message_text("کانال را انتخاب کنید:", reply_markup=kb)
 
         # ===== پروکسی‌ها =====
         elif data == "menu:proxies":
             proxies = db.get_proxies()
+            context.user_data.pop("awaiting", None)
             await query.edit_message_text(
                 f"🔧 <b>مدیریت پروکسی</b>\n\n"
                 f"تعداد فعال: {len(proxies)}",
@@ -290,17 +366,19 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
         elif data == "pr:add":
-            msg = await context.bot.send_message(
+            context.user_data["awaiting"] = "proxy_url"
+            await context.bot.send_message(
                 user_id,
                 "آدرس پروکسی را وارد کنید:\n\n"
                 "فرمت‌ها:\n"
                 "• 192.168.1.1:8080\n"
-                "• http://proxy.com:8080"
+                "• http://proxy.com:8080\n\n"
+                "برای لغو، /start را بفرستید"
             )
-            context.user_data["awaiting"] = "proxy_url"
 
         elif data == "pr:list":
             proxies = db.get_proxies()
+            context.user_data.pop("awaiting", None)
             if proxies:
                 text = "📋 <b>پروکسی‌های فعال:</b>\n\n"
                 for idx, (pid, proxy) in enumerate(proxies, 1):
@@ -316,36 +394,55 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         elif data == "pr:remove":
             proxies = db.get_proxies()
+            context.user_data.pop("awaiting", None)
             if not proxies:
-                await context.bot.send_message(user_id, "❌ هیچ پروکسی برای حذف نیست")
+                await query.edit_message_text("❌ هیچ پروکسی برای حذف نیست", reply_markup=proxies_menu())
                 return
 
-            kb = InlineKeyboardMarkup([
-                [_btn(f"❌ {proxy}", f"pr:del:{pid}")] for pid, proxy in proxies
-            ] + [[_btn("« برگشت", "menu:proxies")]])
-
-            await context.bot.send_message(user_id, "پروکسی را انتخاب کنید:", reply_markup=kb)
+            kb = make_delete_keyboard(proxies, "pr:del", "menu:proxies")
+            await query.edit_message_text("پروکسی را انتخاب کنید:", reply_markup=kb)
 
         elif data.startswith("pr:del:"):
             pid = int(data.replace("pr:del:", ""))
             db.remove_proxy(pid)
-            await context.bot.send_message(user_id, "✅ پروکسی حذف شد")
+            await query.edit_message_text("✅ پروکسی حذف شد")
+
+        elif data.startswith("pr:del:page:"):
+            page = int(data.replace("pr:del:page:", ""))
+            proxies = db.get_proxies()
+            kb = make_delete_keyboard(proxies, "pr:del", "menu:proxies", page)
+            await query.edit_message_text("پروکسی را انتخاب کنید:", reply_markup=kb)
 
     except Exception as e:
         logger.error(f"❌ خطا در callback: {e}")
-        await context.bot.send_message(user_id, f"❌ خطا: {str(e)[:100]}")
+        context.user_data.pop("awaiting", None)
+        try:
+            await query.edit_message_text(f"❌ خطا: {str(e)[:100]}")
+        except Exception:
+            pass
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """مدیریت پیام‌های متنی"""
     user_id = update.effective_user.id
     db = context.bot_data.get("db")
 
+    if not db:
+        await update.message.reply_text("❌ خطا: دیتابیس در دسترس نیست")
+        return
+
     if "awaiting" not in context.user_data:
-        await update.message.reply_text("استفاده از /start برای شروع")
+        await update.message.reply_text(
+            "ابتدا /start را بفرستید تا منو نمایش داده شود",
+            reply_markup=InlineKeyboardMarkup([[_btn("شروع", "start")]])
+        )
         return
 
     awaiting = context.user_data.pop("awaiting")
     text = update.message.text.strip()
+
+    if not text:
+        await update.message.reply_text("❌ متن خالی! لطفاً مقدار معتبر وارد کنید")
+        return
 
     if awaiting == "channel_name":
         if db.add_channel(text):
@@ -365,26 +462,30 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
 
     if isinstance(update, Update) and update.effective_chat:
         try:
+            if update.effective_user:
+                context.user_data.pop("awaiting", None)
             await context.bot.send_message(
                 update.effective_chat.id,
                 "⚠️ یه خطای غیرمنتظره پیش اومد. دوباره تلاش کن."
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"❌ نتوانستم خطا را گزارش کنم: {e}")
 
 async def post_init(application: Application):
     """اولیه‌سازی بعد از شروع"""
-    await application.bot.set_my_commands([
-        BotCommand("start", "شروع / منو اصلی"),
-        BotCommand("help", "راهنما"),
-    ])
-    await application.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
+    try:
+        await application.bot.set_my_commands([
+            BotCommand("start", "شروع / منو اصلی"),
+        ])
+        await application.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
 
-    # Database
-    db = Database(DB_PATH)
-    application.bot_data["db"] = db
+        db = Database(DB_PATH)
+        application.bot_data["db"] = db
 
-    logger.info("✅ ربات آماده است")
+        logger.info("✅ ربات آماده است")
+    except Exception as e:
+        logger.error(f"❌ خطا در اولیه‌سازی: {e}")
+        raise
 
 async def post_shutdown(application: Application):
     """بعد از خاموش‌شدن"""
@@ -395,26 +496,22 @@ async def main():
     """اجرای ربات"""
     if not TOKEN:
         logger.error("❌ توکن تنظیم نشده!")
+        print("\n⚠️ لطفاً TELEGRAM_BOT_TOKEN را در فایل .env تنظیم کنید\n")
         sys.exit(1)
 
-    # Build application
     app = Application.builder().token(TOKEN).build()
 
-    # Handlers
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
-    # Error handler
     app.add_error_handler(error_handler)
 
-    # Post init/shutdown
     app.post_init = post_init
     app.post_shutdown = post_shutdown
 
-    # Banner
     print("\n" + "="*70)
-    print("🚀 TURBO VIEWS BOT Pro v3.1 فعال است!")
+    print("🚀 TURBO VIEWS BOT Pro v3.2 فعال است!")
     print("⚡ سرعت: +1000 سین/ثانیه")
     print("🔄 پردازش: 150 همزمان")
     print("🛡️ پایداری: 100% تضمینی")
@@ -422,7 +519,6 @@ async def main():
 
     logger.info("📡 Polling شروع...")
 
-    # Run with proper pattern
     async with app:
         await app.start()
         await app.updater.start_polling(allowed_updates=[])
