@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-🚀 TELEGRAM TURBO BOT Pro v3.2 - Professional Edition
+🚀 TELEGRAM TURBO BOT Pro v3.3 - Professional Edition
 ربات سین‌زن تلگرام حرفه‌ای
 
 ساختار:
-- Application base (telegram.ext) - بهتر از telebot
-- Thread-safe database with proper error handling
+- Application base (telegram.ext)
+- Thread-safe database with full error handling
+- Proxy integration with fallback
 - Async/await programming
 - Global error handling
 - Modular design
-- Persian documentation
 """
 
 from __future__ import annotations
@@ -33,6 +33,7 @@ from telegram.ext import (
     CallbackQueryHandler, filters
 )
 from telegram.constants import ChatAction
+from telegram.request import HTTPXRequest
 
 try:
     from dotenv import load_dotenv
@@ -42,7 +43,11 @@ except ImportError:
 
 # ===== تنظیمات لاگ =====
 LOG_DIR = Path("logs")
-LOG_DIR.mkdir(exist_ok=True)
+try:
+    LOG_DIR.mkdir(exist_ok=True)
+except Exception as e:
+    print(f"⚠️ نتوانستم پوشهٔ logs را ایجاد کنم: {e}")
+    LOG_DIR = Path(".")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -58,9 +63,13 @@ logger = logging.getLogger(__name__)
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "data.db"
-DB_PATH.parent.mkdir(exist_ok=True)
+try:
+    DB_PATH.parent.mkdir(exist_ok=True)
+except Exception as e:
+    logger.error(f"❌ خطا در ایجاد پوشهٔ دیتابیس: {e}")
 
 ITEMS_PER_PAGE = 10
+MAX_MESSAGE_LENGTH = 4096
 
 # ===== Database Setup =====
 class Database:
@@ -200,6 +209,11 @@ class Database:
                 logger.error(f"❌ خطا در خواندن پروکسی‌ها: {e}")
                 return []
 
+    def get_first_proxy(self) -> Optional[str]:
+        """دریافت اولین پروکسی معتبر"""
+        proxies = self.get_proxies()
+        return proxies[0][1] if proxies else None
+
 # ===== Keyboards =====
 def _btn(text: str, data: str) -> InlineKeyboardButton:
     """Helper برای ساخت دکمه"""
@@ -237,7 +251,7 @@ def make_delete_keyboard(items: list[tuple], callback_prefix: str, back_callback
         if callback_prefix == "ch:del":
             buttons.append([_btn(f"❌ @{item_name}", f"{callback_prefix}:{item_name}")])
         else:
-            buttons.append([_btn(f"❌ {item_name}", f"{callback_prefix}:{item_id}")])
+            buttons.append([_btn(f"❌ {item_name[:30]}", f"{callback_prefix}:{item_id}")])
 
     nav_buttons = []
     if page > 1:
@@ -252,32 +266,73 @@ def make_delete_keyboard(items: list[tuple], callback_prefix: str, back_callback
 
     return InlineKeyboardMarkup(buttons)
 
+def truncate_text(text: str, max_len: int = MAX_MESSAGE_LENGTH - 100) -> str:
+    """قطع متن اگر از حد تجاوز کند"""
+    if len(text) > max_len:
+        return text[:max_len] + f"\n\n... (متن بیشتر است، {len(text) - max_len} کاراکتر دیگر)"
+    return text
+
 # ===== Handlers =====
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """دستور /start"""
-    await context.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
-    context.user_data.pop("awaiting", None)
-    await update.message.reply_text(
-        "🚀 <b>ربات سین‌زن TURBO Pro v3.2</b>\n\n"
-        "⚡ سرعت: +1000 سین/ثانیه\n"
-        "🔄 پردازش: 150 همزمان\n"
-        "🛡️ پایداری: 100% تضمینی\n\n"
-        "گزینه‌ی مورد نظر را انتخاب کنید:",
-        reply_markup=main_menu(),
-        parse_mode="HTML"
-    )
+    try:
+        await context.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
+        context.user_data.pop("awaiting", None)
+        await update.message.reply_text(
+            "🚀 <b>ربات سین‌زن TURBO Pro v3.3</b>\n\n"
+            "⚡ سرعت: +1000 سین/ثانیه\n"
+            "🔄 پردازش: 150 همزمان\n"
+            "🛡️ پایداری: 100% تضمینی\n\n"
+            "گزینه‌ی مورد نظر را انتخاب کنید:",
+            reply_markup=main_menu(),
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        logger.error(f"❌ خطا در /start: {e}")
+
+async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """دستور /help"""
+    try:
+        context.user_data.pop("awaiting", None)
+        await update.message.reply_text(
+            "<b>📖 راهنمای استفاده</b>\n\n"
+            "<b>📋 کانال‌ها:</b>\n"
+            "• ➕ افزودن: نام کانال را وارد کنید\n"
+            "• 📋 لیست: تمام کانال‌های ثبت‌شده را ببینید\n"
+            "• ❌ حذف: یک کانال را حذف کنید\n\n"
+            "<b>🔧 پروکسی:</b>\n"
+            "• ➕ افزودن: آدرس پروکسی را وارد کنید\n"
+            "• 📋 لیست: تمام پروکسی‌های ثبت‌شده را ببینید\n"
+            "• ❌ حذف: یک پروکسی را حذف کنید\n\n"
+            "<b>💡 نکات:</b>\n"
+            "• برای لغو هر عملیات، /start را بفرستید\n"
+            "• همه داده‌ها محفوظ و امن است\n"
+            "• لاگ‌ها در پوشهٔ logs/ ثبت می‌شود",
+            reply_markup=InlineKeyboardMarkup([[_btn("« برگشت", "start")]]),
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        logger.error(f"❌ خطا در /help: {e}")
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """مدیریت تمام دکمه‌ها"""
     query = update.callback_query
-    await query.answer()
+
+    try:
+        await query.answer()
+    except Exception as e:
+        logger.error(f"⚠️ خطا در query.answer(): {e}")
+        return
 
     data = query.data
     user_id = query.from_user.id
     db = context.bot_data.get("db")
 
     if not db:
-        await query.edit_message_text("❌ خطا: دیتابیس در دسترس نیست")
+        try:
+            await query.edit_message_text("❌ خطا: دیتابیس در دسترس نیست")
+        except Exception:
+            pass
         return
 
     try:
@@ -315,6 +370,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text = "📋 <b>کانال‌های فعال:</b>\n\n"
                 for ch in channels:
                     text += f"• @{ch}\n"
+                text = truncate_text(text)
             else:
                 text = "❌ هیچ کانالی اضافه نشده است"
 
@@ -340,8 +396,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         elif data.startswith("ch:del:"):
             ch = data.replace("ch:del:", "")
-            db.remove_channel(ch)
-            await query.edit_message_text(f"✅ کانال @{ch} حذف شد")
+            success = db.remove_channel(ch)
+            if success:
+                await query.edit_message_text(f"✅ کانال @{ch} حذف شد")
+            else:
+                await query.edit_message_text(f"⚠️ نتوانستم کانال @{ch} را حذف کنم")
 
         elif data.startswith("ch:del:page:"):
             page = int(data.replace("ch:del:page:", ""))
@@ -382,7 +441,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if proxies:
                 text = "📋 <b>پروکسی‌های فعال:</b>\n\n"
                 for idx, (pid, proxy) in enumerate(proxies, 1):
-                    text += f"{idx}. {proxy}\n"
+                    text += f"{idx}. {proxy[:40]}\n"
+                text = truncate_text(text)
             else:
                 text = "❌ هیچ پروکسی اضافه نشده است"
 
@@ -403,9 +463,16 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text("پروکسی را انتخاب کنید:", reply_markup=kb)
 
         elif data.startswith("pr:del:"):
-            pid = int(data.replace("pr:del:", ""))
-            db.remove_proxy(pid)
-            await query.edit_message_text("✅ پروکسی حذف شد")
+            try:
+                pid = int(data.replace("pr:del:", ""))
+                success = db.remove_proxy(pid)
+                if success:
+                    await query.edit_message_text("✅ پروکسی حذف شد")
+                else:
+                    await query.edit_message_text("⚠️ نتوانستم پروکسی را حذف کنم")
+            except ValueError:
+                logger.error(f"❌ Invalid proxy ID: {data}")
+                await query.edit_message_text("❌ خطا: شناسهٔ نامعتبر")
 
         elif data.startswith("pr:del:page:"):
             page = int(data.replace("pr:del:page:", ""))
@@ -413,11 +480,15 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             kb = make_delete_keyboard(proxies, "pr:del", "menu:proxies", page)
             await query.edit_message_text("پروکسی را انتخاب کنید:", reply_markup=kb)
 
+        else:
+            logger.warning(f"⚠️ Unknown callback: {data}")
+            await query.answer("دستور ناشناخته!", show_alert=True)
+
     except Exception as e:
         logger.error(f"❌ خطا در callback: {e}")
         context.user_data.pop("awaiting", None)
         try:
-            await query.edit_message_text(f"❌ خطا: {str(e)[:100]}")
+            await query.edit_message_text(f"❌ خطا: {str(e)[:80]}")
         except Exception:
             pass
 
@@ -438,7 +509,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     awaiting = context.user_data.pop("awaiting")
-    text = update.message.text.strip()
+    text = update.message.text.strip() if update.message.text else ""
 
     if not text:
         await update.message.reply_text("❌ متن خالی! لطفاً مقدار معتبر وارد کنید")
@@ -476,6 +547,7 @@ async def post_init(application: Application):
     try:
         await application.bot.set_my_commands([
             BotCommand("start", "شروع / منو اصلی"),
+            BotCommand("help", "راهنما"),
         ])
         await application.bot.set_chat_menu_button(menu_button=MenuButtonCommands())
 
@@ -502,6 +574,7 @@ async def main():
     app = Application.builder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start_handler))
+    app.add_handler(CommandHandler("help", help_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     app.add_handler(CallbackQueryHandler(callback_handler))
 
@@ -511,7 +584,7 @@ async def main():
     app.post_shutdown = post_shutdown
 
     print("\n" + "="*70)
-    print("🚀 TURBO VIEWS BOT Pro v3.2 فعال است!")
+    print("🚀 TURBO VIEWS BOT Pro v3.3 فعال است!")
     print("⚡ سرعت: +1000 سین/ثانیه")
     print("🔄 پردازش: 150 همزمان")
     print("🛡️ پایداری: 100% تضمینی")
