@@ -5,3 +5,6 @@ __pycache__/
 logs/
 *.log
 *.zip
+*.db
+*.db-wal
+*.db-shm
