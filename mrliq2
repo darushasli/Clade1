@@ -1,0 +1,430 @@
+#!/bin/bash
+
+# 🤖 ربات سین‌زن TURBO Pro - مدیریت سرور
+# Telegram TURBO Bot - Server Management Panel
+
+set -euo pipefail
+
+# ===== متغیرهای اولیه =====
+BOT_DIR="/root/telegram_turbo_bot/telegram_turbo_bot_pro_final"
+BOT_SCRIPT="telegram_turbo_pro_final.py"
+BOT_SERVICE="telegram-turbo-bot"
+BOT_PID_FILE="/var/run/telegram_turbo_bot.pid"
+LOG_FILE="/var/log/telegram_turbo_bot.log"
+ENV_FILE="$BOT_DIR/.env"
+CONFIG_FILE="$BOT_DIR/config.json"
+SYSTEMD_SERVICE="/etc/systemd/system/${BOT_SERVICE}.service"
+
+# ===== رنگ‌های ترمینال =====
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+# ===== توابع رنگی =====
+print_header() {
+    echo -e "\n${CYAN}${BOLD}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}${BOLD}$1${NC}"
+    echo -e "${CYAN}${BOLD}═══════════════════════════════════════════════════════${NC}\n"
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+# ===== بررسی دسترسی Root =====
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        print_error "این اسکریپت باید با sudo اجرا شود"
+        exit 1
+    fi
+}
+
+# ===== بررسی وضعیت ربات =====
+check_bot_status() {
+    if systemctl is-active --quiet $BOT_SERVICE 2>/dev/null; then
+        echo -e "${GREEN}🟢 فعال${NC}"
+        return 0
+    else
+        echo -e "${RED}🔴 غیرفعال${NC}"
+        return 1
+    fi
+}
+
+# ===== دریافت PID ربات =====
+get_bot_pid() {
+    if systemctl is-active --quiet $BOT_SERVICE 2>/dev/null; then
+        systemctl show -p MainPID --value $BOT_SERVICE
+    else
+        echo "نامشخص"
+    fi
+}
+
+# ===== تابع نصب =====
+install_bot() {
+    print_header "📦 نصب ربات TURBO Pro"
+
+    # بررسی Python
+    if ! command -v python3 &> /dev/null; then
+        print_error "Python3 نصب نیست"
+        exit 1
+    fi
+    print_success "Python3 موجود است"
+
+    # ایجاد دایرکتوری
+    if [ ! -d "$BOT_DIR" ]; then
+        mkdir -p "$BOT_DIR"
+        print_success "دایرکتوری ایجاد شد: $BOT_DIR"
+    fi
+
+    # نصب وابستگی‌ها
+    print_info "نصب وابستگی‌ها..."
+    pip3 install -q pyTelegramBotAPI aiohttp requests beautifulsoup4 python-dotenv
+    print_success "وابستگی‌ها نصب شدند"
+
+    # بررسی فایل‌های اصلی
+    if [ ! -f "$BOT_DIR/$BOT_SCRIPT" ]; then
+        print_error "فایل $BOT_SCRIPT در $BOT_DIR وجود ندارد"
+        print_info "لطفا فایل را از ZIP استخراج کنید"
+        exit 1
+    fi
+
+    # ایجاد .env اگر موجود نبود
+    if [ ! -f "$ENV_FILE" ]; then
+        echo "TELEGRAM_BOT_TOKEN=8710855081:AAEhS43AvS6zeLtCqnoQggfHBuqW94YySbE" > "$ENV_FILE"
+        chmod 600 "$ENV_FILE"
+        print_success "فایل .env ایجاد شد"
+    fi
+
+    # ایجاد config.json اگر موجود نبود
+    if [ ! -f "$CONFIG_FILE" ]; then
+        echo '{"channels": [], "default_views": 0, "proxies": [], "last_processed": {}}' > "$CONFIG_FILE"
+        print_success "فایل config.json ایجاد شد"
+    fi
+
+    # ایجاد دایرکتوری لاگ
+    mkdir -p "$(dirname "$LOG_FILE")"
+
+    print_success "نصب تکمیل شد!"
+}
+
+# ===== تابع ایجاد Systemd Service =====
+create_systemd_service() {
+    print_header "⚙️  ایجاد Systemd Service"
+
+    if [ -f "$SYSTEMD_SERVICE" ]; then
+        print_warning "سرویس قبلا ایجاد شده است"
+        return
+    fi
+
+    cat > "$SYSTEMD_SERVICE" << 'EOF'
+[Unit]
+Description=Telegram TURBO Bot Pro
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/telegram_turbo_bot/telegram_turbo_bot_pro_final
+ExecStart=/usr/bin/python3 /root/telegram_turbo_bot/telegram_turbo_bot_pro_final/telegram_turbo_pro_final.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/telegram_turbo_bot.log
+StandardError=append:/var/log/telegram_turbo_bot.log
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    chmod 644 "$SYSTEMD_SERVICE"
+    systemctl daemon-reload
+    systemctl enable $BOT_SERVICE
+    print_success "Systemd Service ایجاد و فعال شد"
+}
+
+# ===== تابع شروع ربات =====
+start_bot() {
+    print_header "🚀 شروع ربات"
+
+    if systemctl is-active --quiet $BOT_SERVICE 2>/dev/null; then
+        print_warning "ربات قبلا فعال است"
+        return
+    fi
+
+    systemctl start $BOT_SERVICE
+    sleep 2
+
+    if systemctl is-active --quiet $BOT_SERVICE 2>/dev/null; then
+        print_success "ربات شروع شد (PID: $(get_bot_pid))"
+    else
+        print_error "خطا در شروع ربات"
+        systemctl status $BOT_SERVICE
+        exit 1
+    fi
+}
+
+# ===== تابع توقف ربات =====
+stop_bot() {
+    print_header "⏹️  توقف ربات"
+
+    if ! systemctl is-active --quiet $BOT_SERVICE 2>/dev/null; then
+        print_warning "ربات قبلا متوقف است"
+        return
+    fi
+
+    systemctl stop $BOT_SERVICE
+    sleep 1
+    print_success "ربات متوقف شد"
+}
+
+# ===== تابع راه‌اندازی مجدد ربات =====
+restart_bot() {
+    print_header "🔄 راه‌اندازی مجدد ربات"
+
+    systemctl restart $BOT_SERVICE
+    sleep 2
+
+    if systemctl is-active --quiet $BOT_SERVICE 2>/dev/null; then
+        print_success "ربات راه‌اندازی مجدد شد (PID: $(get_bot_pid))"
+    else
+        print_error "خطا در راه‌اندازی مجدد ربات"
+        exit 1
+    fi
+}
+
+# ===== تابع نمایش وضعیت =====
+show_status() {
+    print_header "📊 وضعیت سیستم"
+
+    echo -e "${BLUE}ربات:${NC}"
+    echo -n "  وضعیت: "
+    check_bot_status || true
+    echo "  PID: $(get_bot_pid)"
+
+    if systemctl is-active --quiet $BOT_SERVICE 2>/dev/null; then
+        echo "  حافظه:"
+        ps aux | grep $BOT_SCRIPT | grep -v grep | awk '{print "    RSS: " $6 " KB | CPU: " $3 "%"}'
+    fi
+
+    echo ""
+    echo -e "${BLUE}مسیرها:${NC}"
+    echo "  دایرکتوری: $BOT_DIR"
+    echo "  توکن: $ENV_FILE"
+    echo "  لاگ: $LOG_FILE"
+    echo ""
+    echo -e "${BLUE}سرویس:${NC}"
+    systemctl status $BOT_SERVICE --no-pager | grep -E "Active|PID" | sed 's/^/  /'
+}
+
+# ===== تابع تغییر توکن =====
+change_token() {
+    print_header "🔑 تغییر توکن ربات"
+
+    echo -e "${YELLOW}توکن فعلی:${NC}"
+    grep TELEGRAM_BOT_TOKEN "$ENV_FILE" | cut -d= -f2
+    echo ""
+
+    read -p "توکن جدید را وارد کنید: " NEW_TOKEN
+
+    if [ -z "$NEW_TOKEN" ]; then
+        print_error "توکن خالی است"
+        return 1
+    fi
+
+    if [ ${#NEW_TOKEN} -lt 20 ]; then
+        print_error "توکن معتبر نیست (خیلی کوتاه)"
+        return 1
+    fi
+
+    # بکاپ گرفتن
+    cp "$ENV_FILE" "$ENV_FILE.bak"
+    print_info "بکاپ در: $ENV_FILE.bak"
+
+    # تغییر توکن
+    sed -i "s/TELEGRAM_BOT_TOKEN=.*/TELEGRAM_BOT_TOKEN=$NEW_TOKEN/" "$ENV_FILE"
+
+    print_success "توکن تغییر کرد"
+    echo ""
+
+    # درخواست راه‌اندازی مجدد
+    read -p "آیا می‌خواهید ربات را راه‌اندازی مجدد کنید؟ (y/n): " -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        restart_bot
+    fi
+}
+
+# ===== تابع نمایش لاگ‌ها =====
+show_logs() {
+    print_header "📋 لاگ‌های ربات"
+
+    if [ ! -f "$LOG_FILE" ]; then
+        print_warning "فایل لاگ موجود نیست"
+        return
+    fi
+
+    echo -e "${YELLOW}آخرین 50 خط:${NC}\n"
+    tail -50 "$LOG_FILE"
+}
+
+# ===== تابع مشاهده لایو لاگ =====
+watch_logs() {
+    print_header "👁️  مشاهده لایو لاگ‌ها"
+    echo -e "${YELLOW}برای خروج: Ctrl+C${NC}\n"
+
+    if [ ! -f "$LOG_FILE" ]; then
+        print_warning "فایل لاگ موجود نیست"
+        return
+    fi
+
+    tail -f "$LOG_FILE"
+}
+
+# ===== تابع پاک‌کردن لاگ‌ها =====
+clear_logs() {
+    print_header "🗑️  پاک‌کردن لاگ‌ها"
+
+    read -p "آیا مطمئن هستید؟ (y/n): " -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        > "$LOG_FILE"
+        print_success "لاگ‌ها پاک شدند"
+    else
+        print_warning "لغو شد"
+    fi
+}
+
+# ===== تابع بازگردانی بکاپ =====
+restore_backup() {
+    print_header "♻️  بازگردانی بکاپ"
+
+    if [ ! -f "$ENV_FILE.bak" ]; then
+        print_error "بکاپ موجود نیست"
+        return
+    fi
+
+    cp "$ENV_FILE.bak" "$ENV_FILE"
+    print_success "بکاپ بازگردانی شد"
+
+    read -p "آیا می‌خواهید ربات را راه‌اندازی مجدد کنید؟ (y/n): " -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        restart_bot
+    fi
+}
+
+# ===== تابع عیب‌یابی =====
+troubleshoot() {
+    print_header "🔧 عیب‌یابی"
+
+    echo -e "${BLUE}1. بررسی وابستگی‌ها${NC}"
+    python3 -c "import telebot; print('  ✅ pyTelegramBotAPI'); import aiohttp; print('  ✅ aiohttp'); import requests; print('  ✅ requests'); from bs4 import BeautifulSoup; print('  ✅ BeautifulSoup'); import dotenv; print('  ✅ python-dotenv')" 2>/dev/null || print_error "مشکل در وابستگی‌ها"
+
+    echo ""
+    echo -e "${BLUE}2. بررسی فایل‌ها${NC}"
+    [ -f "$BOT_DIR/$BOT_SCRIPT" ] && print_success "✅ $BOT_SCRIPT موجود" || print_error "❌ $BOT_SCRIPT موجود نیست"
+    [ -f "$ENV_FILE" ] && print_success "✅ .env موجود" || print_error "❌ .env موجود نیست"
+    [ -f "$CONFIG_FILE" ] && print_success "✅ config.json موجود" || print_error "❌ config.json موجود نیست"
+
+    echo ""
+    echo -e "${BLUE}3. بررسی دسترسی‌ها${NC}"
+    [ -r "$ENV_FILE" ] && print_success "✅ $ENV_FILE قابل خواندن" || print_error "❌ $ENV_FILE قابل خواندن نیست"
+    [ -w "$ENV_FILE" ] && print_success "✅ $ENV_FILE قابل نوشتن" || print_error "❌ $ENV_FILE قابل نوشتن نیست"
+
+    echo ""
+    echo -e "${BLUE}4. بررسی اتصال اینترنت${NC}"
+    if ping -c 1 -W 2 8.8.8.8 &> /dev/null; then
+        print_success "✅ اتصال اینترنت موجود"
+    else
+        print_error "❌ اتصال اینترنت ندارد"
+    fi
+}
+
+# ===== منوی اصلی =====
+main_menu() {
+    while true; do
+        print_header "🤖 مدیریت ربات TURBO Pro"
+
+        echo "وضعیت: $(check_bot_status || true)"
+        echo "PID: $(get_bot_pid)"
+        echo ""
+
+        echo -e "${CYAN}گزینه‌ها:${NC}"
+        echo "  1️⃣  شروع ربات"
+        echo "  2️⃣  توقف ربات"
+        echo "  3️⃣  راه‌اندازی مجدد"
+        echo "  4️⃣  نمایش وضعیت"
+        echo "  5️⃣  نمایش لاگ‌ها (آخرین 50 خط)"
+        echo "  6️⃣  مشاهده لایو لاگ‌ها"
+        echo "  7️⃣  پاک‌کردن لاگ‌ها"
+        echo "  8️⃣  تغییر توکن ربات"
+        echo "  9️⃣  بازگردانی بکاپ"
+        echo "  🔧 عیب‌یابی"
+        echo "  📦 نصب/به‌روزرسانی"
+        echo "  0️⃣  خروج"
+        echo ""
+
+        read -p "گزینه خود را انتخاب کنید: " choice
+
+        case $choice in
+            1) start_bot ;;
+            2) stop_bot ;;
+            3) restart_bot ;;
+            4) show_status ;;
+            5) show_logs ;;
+            6) watch_logs ;;
+            7) clear_logs ;;
+            8) change_token ;;
+            9) restore_backup ;;
+            t|T) troubleshoot ;;
+            i|I) install_bot ;;
+            0)
+                print_info "خروج از برنامه"
+                exit 0
+                ;;
+            *)
+                print_error "گزینه نامعتبر است"
+                sleep 1
+                ;;
+        esac
+
+        echo ""
+        read -p "برای ادامه... (Enter)"
+        clear
+    done
+}
+
+# ===== نقطه شروع اصلی =====
+main() {
+    check_root
+
+    # بررسی وجود دایرکتوری ربات
+    if [ ! -d "$BOT_DIR" ]; then
+        print_header "📦 نصب اولیه ربات"
+        install_bot
+        create_systemd_service
+        read -p "آیا می‌خواهید ربات را فعال کنید؟ (y/n): " -r
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            start_bot
+        fi
+    fi
+
+    # نمایش منو
+    clear
+    main_menu
+}
+
+main "$@"
