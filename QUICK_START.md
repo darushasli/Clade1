@@ -27,13 +27,13 @@ ls -la
 ```
 
 فایل‌های مورد نیاز:
-- ✅ `telegram_view_bot_turbo_fixed.py` (ربات اصلاح شده)
-- ✅ `requirements_turbo.txt` (وابستگی‌ها)
-- ✅ `.env.example` (نمونه محیط)
+- ✅ `telegram_turbo_pro_final.py` (ربات حرفه‌ای)
+- ✅ `requirements.txt` (وابستگی‌ها)
+- ✅ `.env` (فایل محیط)
 
 ### مرحله 2: نصب وابستگی‌ها
 ```bash
-pip install -r requirements_turbo.txt
+pip install -r requirements.txt
 ```
 
 خروجی مورد انتظار:
@@ -53,15 +53,23 @@ Successfully installed requests-2.31.0
 cp .env.example .env
 ```
 
-### مرحله 2: دریافت توکن
+### مرحله 2: تنظیم توکن
+
+فایل `.env` قبلاً با توکن پیش فرض تنظیم شده است:
+```env
+TELEGRAM_BOT_TOKEN=8710855081:AAEhS43AvS6zeLtCqnoQggfHBuqW94YySbE
+```
+
+اگر می‌خواهید توکن خود را استفاده کنید:
+
 1. تلگرام رو باز کنید
 2. جستجو کنید: `@BotFather`
 3. فرمان: `/newbot`
 4. نام ربات رو وارد کنید
 5. Username ربات رو وارد کنید
-6. **کپی** کنید: توکن 👇
+6. توکن جدید را کپی کنید
 
-### مرحله 3: تنظیم توکن
+### مرحله 3: تنظیم توکن (اختیاری)
 ```bash
 nano .env
 ```
@@ -71,9 +79,9 @@ nano .env
 notepad .env
 ```
 
-تنظیم کنید:
+توکن جدید را تنظیم کنید:
 ```env
-TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+TELEGRAM_BOT_TOKEN=توکن_جدید_شما
 ```
 
 **نکات:**
@@ -87,28 +95,28 @@ TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
 
 ### گزینه 1: اجرا ساده
 ```bash
-python telegram_view_bot_turbo_fixed.py
+python3 telegram_turbo_pro_final.py
 ```
 
 خروجی مورد انتظار:
 ```
-🚀 TURBO VIEWS BOT فعال است!
-⚡ سرعت: بسیار سریع | 🔄 همزمان | ✅ فوری
+🚀 TURBO BOT Pro فعال است!
+⚡ سرعت: +1000 سین/ثانیه | 🔄 150 همزمان | ✅ فوری
 ```
 
 ### گزینه 2: اجرا با Logging
 ```bash
-python telegram_view_bot_turbo_fixed.py 2>&1 | tee bot.log
+python3 telegram_turbo_pro_final.py 2>&1 | tee bot.log
 ```
 
 ### گزینه 3: اجرا در Background (Linux/Mac)
 ```bash
-nohup python telegram_view_bot_turbo_fixed.py > bot.log 2>&1 &
+nohup python3 telegram_turbo_pro_final.py > bot.log 2>&1 &
 ```
 
 ### گزینه 4: اجرا در Background (Windows)
 ```bash
-pythonw telegram_view_bot_turbo_fixed.py
+pythonw telegram_turbo_pro_final.py
 ```
 
 ### 🛑 توقف ربات
@@ -118,7 +126,7 @@ pythonw telegram_view_bot_turbo_fixed.py
 
 یا اگر در background است:
 ```bash
-ps aux | grep telegram_view_bot_turbo_fixed.py
+ps aux | grep telegram_turbo_pro_final.py
 kill -9 <PID>
 ```
 
@@ -246,7 +254,7 @@ echo "TELEGRAM_BOT_TOKEN=YOUR_TOKEN_HERE" > .env
 
 **حل**:
 ```bash
-pip install -r requirements_turbo.txt
+pip install -r requirements.txt
 ```
 
 ### ❌ ربات Offline است
@@ -256,10 +264,10 @@ pip install -r requirements_turbo.txt
 **حل**:
 ```bash
 # بررسی اجرا
-ps aux | grep telegram_view_bot_turbo_fixed.py
+ps aux | grep telegram_turbo_pro_final.py
 
 # دوباره شروع کنید
-python telegram_view_bot_turbo_fixed.py
+python3 telegram_turbo_pro_final.py
 ```
 
 ### ❌ دکمه‌ها کار نمی‌کنند
@@ -328,13 +336,13 @@ grep "✅" logs/bot_*.log | wc -l
 
 ```bash
 # نصب دوباره
-pip install --upgrade -r requirements_turbo.txt
+pip install --upgrade -r requirements.txt
 
 # بررسی Python version
-python --version
+python3 --version
 
 # بررسی توابع
-python -c "import telebot; print(telebot.__version__)"
+python3 -c "import telebot; print(telebot.__version__)"
 ```
 
 ---
@@ -343,9 +351,9 @@ python -c "import telebot; print(telebot.__version__)"
 
 - [ ] Python 3.8+ نصب شده
 - [ ] requirements نصب شده
-- [ ] توکن BotFather دریافت شده
-- [ ] .env تنظیم شده
-- [ ] `telegram_view_bot_turbo_fixed.py` آماده است
+- [ ] توکن بات تنظیم شده (پیش فرض یا کاستم)
+- [ ] .env موجود و صحیح است
+- [ ] `telegram_turbo_pro_final.py` آماده است
 - [ ] `/start` کار می‌کند
 - [ ] دکمه‌ها کار می‌کنند
 - [ ] لاگ‌ها تولید می‌شوند
@@ -367,8 +375,9 @@ python -c "import telebot; print(telebot.__version__)"
 
 ## 📞 نکات بیشتر
 
-- 📖 ببینید: `DEBUG_REPORT.md` برای تمام اصلاح‌ها
-- 🧪 تست: `python test_bot.py` برای بررسی کامل
-- 📝 لاگ: `logs/` فایل برای debugging
+- 📖 ببینید: `README.md` برای اطلاعات کامل
+- 🧪 تست: `python3 test_bot.py` برای بررسی کامل
+- 📝 لاگ: `/var/log/telegram_turbo_bot.log` برای debugging
+- ⚙️ منو: `sudo mrliq2` برای مدیریت سرور
 
 **موفق باشید! 🎊**
